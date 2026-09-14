@@ -25,6 +25,36 @@ TXT focuses on the common needs of everyday users — and does them well.
 TXT is not designed to do everything.
 It is designed to do what most people need, without unnecessary features, complexity, or resource consumption.
 
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Windows.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Windows.jpg" width="300">
+      </a>
+      <br>
+      <strong>Windows</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Mac%20OS.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Mac%20OS.jpg" width="300">
+      </a>
+      <br>
+      <strong>macOS</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Linux.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Linux.jpg" width="300">
+      </a>
+      <br>
+      <strong>Linux</strong>
+    </td>
+  </tr>
+</table>
+
+</div>
+
 ## Core Design
 
 ### 1. Plain Text Only
