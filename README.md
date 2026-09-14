@@ -1,83 +1,65 @@
+<div align="center">
+
+<img src="assets/logo.png" width="100">
+
 # TXT
 
 **A modern, lightweight, multi-tab plain-text editor for Windows, Linux, and macOS.**
 
 TXT aims to become a better default text editor.
 
-It is designed around one simple idea:
+<p>
+<a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-> **Find the common needs of ordinary users, and do them exceptionally well.**
-
-TXT is not designed to do everything.
-It is designed to do **what most people need** — without unnecessary features, complexity, or resource consumption.
-
----
+</div>
 
 ## Why TXT?
 
-Today's default text editors generally fall into two directions:
+There is a gap between basic system text editors and powerful development tools.
 
-* **Too basic** — limited editing capabilities and poor handling of larger or more demanding tasks.
-* **Too complex** — powerful editors such as IDEs provide far more functionality than ordinary users need.
+TXT focuses on the common needs of everyday users — and does them well.
 
-TXT aims to find the **common ground** between them:
+> **Maximum common ground. Minimum unnecessary features.**
 
-> **More capable than a basic system editor.
-> Simpler and lighter than a development environment.**
-
-The goal is not to build another feature-heavy editor.
-
-The goal is to build a text editor that could eventually be good enough to become a **default editor for an operating system**.
-
----
+TXT is not designed to do everything.
+It is designed to do what most people need, without unnecessary features, complexity, or resource consumption.
 
 ## Core Design
 
 ### 1. Plain Text Only
 
-TXT is a **plain-text editor**.
+TXT always works with plain text.
 
-Pasted rich text is automatically converted to plain text.
-
-No RTF. No HTML formatting. No unnecessary document features.
+Pasted rich text, HTML, and other formatting are stripped automatically, keeping the editing experience predictable and clean.
 
 ### 2. Lightweight & Native
 
-TXT should start fast, consume little memory, and remain small.
+Built with Rust and Slint instead of Electron.
 
-No Electron.
+Fast startup, low resource usage, and a small footprint are core goals.
 
-The project favors native, lightweight technologies wherever practical.
+### 3. Simple Multi-Tab Editing
 
-### 3. Minimal Multi-Tab Interface
+Multiple files, one clean interface.
 
-Multiple documents, one simple interface.
-
-No traditional menu bar.
-
-Features should remain discoverable through contextual menus, the command palette, and a minimal toolbar.
+No traditional menu bar. Advanced functions remain accessible through the command palette and contextual menus.
 
 ### 4. Never Lose Your Work
 
-Closing a tab does not have to mean losing an unsaved document.
+Closing a tab should not mean losing an unfinished draft.
 
-Unsaved documents are silently preserved in an encrypted local cache and restored when TXT is opened again.
+TXT automatically saves uncommitted drafts to an encrypted local cache and restores them when needed.
 
-The user should not have to think about recovery.
+### 5. Built for Large Files
 
-### 5. Large Files, No Lag
-
-TXT is designed for efficient editing of large text files.
-
-A rope-based text buffer is used to avoid unnecessary copying and maintain responsive editing performance.
+TXT uses a rope-based text buffer to keep editing responsive even with large text files.
 
 ### 6. Secure by Default
 
-Session data and temporary documents may contain sensitive information.
+Session drafts are protected with AES-256-GCM encryption.
 
-Local caches are encrypted and protected using the operating system's secure storage where available.
-
----
+Encryption keys are stored using the operating system's secure storage.
 
 ## Technology
 
@@ -89,31 +71,19 @@ Local caches are encrypted and protected using the operating system's secure sto
 | Syntax Highlighting | syntect                 |
 | Encoding            | encoding_rs             |
 | Encryption          | AES-256-GCM             |
-| Platforms           | Windows / Linux / macOS |
-
-TXT intentionally avoids Electron in favor of a lightweight native architecture.
-
----
+| Platforms           | Windows · Linux · macOS |
 
 ## Product Principle
 
-TXT follows one rule:
+> **Find the common needs of ordinary users, and do them exceptionally well.**
 
-> **Maximum common ground, minimum unnecessary features.**
-
-Every feature should be evaluated by one question:
+Before adding a feature, TXT asks:
 
 **Do most users actually need this?**
 
-If not, it probably does not belong in TXT.
-
----
+If the answer is no, it probably does not belong in TXT.
 
 ## Roadmap
-
-The roadmap will be driven by real user needs and community discussion.
-
-Initial priorities:
 
 * [ ] Core text editing
 * [ ] Multi-tab editing
@@ -121,38 +91,38 @@ Initial priorities:
 * [ ] Session recovery
 * [ ] Large-file performance
 * [ ] Encoding support
-* [ ] Encrypted cache
+* [ ] Encrypted session cache
 * [ ] Syntax highlighting
 * [ ] Packaging & distribution
 
----
+The roadmap will evolve with the project and community feedback.
 
 ## Contributing
 
-**TXT is looking for developers, designers, testers, and anyone interested in building a better everyday text editor.**
+TXT is an open-source project and welcomes contributions.
 
-You can contribute through:
+You can help with:
 
 * Code
-* UI / UX
+* UI/UX
 * Performance
 * Security
 * Testing
 * Documentation
 * Localization
-* Product discussions
 * Bug reports
+* Product ideas
 
-You don't have to be a developer to contribute.
-
-The product direction is intentionally open to discussion.
-
-**If you believe everyday text editors can be simpler, faster, and better, you're welcome to join.**
-
----
+**You don't have to be a developer to contribute.**
 
 ## License
 
-TXT is free and open-source software released under the **MIT License**.
+TXT is released under the **MIT License**.
 
-Contributions, forks, and redistribution are welcome.
+Free to use, modify, distribute, and build upon.
+
+---
+
+<p align="center">
+  <sub>Built with Rust · Slint · and a focus on simplicity.</sub>
+</p>
