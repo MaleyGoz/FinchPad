@@ -1,4 +1,4 @@
-# TXT
+# TXT Editor
 
 **A modern, lightweight, multi-tab plain-text editor for Windows, Linux, and macOS.**
 
