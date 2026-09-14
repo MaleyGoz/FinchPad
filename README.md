@@ -1,10 +1,16 @@
-# TXT
 <p align="center">
-  <img src="assets/logo.png" width="180">
+  <img src="assets/logo.png" width="120">
 </p>
-**A modern, lightweight, multi-tab plain-text editor for Windows, Linux, and macOS.**
 
-TXT aims to become a better default text editor.
+<h1 align="center">TXT</h1>
+
+<p align="center">
+  A modern, lightweight, multi-tab plain-text editor for Windows, Linux, and macOS.
+</p>
+
+<p align="center">
+  TXT aims to become a better default text editor.
+</p>
 
 It is designed around one simple idea:
 
