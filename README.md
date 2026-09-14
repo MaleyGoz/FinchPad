@@ -4,9 +4,7 @@
 
 TXT aims to replace the default text editors that come with modern operating systems.
 
-> Simple enough for everyone.
-> Fast enough for everything.
-> Open source and built for everyone.
+> TXT is not designed to do everything. It is designed to do what everyone needs, exceptionally well.
 
 ---
 
