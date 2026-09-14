@@ -29,7 +29,35 @@ TXT 希望找到两者之间的平衡：
 TXT 不希望成为另一个功能堆砌的编辑器。
 
 我们的目标是打造一款足够优秀的文本编辑器，未来甚至可以成为**操作系统的默认文本编辑器**。
+<div align="center">
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Windows.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Windows.jpg" width="300">
+      </a>
+      <br>
+      <strong>Windows</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Mac%20OS.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Mac%20OS.jpg" width="300">
+      </a>
+      <br>
+      <strong>macOS</strong>
+    </td>
+    <td align="center">
+      <a href="https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/Linux.jpg">
+        <img src="https://raw.githubusercontent.com/MaleyGoz/TXT-Editor/main/assets/Linux.jpg" width="300">
+      </a>
+      <br>
+      <strong>Linux</strong>
+    </td>
+  </tr>
+</table>
+
+</div>
 ## 核心设计
 
 ### 1. 强制纯文本
