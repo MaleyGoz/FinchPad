@@ -1,5 +1,7 @@
 # TXT
-![logo](https://github.com/MaleyGoz/TXT-Editor/blob/main/assets/logo.png)
+<p align="center">
+  <img src="assets/logo.png" width="180">
+</p>
 **A modern, lightweight, multi-tab plain-text editor for Windows, Linux, and macOS.**
 
 TXT aims to become a better default text editor.
