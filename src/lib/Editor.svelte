@@ -4,6 +4,7 @@
   import editorWorker from 'monaco-editor/editor/editor.worker?worker';
   import { writeText, readText } from '@tauri-apps/plugin-clipboard-manager';
   import { THEMES } from '$lib/themes';
+  import { t, resolvedLocale } from '$lib/i18n';  
 
   self.MonacoEnvironment = {
     getWorker: () => new editorWorker(),
@@ -317,10 +318,10 @@ if (typeof window !== 'undefined') {
   {#if isPendingLoad}
     <div class="pending-overlay">
       <div class="pending-card">
-        <div class="pending-title">此文件较大，尚未加载</div>
-        <div class="pending-size">文件大小：{formatSize(fileSize)}</div>
-        <div class="pending-hint">加载后编辑器可能短暂无响应</div>
-        <button class="pending-btn" onclick={onLoadRequest}>立即加载</button>
+        <div class="pending-title">{t('pending.title', undefined, $resolvedLocale)}</div>
+        <div class="pending-size">{t('pending.size', { size: formatSize(fileSize) }, $resolvedLocale)}</div>
+        <div class="pending-hint">{t('pending.hint', undefined, $resolvedLocale)}</div>
+        <button class="pending-btn" onclick={onLoadRequest}>{t('pending.load', undefined, $resolvedLocale)}</button>
       </div>
     </div>
   {/if}
