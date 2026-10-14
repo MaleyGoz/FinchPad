@@ -40,6 +40,8 @@ pub struct Workspace {
     unnamed_template: String,
     /// 用户的语言选择（"auto" / "zh-CN" / "en-US"）
     locale_choice: String,
+    /// ★ 新增：最近一次成功打开/另存为时所在的目录
+    last_used_path: Option<PathBuf>,
 }
 
 impl Workspace {
@@ -86,6 +88,7 @@ impl Workspace {
             locale: "zh-CN".to_string(),
             unnamed_template: "未命名{index}".to_string(),
             locale_choice: "auto".to_string(),
+            last_used_path: None,
         };
         let first = ws.make_blank_tab();
         ws.tabs.push(first);
@@ -196,14 +199,22 @@ impl Workspace {
         &self.tabs
     }
 
+    /// ★ 新增：可变访问器，供 app.rs 修改 cache_stale
+    pub fn tabs_mut(&mut self) -> &mut [Tab] {
+        &mut self.tabs
+    }
+
     /// 用一组新标签整体替换当前状态（用于 session 恢复）。
     pub fn restore(&mut self, tabs: Vec<Tab>, active_index: usize) {
         self.tabs = tabs;
-        self.active_index = if self.tabs.is_empty() {
-            0
+        if self.tabs.is_empty() {
+            // ★ 空数组 → 自动补一个全新的空白标签，避免 active_tab 越界
+            let tab = self.make_blank_tab();
+            self.tabs.push(tab);
+            self.active_index = 0;
         } else {
-            active_index.min(self.tabs.len() - 1)
-        };
+            self.active_index = active_index.min(self.tabs.len() - 1);
+        }
     }
 
     pub fn zoom(&self) -> i32 {
@@ -240,6 +251,14 @@ impl Workspace {
 
     pub fn locale_choice(&self) -> &str {
         &self.locale_choice
+    }
+
+    pub fn last_used_path(&self) -> Option<&PathBuf> {
+        self.last_used_path.as_ref()
+    }
+
+    pub fn set_last_used_path(&mut self, path: Option<PathBuf>) {
+        self.last_used_path = path;
     }
 
     /// 设置当前语言和未命名标签模板。

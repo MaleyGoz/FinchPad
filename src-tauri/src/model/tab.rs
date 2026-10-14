@@ -56,6 +56,8 @@ pub struct Tab {
     ///   - 未命名标签：空字符串的哈希
     /// 用于判定"输入后又删除"是否真的回到了干净状态。
     pub saved_hash: u64,
+    ///缓存是否失效（需要重新写入缓存）
+    pub cache_stale: bool,
 }
 
 impl Tab {
@@ -65,10 +67,14 @@ impl Tab {
         h.finish()
     }
 
-    /// 当前内容相对于"上次干净状态"是否真的有变化。
     pub fn is_content_dirty(&self) -> bool {
+        // 如果还是占位状态，一律视为干净
+        if self.is_pending_load {
+            return false;
+        }
         Self::hash_of(&self.buffer.to_string()) != self.saved_hash
     }
+
     /// 创建一个全新的空白临时标签
     pub fn new_blank(title: String) -> Self {
         Self {
@@ -88,6 +94,7 @@ impl Tab {
             saved_hash: Self::hash_of(""),
             is_pending_load: false,
             file_size: 0, // from_file 里改成从参数或 metadata 获取
+            cache_stale: true,
         }
     }
 
@@ -111,9 +118,10 @@ impl Tab {
             cursor_line: 1,
             cursor_column: 1,
             needs_reload: false,
-            saved_hash: 0,
+            saved_hash: Self::hash_of(""), // ★ 修复：空文本的哈希，而不是 0
             is_pending_load: true,
             file_size: size,
+            cache_stale: true,
         }
     }
 
@@ -133,6 +141,7 @@ impl Tab {
         self.is_pending_load = true;
         self.file_size = size;
         self.needs_reload = false;
+        self.saved_hash = Self::hash_of(""); // ★ 修复：确保哈希对应空内容
     }
 
     /// 从磁盘上的已有文件创建标签
@@ -166,6 +175,7 @@ impl Tab {
             saved_hash: Self::hash_of(content),
             is_pending_load: false,
             file_size: 0, // from_file 里改成从参数或 metadata 获取
+            cache_stale: true,
         }
     }
 
@@ -194,6 +204,7 @@ impl Tab {
         self.line_count = line_count;
         self.char_count = char_count;
         self.saved_hash = Self::hash_of(content);
+        self.cache_stale = true;
     }
 
     /// 判断这个标签是否"空白且未编辑过"(用于决定 Ctrl+O 是复用还是新建)
@@ -211,6 +222,7 @@ impl Tab {
         self.is_dirty = false;
         self.last_known_mtime = Some(new_mtime);
         self.saved_hash = Self::hash_of(&self.buffer.to_string());
+        self.cache_stale = true;
     }
 
     /// 用户放弃对"已被外部删除文件"的修改：
@@ -246,5 +258,6 @@ impl Tab {
         self.is_dirty = false;
         self.last_known_mtime = Some(mtime);
         self.saved_hash = Self::hash_of(content);
+        self.cache_stale = true;
     }
 }

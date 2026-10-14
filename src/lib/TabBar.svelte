@@ -362,7 +362,7 @@
 
   <!-- 左侧 Logo -->
   <div class="app-logo" data-tauri-drag-region>
-    <img src="/tab-icon.png" alt="TXT Editor" />
+    <img src="/tab-icon.png" alt="FinchPad" />
   </div>
 
   {#each titles.slice(visibleStart, visibleEnd) as title, k}

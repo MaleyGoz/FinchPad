@@ -46,8 +46,9 @@
   let pendingText: string | null = null;
   let selectedCount = 0;
   let selectedLineCount = 0;  
-  // 记录"已问过"的标签 id（脏+Modified 只弹一次）
-  let modifiedPrompted = new Set<string>();
+  // tabId -> 用户最后一次看到冲突弹窗时的磁盘 mtime（秒级时间戳）
+  // 用于区分"同一次外部修改"和"新的外部修改"
+  let acknowledgedDiskMtime = new Map<string, number>();
   let zoom = 100;
   let wordWrap = true;
   let showLineNumbers = true;
@@ -87,7 +88,7 @@
   type SettingsMenuState = { visible: boolean; anchorRight: number; anchorBottom: number };
   let settingsMenu: SettingsMenuState = { visible: false, anchorRight: 0, anchorBottom: 0 };
   let aboutVisible = false;
-  const APP_VERSION = '0.1.0';  // 和 Cargo.toml / package.json 里的版本号保持一致  
+  const APP_VERSION = '0.2.0';  // 和 Cargo.toml / package.json 里的版本号保持一致  
 
   function handleSettingsClick(anchorRight: number, anchorBottom: number) {
     closeContextMenu();
@@ -101,7 +102,7 @@
 
   async function openGitHub() {
     try {
-      await openUrl('https://github.com/MaleyGoz/TXT-Editor');
+      await openUrl('https://github.com/MaleyGoz/FinchPad');
     } catch (e) {
       console.error('打开链接失败：', e);
     }
@@ -200,34 +201,25 @@
 
     if (full.disk_state === 'modified') {
       if (full.is_dirty) {
-        // 脏 + Modified → 弹窗
-        if (!modifiedPrompted.has(tabId)) {
-          modifiedPrompted.add(tabId);
-          modal = {
-            visible: true,
-            title: t('dialog.external_modified'),
-            rows: [
-              [
-                { label: t('dialog.close_confirm'), style: 'primary', action: () => reloadAndCloseModal(idx) },
-                { label: t('dialog.close_cancel'), action: closeModal },
-              ],
-            ],
-          };
+        // 脏 + Modified → 弹冲突框（用 mtime 判断是否是新冲突）
+        const diskMtime = full.disk_mtime ?? 0;
+        const lastSeen = acknowledgedDiskMtime.get(tabId) ?? -1;
+        if (diskMtime !== lastSeen) {
+          acknowledgedDiskMtime.set(tabId, diskMtime);
+          showSaveConflictModal(idx);
         }
       } else {
-        // 干净 + Modified → 静默重载
+        // 干净 + Modified → 静默重载（保持不变）
         snapshot = await api.reloadTab(idx);
       }
     }
   }
 
-
-  async function reloadAndCloseModal(idx: number) {
-    closeModal();
-    snapshot = await api.reloadTab(idx);
-  }
-
   async function handleClose(i: number) {
+    // ★ 方案 A：如果目标标签不是激活标签，先切过去（让用户看清冲突）
+    if (i !== snapshot.active_index) {
+      await api.switchTab(i);
+    }
     await flushPendingEdit();
     await refresh();
 
@@ -242,7 +234,16 @@
       return;
     }
 
-    // 脏标签 → 弹窗
+    // ★ 新增：已命名 + modified → 弹 5 按钮冲突框（关闭模式）
+    if (!isUnnamed) {
+      const full = await api.checkTabFullState(i);
+      if (full.disk_state === 'modified') {
+        showSaveConflictModal(i, 'close', () => discardAndClose(i));
+        return;
+      }
+    }
+
+    // 其它脏标签（含未命名）→ 弹"是否保存"
     const message = isUnnamed
       ? t('dialog.ask_save_unnamed', { title })
       : t('dialog.ask_save_named', { title });
@@ -384,9 +385,17 @@
       });
       if (!path) return;
       snapshot = await api.saveActiveFileAs(path);
-    } else {
-      snapshot = await api.saveActiveFile();
+      return;
     }
+
+    // ★ 新增：已命名 + modified → 弹 5 按钮冲突框
+    const full = await api.checkTabFullState(idx);
+    if (full.disk_state === 'modified') {
+      showSaveConflictModal(idx);
+      return;
+    }
+
+    snapshot = await api.saveActiveFile();
   }
 
   async function menuSaveAs() {
@@ -443,20 +452,47 @@
 
     const idx = snapshot.tab_ids.indexOf(tabId);
     if (idx === -1) {
-      // 已被关掉了，继续下一个
       return processNextClose();
     }
 
     const isDirty = snapshot.tab_dirty_states[idx] ?? false;
+    const isUnnamed = snapshot.tab_unnamed_states[idx] ?? false;
+
     if (!isDirty) {
       await api.closeTab(idx);
       await refresh();
       return processNextClose();
     }
 
-    // 脏标签 → 弹窗
+    // ★ 新增：已命名 + modified → 弹 5 按钮冲突框（关闭模式）
+    if (!isUnnamed) {
+      const full = await api.checkTabFullState(idx);
+      if (full.disk_state === 'modified') {
+        // 方案 A：先切到该标签，让用户看清冲突
+        await api.switchTab(idx);
+        await refresh();
+
+        showSaveConflictModal(
+          idx,
+          'close',
+          async () => {
+            // onComplete：用户处理完（覆盖/放弃）→ 关闭该标签，继续队列
+            await api.closeTab(idx);
+            await refresh();
+            processNextClose();
+          },
+          () => {
+            // onAbort：用户中止（对比/另存为/取消）→ 清空队列
+            closeQueue = [];
+            closeQueueActive = false;
+          }
+        );
+        return;
+      }
+    }
+
+    // 其它脏标签（含未命名）→ 弹"是否保存"
     const title = snapshot.tab_titles[idx] ?? t('tab.unnamed_fallback', undefined, get(resolvedLocale));
-    const isUnnamed = snapshot.tab_unnamed_states[idx] ?? false;
     const message = isUnnamed
       ? t('dialog.ask_save_unnamed', { title })
       : t('dialog.ask_save_named', { title });
@@ -576,9 +612,14 @@
       await refresh();
       await api.saveActiveFile();
     } catch (e) {
-      console.error('保存失败：', e);
-      closeQueueTabIds = [];
-      return;
+      if (e === "NeedsSaveAs") {
+        // ★ 遇到不可达状态，引导用户另存为
+        await handleSaveAs(); // 注意：这会切换当前激活标签
+      } else {
+        console.error('保存失败：', e);
+        closeQueueTabIds = [];
+        return;
+      }
     }
     await processNextLargeTabClose();
   }
@@ -661,7 +702,7 @@
       const name = path || title;
       const prefix = isDirty ? '● ' : '';
       getCurrentWindow()
-        .setTitle(`${prefix}${name} - TXT Editor`)
+        .setTitle(`${prefix}${name} - FinchPad`)
         .catch(console.error);
     }
   }  
@@ -680,6 +721,7 @@
   async function handleOpen() {
     const selected = await open({
       multiple: true,
+      defaultPath: snapshot.last_used_path || undefined,
       filters: [
         { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt', 'md', 'csv', 'json', 'xml', 'html', 'css', 'js', 'ts', 'py', 'log', 'yaml', 'yml', 'ini', 'conf', 'toml', 'sh', 'bat', 'ps1', 'rs', 'java', 'c', 'cpp', 'h', 'hpp', 'go', 'php', 'rb', 'swift', 'kt'] },
@@ -713,12 +755,20 @@
 
     switch (full.disk_state) {
       case 'normal':
-        // 磁盘正常，直接保存
-        snapshot = await api.saveActiveFile();
+        try {
+          snapshot = await api.saveActiveFile();
+        } catch (e) {
+          // ★ 处理竞态条件：检查状态到保存之间，U盘可能被拔了
+          if (e === "NeedsSaveAs") {
+            await handleSaveAs();
+          } else {
+            console.error('保存失败：', e);
+          }
+        }
         break;
       case 'deleted':
-        // 文件已被外部删除，直接保存（重建文件）
-        snapshot = await api.saveActiveFile();
+        // 文件已被外部删除，直接走另存为（安全兜底，防止覆盖空内容）
+        await handleSaveAs();
         break;
       case 'unreachable':
         // 位置不可达 → 自动走另存为
@@ -750,23 +800,79 @@
     snapshot = await api.saveActiveFileAs(path);
   }
 
-  function showSaveConflictModal(idx: number) {
+  function showSaveConflictModal(
+    idx: number,
+    mode: 'save' | 'close' = 'save',
+    onComplete?: () => void,
+    onAbort?: () => void
+  ) {
+    const isCloseMode = mode === 'close';
+    const secondLabel = isCloseMode
+      ? t('dialog.conflict_discard_close')
+      : t('dialog.conflict_discard');
+
+    // ★ 新增：从 snapshot 取路径（优先完整路径，回退到标题）
+    const filePath = snapshot.tab_paths[idx] || snapshot.tab_titles[idx] || '';
+    const modalTitle = t('dialog.conflict_title', { path: filePath });
+
     modal = {
       visible: true,
-      title: t('dialog.conflict_title'),
+      title: modalTitle,
       rows: [
         // 第一排：2 个大按钮
         [
-          { label: t('dialog.conflict_overwrite'), style: 'primary', size: 'large', action: () => overwriteDisk() },
-          { label: t('dialog.conflict_discard'), style: 'primary', size: 'large', action: () => discardAndReload(idx) },
+          {
+            label: t('dialog.conflict_overwrite'),
+            style: 'primary',
+            size: 'large',
+            action: async () => {
+              await overwriteDisk();
+              onComplete?.();
+            },
+          },
+          {
+            label: secondLabel,
+            style: 'primary',
+            size: 'large',
+            action: async () => {
+              if (isCloseMode) {
+                closeModal();
+                onComplete?.();
+              } else {
+                await discardAndReload(idx);
+              }
+            },
+          },
         ],
         // 第二排：3 个小按钮
         [
-          { label: t('dialog.conflict_compare'), size: 'small', action: () => showNotImplemented() },
-          { label: t('dialog.conflict_save_as'), size: 'small', action: () => saveAsFromConflict() },
-          { label: t('dialog.cancel'), size: 'small', action: closeModal },
+          {
+            label: t('dialog.conflict_compare'),
+            size: 'small',
+            action: async () => {
+              await openConflictDiff(idx);
+              onAbort?.();
+            },
+          },
+          {
+            label: t('dialog.conflict_save_as'),
+            size: 'small',
+            action: async () => {
+              await saveAsFromConflict();
+              onAbort?.();
+            },
+          },
+          {
+            label: t('dialog.cancel'),
+            size: 'small',
+            action: () => {
+              closeModal();
+              onAbort?.();
+            },
+          },
         ],
       ],
+      onAbort,  // ★ 存到 modal 对象里
     };
   }
 
@@ -894,8 +1000,176 @@
     visible: boolean;
     title: string;
     rows: ModalButton[][];
+    onAbort?: () => void;
   };
   let modal: ModalState = { visible: false, title: '', rows: [] };
+
+  // ============ 对比视图 ============
+  type DiffState = {
+    visible: boolean;
+    mode: 'tabs' | 'disk';
+    leftTitle: string;
+    rightTitle: string;
+    leftContent: string;
+    rightContent: string;
+    // tabs 模式：左右标签索引
+    leftIndex: number;
+    rightIndex: number;
+    // disk 模式：冲突标签索引
+    conflictIdx: number;
+  };
+  let diffState: DiffState = {
+    visible: false,
+    mode: 'tabs',
+    leftTitle: '',
+    rightTitle: '',
+    leftContent: '',
+    rightContent: '',
+    leftIndex: -1,
+    rightIndex: -1,
+    conflictIdx: -1,
+  };
+
+  function closeDiff() {
+    diffState = { ...diffState, visible: false };
+  }
+
+  async function openTabDiff(leftIndex: number, rightIndex: number) {
+    // 防止自己和自己对比，并确保索引有效
+    if (leftIndex === rightIndex || leftIndex < 0 || rightIndex < 0) return;
+
+    closeDiffSubmenu();
+    closeContextMenu();
+
+    // 优先显示完整路径，无路径时回退到标题
+    const leftTitle = snapshot.tab_paths[leftIndex] || snapshot.tab_titles[leftIndex] || '';
+    const rightTitle = snapshot.tab_paths[rightIndex] || snapshot.tab_titles[rightIndex] || '';
+
+    try {
+      // 必须通过 api 获取左侧内容，因为左侧可能是非激活标签（B）
+      const leftContent = await api.getTabContent(leftIndex);
+      const rightContent = await api.getTabContent(rightIndex);
+      
+      await api.openDiffWindow({
+        mode: 'tabs',
+        left_title: leftTitle,
+        right_title: rightTitle,
+        left_content: leftContent,
+        right_content: rightContent,
+        conflict_idx: -1,
+      });
+    } catch (e) {
+      console.error('打开对比失败：', e);
+    }
+  }
+
+  async function openConflictDiff(idx: number) {
+    closeModal();
+    try {
+      const diskContent = await api.getDiskContent(idx);
+      const editorContent = snapshot.active_text;
+      const title = snapshot.tab_paths[idx] || snapshot.tab_titles[idx] || '';
+      const diskLabel = t('diff.left_disk', undefined, get(resolvedLocale));
+      const editorLabel = t('diff.right_editor', undefined, get(resolvedLocale));
+      await api.openDiffWindow({
+        mode: 'disk',
+        left_title: `${diskLabel} · ${title}`,
+        right_title: `${editorLabel} · ${title}`,
+        left_content: diskContent,
+        right_content: editorContent,
+        conflict_idx: idx,
+      });
+    } catch (e) {
+      console.error('打开对比失败：', e);
+    }
+  }
+
+  /** 冲突模式：保留我的修改 */
+  async function diffKeepMine() {
+    closeDiff();
+    // 什么都不做——用户保留内存内容
+  }
+
+  /** 冲突模式：采用磁盘版本 */
+  async function diffUseDisk() {
+    const idx = diffState.conflictIdx;
+    closeDiff();
+    if (idx < 0) return;
+    snapshot = await api.reloadTab(idx);
+  }
+
+  type DiffSubmenuState = {
+    visible: boolean;
+    anchorLeft: number;
+    anchorRight: number;
+    anchorTop: number;
+  };
+  let diffSubmenu: DiffSubmenuState = {
+    visible: false,
+    anchorLeft: 0,
+    anchorRight: 0,
+    anchorTop: 0,
+  };
+  let diffSubmenuCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // ★ 任何 modal 打开时为 true，用于屏蔽全局快捷键
+  $: isAnyModalOpen = modal.visible
+    || aboutVisible
+    || settingsMenu.visible
+    || editorContextMenu.visible
+    || contextMenu.visible
+    || barContextMenu.visible
+    || diffSubmenu.visible;
+
+  function closeDiffSubmenu() {
+    if (diffSubmenuCloseTimer) {
+      clearTimeout(diffSubmenuCloseTimer);
+      diffSubmenuCloseTimer = null;
+    }
+    diffSubmenu = { visible: false, anchorLeft: 0, anchorRight: 0, anchorTop: 0 };
+  }
+
+  /** hover 打开子菜单 */
+  function showDiffSubmenu(e: MouseEvent) {
+    if (diffSubmenuCloseTimer) {
+      clearTimeout(diffSubmenuCloseTimer);
+      diffSubmenuCloseTimer = null;
+    }
+    if (snapshot.tab_titles.length <= 1) return;
+
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    diffSubmenu = {
+      visible: true,
+      anchorLeft: rect.left,
+      anchorRight: rect.right,
+      anchorTop: rect.top,
+    };
+  }
+
+  /** 延迟关闭（给鼠标时间移动到子菜单） */
+  function scheduleCloseDiffSubmenu() {
+    if (diffSubmenuCloseTimer) clearTimeout(diffSubmenuCloseTimer);
+    diffSubmenuCloseTimer = setTimeout(() => {
+      diffSubmenu = { visible: false, anchorLeft: 0, anchorRight: 0, anchorTop: 0 };
+      diffSubmenuCloseTimer = null;
+    }, 250);
+  }
+
+  /** 鼠标进入子菜单时取消关闭 */
+  function cancelCloseDiffSubmenu() {
+    if (diffSubmenuCloseTimer) {
+      clearTimeout(diffSubmenuCloseTimer);
+      diffSubmenuCloseTimer = null;
+    }
+  }
+
+  function selectDiffTarget(rightIndex: number) {
+    const leftIndex = contextMenu.index; // 捕获右键点击的基准标签（B）
+    closeDiffSubmenu();
+    closeContextMenu();
+    openTabDiff(leftIndex, rightIndex);  // 传入基准标签和右侧选择的标签
+  }
 
   type ContextMenuState = {
     visible: boolean;
@@ -918,6 +1192,7 @@
 
   function closeContextMenu() {
     contextMenu = { visible: false, index: -1, left: 0, right: null, top: 0 };
+    diffSubmenu = { visible: false, anchorLeft: 0, anchorRight: 0, anchorTop: 0 };
   }
 
   /** 修正菜单位置，避免超出窗口右/下边界 */
@@ -952,6 +1227,13 @@
 
     return { left, right, top };
   }  
+
+  function handleModalDismiss() {
+    const abort = modal.onAbort;
+    closeModal();
+    abort?.();
+  }
+
 
   function closeModal() {
     modal = { visible: false, title: '', rows: [] };
@@ -1046,7 +1328,17 @@
       })
       .catch(console.error);
 
-    // 6. 清理函数（必须放最后）
+    // 6. 监听主窗口的外部更新（来自对比窗口的"采用磁盘版本"）
+    let unlistenWorkspaceUpdate: (() => void) | null = null;
+    listen('workspace-updated', async () => {
+      await refresh();
+    })
+      .then((fn) => {
+        unlistenWorkspaceUpdate = fn;
+      })
+      .catch(console.error);
+
+    // 7. 清理函数（必须放最后）
     return () => {
       window.removeEventListener('focus', handleDetect);
       window.removeEventListener('mousedown', handleDetect);
@@ -1059,6 +1351,20 @@
 
 <svelte:window
   on:keydown={(e) => {
+    // ★ 弹窗打开时，屏蔽除 Escape 外的所有快捷键
+    if (isAnyModalOpen) {
+      if (e.key === 'Escape') {
+        if (modal.visible) handleModalDismiss();
+        else if (aboutVisible) aboutVisible = false;
+        else if (settingsMenu.visible) closeSettingsMenu();
+        else if (editorContextMenu.visible) closeEditorContextMenu();
+        else if (contextMenu.visible) closeContextMenu();
+        else if (barContextMenu.visible) closeBarContextMenu();
+        e.preventDefault();
+      }
+      return;
+    }
+
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) return;
     const key = e.key.toLowerCase();
@@ -1209,6 +1515,19 @@
 
         <div class="context-divider"></div>
 
+        <button
+          class="context-item"
+          class:disabled={cmTabCount <= 1}
+          disabled={cmTabCount <= 1}
+          onmouseenter={(e) => showDiffSubmenu(e)}
+          onmouseleave={scheduleCloseDiffSubmenu}
+        >
+          <span>{t('tab_menu.diff')}</span>
+          <span class="shortcut">▸</span>
+        </button>
+
+        <div class="context-divider"></div>
+
         <button class="context-item" onclick={menuCloseSingle}>
           <span>{t('tab_menu.close')}</span><span class="shortcut">Ctrl+W</span>
         </button>
@@ -1223,6 +1542,8 @@
         </button>
 
         <div class="context-divider"></div>
+
+
 
         <button class="context-item" class:disabled={cmIsUnnamed} disabled={cmIsUnnamed} onclick={menuCopyPath}>
           <span>{t('tab_menu.copy_path')}</span>
@@ -1258,6 +1579,46 @@
         <button class="context-item" onclick={barMenuOpen}>
           <span>{t('bar_menu.open')}</span><span class="shortcut">Ctrl+O</span>
         </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if diffSubmenu.visible}
+    {@const ddW = 200}
+    {@const ddH = Math.min((snapshot.tab_titles.length - 1) * 32 + 8, 400)}
+    {@const hasRight = diffSubmenu.anchorRight + ddW + 8 <= window.innerWidth}
+    {@const ddLeft = hasRight
+      ? diffSubmenu.anchorRight + 4
+      : Math.max(8, diffSubmenu.anchorLeft - ddW - 4)}
+    {@const ddTop = Math.max(8, Math.min(diffSubmenu.anchorTop, window.innerHeight - ddH - 8))}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={() => { closeDiffSubmenu(); closeContextMenu(); }}
+      oncontextmenu={(e) => { e.preventDefault(); closeDiffSubmenu(); closeContextMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu"
+        style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        onmouseenter={cancelCloseDiffSubmenu}
+        onmouseleave={scheduleCloseDiffSubmenu}
+        role="menu"
+        tabindex="-1"
+      >
+        {#each snapshot.tab_titles as title, idx}
+          {#if idx !== contextMenu.index}
+            <button
+              class="context-item"
+              onclick={() => selectDiffTarget(idx)}
+            >
+              <span>{title}</span>
+            </button>
+          {/if}
+        {/each}
+
       </div>
     </div>
   {/if}
@@ -1345,7 +1706,7 @@
         role="dialog"
         tabindex="-1"
       >
-        <img src="/icon.png" alt="TXT Editor" class="about-icon" />
+        <img src="/icon.png" alt="FinchPad" class="about-icon" />
         <div class="about-title">{t('about.title')}</div>
         <div class="about-version">{t('about.version', { version: APP_VERSION })}</div>
         <div class="about-desc">{t('about.line1')}</div>
@@ -1439,26 +1800,37 @@
     </div>
   {/if}
 
-  {#if modal.visible}
-    <div class="modal-overlay" onclick={closeModal} role="presentation">
-      <div class="modal" onclick={(e) => e.stopPropagation()} role="dialog">
-        <div class="modal-title">{modal.title}</div>
-        {#each modal.rows as row}
-          <div class="modal-row">
-            {#each row as btn}
-              <button
-                class="modal-btn"
-                class:primary={btn.style === 'primary'}
-                class:large={btn.size === 'large'}
-                class:small={btn.size === 'small'}
-                onclick={btn.action}
-              >{btn.label}</button>
-            {/each}
-          </div>
-        {/each}
-      </div>
+{#if modal.visible}
+  <!-- 忽略遮罩层的键盘事件警告（点击遮罩关闭不需要键盘焦点） -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="modal-overlay" role="presentation">
+    
+    <!-- 忽略内部容器的键盘事件警告，并给 dialog 加上 tabindex="-1" -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div 
+      class="modal" 
+      onclick={(e) => e.stopPropagation()} 
+      role="dialog" 
+      tabindex="-1"
+    >
+      <div class="modal-title">{modal.title}</div>
+      {#each modal.rows as row}
+        <div class="modal-row">
+          {#each row as btn}
+            <button
+              class="modal-btn"
+              class:primary={btn.style === 'primary'}
+              class:large={btn.size === 'large'}
+              class:small={btn.size === 'small'}
+              onclick={btn.action}
+            >{btn.label}</button>
+          {/each}
+        </div>
+      {/each}
     </div>
-  {/if}
+  </div>
+{/if}
   
 </main>
 
@@ -1499,26 +1871,44 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     font-family: sans-serif;
   }
-  .modal-title {
-    font-size: 14px;
+  /*弹窗  */
+  .modal {
+    background: var(--overlay-background);
     color: var(--overlay-foreground);
-    margin-bottom: 20px;
+    border-radius: 8px;
+    padding: 16px 20px;
+    min-width: 300px;              /* ★ 从 320px 缩到 300px */
+    max-width: 400px;              /* ★ 从 440px 缩到 400px，整体更紧凑 */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    font-family: sans-serif;
+  }
+  .modal-title {
+    font-size: 13px;
+    color: var(--overlay-foreground);
+    margin-bottom: 12px;
     word-wrap: break-word;
+    line-height: 1.5;
+    white-space: pre-line;    /* ★ 让 \n 生效为换行 */
   }
   .modal-row {
     display: flex;
-    justify-content: flex-end;
     gap: 8px;
     margin-top: 8px;
+    width: 100%;                   /* ★ 关键：撑满 modal 内容宽度 */
   }
   .modal-btn {
-    padding: 6px 16px;
-    font-size: 13px;
+    flex: 1;                       /* ★ 关键：同一排按钮平分整行宽度 */
+    padding: 6px 8px;              /* 左右 padding 减小，因为宽度已平分 */
+    font-size: 12px;
     background: var(--overlay-hover-background);
     border: 1px solid var(--overlay-border);
     color: var(--overlay-foreground);
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    /* 删除 min-width，让按钮自由平分 */
+    transition: filter 0.1s, background-color 0.1s;
   }
   .modal-btn:hover {
     filter: brightness(0.95);
@@ -1531,11 +1921,21 @@
   .modal-btn.primary:hover {
     filter: brightness(0.95);
   }
- .modal-btn.large {
-    min-width: 110px;
-    padding: 8px 24px;
-    font-size: 14px;
+
+  /* ★ 上排大按钮：略高、字略大、字重 500 */
+  .modal-btn.large {
+    padding: 9px 8px;              /* 上下 9px → 高度约 36px */
+    font-size: 13px;
+    font-weight: 500;
   }
+
+  /* ★ 下排小按钮：略矮、字略小、正常字重 */
+  .modal-btn.small {
+    padding: 5px 8px;              /* 上下 5px → 高度约 27px */
+    font-size: 12px;
+    font-weight: 400;
+  }
+
     .context-overlay {
     position: fixed;
     inset: 0;
@@ -1648,6 +2048,7 @@
     width: 64px;
     height: 64px;
     margin-bottom: 12px;
+    background: transparent;
   }
   .about-title {
     font-size: 18px;

@@ -10,7 +10,7 @@ export const zhCN: Record<string, string> = {
   "settings.theme.green": "绿色",
   "settings.theme.dark": "深色",
   "settings.language": "语言",
-  "settings.about": "关于 TXT Editor",
+  "settings.about": "关于FinchPad",
 
   // ===== 语言选项 =====
   "locale.auto": "跟随系统",
@@ -26,6 +26,13 @@ export const zhCN: Record<string, string> = {
   "tab_menu.close_right": "关闭右侧标签",
   "tab_menu.copy_path": "复制文件路径",
   "tab_menu.reveal_in_explorer": "打开所在文件夹",
+  "tab_menu.diff": "对比",
+
+  "diff.window_title": "对比",
+  "diff.left_disk": "磁盘版本",
+  "diff.right_editor": "编辑器版本",
+  "diff.keep_mine": "保留我的修改",
+  "diff.use_disk": "采用磁盘版本",
 
   // ===== 标签栏空白处菜单 =====
   "bar_menu.new": "新建标签",
@@ -61,25 +68,21 @@ export const zhCN: Record<string, string> = {
   "dialog.cancel": "取消",
   "dialog.filter.all_files": "所有文件",
   "dialog.filter.text_files": "文本文件",
-  "dialog.save": "保存",
-  "dialog.discard": "不保存",
 
   "dialog.ask_save_unnamed": "是否保存文件「{title}」？",
   "dialog.ask_save_named": "是否保存对「{title}」的修改？",
 
   // ===== 冲突处理 =====
-  "dialog.conflict_title": "文件已被外部修改。请选择处理方式。",
+  "dialog.conflict_title": "{path}\n文件已被外部修改，请选择处理方式：",
   "dialog.conflict_overwrite": "覆盖磁盘",
-  "dialog.conflict_discard": "放弃修改",
+  "dialog.conflict_discard": "重新加载",
+  "dialog.conflict_discard_close": "放弃修改",
   "dialog.conflict_compare": "对比差异",
   "dialog.conflict_save_as": "另存为",
-  "dialog.conflict_not_implemented": "对比差异功能即将推出",
 
   // ===== 外部变化弹窗 =====
   "dialog.external_modified":
-    "此文件被另一个程序修改了。是否重新加载文件并放弃在 TXT Editor 中的更改？",
-  "dialog.external_deleted_keep":
-    "文件「{title}」已经从磁盘上删除。是否在编辑器中保留它？",
+    "此文件被另一个程序修改了。是否重新加载文件并放弃在 FinchPad 中的更改？",
   "dialog.external_deleted_save":
     "文件「{title}」已从磁盘删除。是否保存内容以重建该文件？",
   "dialog.external_unreachable_save":
@@ -97,18 +100,17 @@ export const zhCN: Record<string, string> = {
   "pending.load": "立即加载",
 
   // ===== 关于弹窗 =====
-  "about.title": "TXT Editor",
+  "about.title": "FinchPad",
   "about.version": "版本 {version}",
   "about.line1": "一款现代、轻量化、多标签的纯文本编辑器。",
   "about.line2": "旨在成为更好的系统默认文本编辑器。",
   "about.tech": "技术架构：Tauri 2 · Svelte 5 · Rust · Monaco Editor",
   "about.author": "作者：MaleyGoz",
   "about.license": "开源协议：MIT License",
-  "about.website": "官网：https://github.com/MaleyGoz/TXT-Editor",
+  "about.website": "官网：https://github.com/MaleyGoz/FinchPad",
   "about.ok": "确定",
 
   // ===== 未命名标签 =====
   "tab.unnamed": "未命名 {index}",
   "tab.unnamed_fallback": "未命名",
-  "tab.unnamed_default": "未命名.txt",
 };

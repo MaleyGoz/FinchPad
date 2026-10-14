@@ -1,7 +1,7 @@
 //! 会话持久化：记录"上次开了哪些标签"，以及未保存标签的内容缓存。
 //!
 //! 存储布局：
-//!   <config_dir>/txt-editor/
+//!   <config_dir>/finchpad/
 //!     ├── session.json          ← 元数据
 //!     └── cache/
 //!         └── <tab-id>.data     ← 未保存/未命名标签的内容
@@ -34,17 +34,22 @@ pub struct WindowSession {
     pub width: f32,
     pub height: f32,
     pub zoom: i32,
-    /// 编辑器自动换行（全局）
     #[serde(default = "default_word_wrap")]
     pub word_wrap: bool,
-
     #[serde(default = "default_show_line_numbers")]
     pub show_line_numbers: bool,
     #[serde(default = "default_editor_bg")]
     pub editor_bg: String,
-    /// 用户的语言选择（"auto" / "zh-CN" / "en-US"）
     #[serde(default = "default_locale_choice")]
     pub locale_choice: String,
+    // ★ 新增：窗口位置（逻辑坐标，-1.0 表示未设置）
+    #[serde(default = "default_position")]
+    pub x: f32,
+    #[serde(default = "default_position")]
+    pub y: f32,
+    // ★ 新增：最近一次"系统文件对话框成功返回"的目录
+    #[serde(default)]
+    pub last_used_path: Option<PathBuf>,
 }
 
 impl Default for WindowSession {
@@ -57,8 +62,15 @@ impl Default for WindowSession {
             show_line_numbers: true,
             editor_bg: "white".to_string(),
             locale_choice: "auto".to_string(),
+            x: -1.0,              // ★ 新增
+            y: -1.0,              // ★ 新增
+            last_used_path: None, // ★ 新增
         }
     }
+}
+
+fn default_position() -> f32 {
+    -1.0
 }
 
 fn default_word_wrap() -> bool {
@@ -104,11 +116,11 @@ impl Default for Session {
 
 // ========== 路径 ==========
 
-/// `<config_dir>/txt-editor/`
+/// `<config_dir>/finchpad/`
 pub fn session_dir() -> PathBuf {
     dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("txt-editor")
+        .join("finchpad")
 }
 
 /// `session_dir()/session.json`

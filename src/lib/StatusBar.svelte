@@ -66,7 +66,7 @@
   {:else if diskState === 'unreachable'}
     <span class="badge warn">{t('status.external_unreachable', undefined, $resolvedLocale)}</span>
     <span class="sep">|</span>
-  {:else if diskState === 'modified' && isDirty}
+  {:else if diskState === 'modified'}
     <span class="badge warn">{t('status.external_modified', undefined, $resolvedLocale)}</span>
     <span class="sep">|</span>
   {/if}

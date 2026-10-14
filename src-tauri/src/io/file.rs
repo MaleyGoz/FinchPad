@@ -26,7 +26,7 @@ pub fn write_file(
         .and_then(|name| name.to_str())
         .unwrap_or("untitled.txt");
 
-    let temp_path = parent.join(format!(".{}.txt-editor-{}.tmp", name, std::process::id()));
+    let temp_path = parent.join(format!(".{}.finchpad-{}.tmp", name, std::process::id()));
 
     let text = line_ending::apply(content, line_ending);
     let bytes = encoding::encode(&text, encoding);
