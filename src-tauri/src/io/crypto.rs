@@ -2,7 +2,7 @@
 //!
 //! 密钥加载策略（按优先级）：
 //!   1. 从 OS keyring 读取
-//!   2. 从 `<config>/txt-editor/key.bin` 读取
+//!   2. 从 `<config>/finchpad/key.bin` 读取
 //!   3. 都没有 → 生成 32 字节随机密钥，先试 keyring，失败则写 key.bin
 //!   4. 全部失败 → 返回 None（上层决定禁用 cache）
 //!
@@ -19,7 +19,7 @@ const MAGIC: &[u8; 4] = b"TXTC";
 const VERSION: u8 = 1;
 const NONCE_LEN: usize = 12;
 const KEY_LEN: usize = 32;
-const KEYRING_SERVICE: &str = "txt-editor";
+const KEYRING_SERVICE: &str = "finchpad";
 const KEYRING_USER: &str = "cache-key";
 
 thread_local! {

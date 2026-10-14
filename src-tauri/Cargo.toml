@@ -1,8 +1,8 @@
 [package]
-name = "txt-editor-tauri"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+name = "finchpad"
+version = "0.2.0"
+description = "A modern, lightweight, multi-tab plain-text editor designed to replace the default text editors on Windows, Linux, and macOS."
+authors = ["MaleyGoz"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,7 +11,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "txt_editor_tauri_lib"
+name = "finchpad_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

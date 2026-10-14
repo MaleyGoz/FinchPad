@@ -3,16 +3,16 @@ mod io;
 mod model;
 
 use app::{
-    check_file_sizes, check_tab_full_state, check_tab_state, close_tab, discard_tab_changes,
-    get_large_dirty_tabs, get_tab_path, get_workspace_state, get_zoom, load_pending_tab, new_tab,
-    open_files, reload_tab, reorder_tabs, restore_session, save_active_file, save_active_file_as,
-    save_and_prepare_exit, set_editor_bg, set_locale, set_show_line_numbers, set_word_wrap,
-    set_zoom, show_window, switch_tab, take_startup_files, tick_autosave, update_active_text,
-    AppState,
+    apply_disk_version, check_file_sizes, check_tab_full_state, check_tab_state, close_diff_window,
+    close_tab, discard_tab_changes, get_diff_payload, get_disk_content, get_large_dirty_tabs,
+    get_tab_content, get_tab_path, get_workspace_state, get_zoom, load_pending_tab, new_tab,
+    open_diff_window, open_files, reload_tab, reorder_tabs, restore_session, save_active_file,
+    save_active_file_as, save_and_prepare_exit, set_editor_bg, set_locale, set_show_line_numbers,
+    set_word_wrap, set_zoom, show_window, switch_tab, take_startup_files, tick_autosave,
+    update_active_text, AppState,
 };
 use model::Workspace;
 use std::sync::Mutex;
-
 /// 从命令行参数中解析文件路径。
 /// 处理两类情况：
 ///   1. 每个参数是一个完整路径（Windows 双击时的正常情况）
@@ -85,6 +85,7 @@ pub fn run() {
             session_dirty: std::sync::atomic::AtomicBool::new(false),
             last_medium_cache_time: std::sync::atomic::AtomicU64::new(0),
             startup_files: Mutex::new(startup_files),
+            diff_payload: Mutex::new(None),
         })
         .setup(|app| {
             use tauri::Manager;
@@ -123,6 +124,12 @@ pub fn run() {
             take_startup_files,
             tick_autosave,
             set_locale,
+            get_disk_content,
+            get_tab_content,
+            open_diff_window,
+            get_diff_payload,
+            close_diff_window,
+            apply_disk_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

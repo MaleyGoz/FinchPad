@@ -1,105 +1,107 @@
 <div align="center">
 
-<img src="static/icon.png" width="100" alt="TXT Editor">
+<img src="static/icon.png" width="100" alt="FinchPad">
 
-# TXT Editor
+# FinchPad
 
-**A modern, lightweight, multi-tab plain-text editor**
+**A modern, lightweight, multi-tab plain text editor**
 
-Available for Windows / Linux / macOS
+Supports Windows / Linux / macOS
 
 <p>
-<a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a>
+<a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/MaleyGoz/FinchPad/releases">Download</a>
 </p>
-
 </div>
 
 ---
 
 ## Introduction
 
-TXT Editor aims to be a better default text editor.
+FinchPad aims to be a better default text editor on Windows, macOS, and Linux.
 
 It is more powerful than the built-in Notepad, yet lighter than professional editors like VSCode.
 
-> **The greatest common denominator, the fewest unnecessary features.**
-
-Every feature answers one question: **Do most users really need it?**
-
-## Screenshots
-
-<p align="center">
-  <a href="assets/screenshot-main.png"><img src="assets/screenshot-main.png" width="32%" alt="Main window"></a>
-  <a href="assets/screenshot-themes.png"><img src="assets/screenshot-themes.png" width="32%" alt="Dark theme"></a>
-  <a href="assets/screenshot-large-file.png"><img src="assets/screenshot-large-file.png" width="32%" alt="Large file lazy loading"></a>
-</p>
-
-<p align="center">
-  <sub>Main window · Dark theme · Large file lazy loading</sub>
-</p>
+> **Maximum common ground, minimum unnecessary features.**
+> Every feature answers one question: **Do most users really need it?**
 
 ## Features
 
 | Feature | Description |
-|---------|-------------|
-| **Multi-tab** | Drag to reorder, right-click menu, middle-click to close, overflow dropdown |
-| **Session restore** | Reopen TXT Editor and your tabs come back automatically |
-| **Encrypted cache** | Unsaved content is encrypted with AES-256-GCM |
-| **Never lose work** | Recover your last edits even after a crash |
-| **Large file friendly** | Files over 50MB are lazily loaded, at your discretion |
-| **Syntax highlighting** | 20+ common languages supported (powered by Monaco) |
-| **Encoding detection** | Auto-detects UTF-8 / UTF-16 / GBK, and more |
-| **Borderless window** | Modern UI with browser-style tabs |
-| **5 themes** | White / Gray / Sepia / Eye-care Green / Dark |
-| **Bilingual** | UI language follows your system settings |
+| --- | --- |
+| **Ultra-lightweight & High-performance** | Built with Rust. Installer is ~5MB, memory usage is ~10MB, maintaining fast startup and low resource consumption. |
+| **Multi-tab Editing** | Modern browser-style tabs. Supports drag-and-drop reordering, context menus, middle-click to close, and overflow dropdown for easy document management. |
+| **Session Recovery** | Restores your previous working state even after crashes, system restarts, or unexpected power outages. |
+| **Secure Cache** | Unsaved content is encrypted locally using OS-level keyring and AES-256-GCM. |
+| **File Conflict Handling** | Intelligently detects file changes and helps resolve editing conflicts. |
+| **Text Diff** | Quickly view differences between files. |
+| **Large File Support** | Files over 50MB use lazy loading at your discretion, allowing fast opening and editing of large text files. |
+| **Syntax Highlighting** | Supports 20+ common languages (powered by Monaco). |
+| **Encoding Detection** | Automatically detects UTF-8 / UTF-16 / GBK, etc. |
+| **Borderless Window** | Modern UI similar to a browser tab bar. |
+| **Customizable Themes** | Personalized editing environment with 5 built-in themes (White / Gray / Sepia / Green / Dark). |
+| **Cross-platform & Multi-language** | Supports Windows / macOS / Linux. UI language (Chinese/English) automatically follows the system. |
+
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshot-main.png" width="90%" alt="Main Interface">
+  <br><sub>Main Interface</sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-themes.png" width="90%" alt="Dark Theme">
+  <br><sub>Dark Theme</sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-compare.png" width="90%" alt="Text Diff">
+  <br><sub>Text Diff</sub>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-large-file.png" width="90%" alt="Large File Lazy Loading">
+  <br><sub>Large File Lazy Loading</sub>
+</p>
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
+| Module | Technology |
+| --- | --- |
 | Language | Rust |
-| Desktop framework | Tauri 2 |
+| Desktop Framework | Tauri 2 |
 | Frontend | SvelteKit 5 |
-| Editor core | Monaco Editor |
-| Text buffer | Rope (ropey) |
+| Editor Core | Monaco Editor |
+| Text Buffer | Rope (ropey) |
 | Encoding | encoding_rs + chardetng |
 | Encryption | AES-256-GCM + OS keyring |
-| Platforms | Windows / Linux / macOS |
+| Platform | Windows / Linux / macOS |
 
-TXT Editor **does not use Electron** — it is built on a lightweight native architecture.
+FinchPad **does not use Electron**, adopting a lightweight native architecture. Built with Tauri 2, Svelte 5, Rust, and Monaco Editor.
 
-## Download
-
-Get the latest release from the [Releases](https://github.com/MaleyGoz/TXT-Editor/releases) page:
-
-- **Windows**: `TXT Editor_x.x.x_x64.msi` installer
-- **Other platforms**: No official build yet
-
-## Build from Source
+## Build
 
 Requires [Rust](https://rustup.rs/) and [Node.js](https://nodejs.org/).
 
 ```bash
-git clone https://github.com/MaleyGoz/TXT-Editor.git
-cd TXT-Editor
+git clone https://github.com/MaleyGoz/FinchPad.git
+cd FinchPad
 npm install
 npm run tauri build
 ```
-
-The output artifacts will be in `src-tauri/target/release/bundle/`.
+The installer can be found in src-tauri/target/release/bundle/.
 
 ## Contributing
 
-All forms of contribution are welcome: code, UI/UX, testing, documentation, translation, bug reports, and product feedback.
+All forms of participation are welcome: code, UI/UX, testing, documentation, translation, bug reports, and product suggestions.
 
-Even if you're not a developer, feel free to join the discussion in [Issues](https://github.com/MaleyGoz/TXT-Editor/issues).
+Even if you are not a developer, you are welcome to discuss product direction in Issues.
 
 ## License
 
-MIT License — free to use, modify, and distribute.
+This project is licensed under the MIT License.
 
----
+Copyright (c) 2024 MaleyGoz
 
-<div align="center">
-<sub>Built with Rust · Tauri · Svelte · and a focus on simplicity.</sub>
-</div>
+This means you are free to use, modify, and distribute this project, including for commercial purposes, as long as you retain the original copyright and license notices. For more details, please refer to the LICENSE file in the project root.
+
+<div align="center"> <sub>Built with Rust · Tauri · Svelte · and a focus on simplicity.</sub> </div> 

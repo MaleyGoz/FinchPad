@@ -1,6 +1,19 @@
 <script lang="ts">
   import { tooltipStore } from '$lib/tooltip';
   import { currentTheme, THEMES } from '$lib/themes';
+  import DiffWindowApp from '$lib/DiffWindowApp.svelte';
+
+  // 检测是否对比窗口
+  const urlParams = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search)
+    : new URLSearchParams();
+  const isDiffWindow = urlParams.get('mode') === 'diff';
+  const themeFromUrl = urlParams.get('theme');
+
+  // 对比窗口用 URL 参数指定的主题
+  if (isDiffWindow && themeFromUrl) {
+    currentTheme.set(themeFromUrl);
+  }
 
   $: {
     const theme = THEMES[$currentTheme] ?? THEMES.white;
@@ -32,16 +45,20 @@
   e.preventDefault();
 }} />
 
-<slot />
+{#if isDiffWindow}
+  <DiffWindowApp />
+{:else}
+  <slot />
 
-{#if $tooltipStore.visible}
-  <div
-    class="global-tooltip"
-    class:above={$tooltipStore.placeAbove}
-    style="left: {$tooltipStore.x}px; top: {$tooltipStore.y}px;"
-  >
-    {$tooltipStore.text}
-  </div>
+  {#if $tooltipStore.visible}
+    <div
+      class="global-tooltip"
+      class:above={$tooltipStore.placeAbove}
+      style="left: {$tooltipStore.x}px; top: {$tooltipStore.y}px;"
+    >
+      {$tooltipStore.text}
+    </div>
+  {/if}
 {/if}
 
 <style>

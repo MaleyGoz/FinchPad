@@ -10,7 +10,7 @@ export const enUS: Record<string, string> = {
   "settings.theme.green": "Green",
   "settings.theme.dark": "Dark",
   "settings.language": "Language",
-  "settings.about": "About TXT Editor",
+  "settings.about": "About FinchPad",
 
   // ===== Language Options =====
   "locale.auto": "Auto",
@@ -26,6 +26,13 @@ export const enUS: Record<string, string> = {
   "tab_menu.close_right": "Close Tabs to the Right",
   "tab_menu.copy_path": "Copy File Path",
   "tab_menu.reveal_in_explorer": "Reveal in Explorer",
+  "tab_menu.diff": "Compare",
+
+  "diff.window_title": "Compare",
+  "diff.left_disk": "Disk",
+  "diff.right_editor": "Editor",
+  "diff.keep_mine": "Keep Mine",
+  "diff.use_disk": "Use Disk Version",
 
   // ===== Tab Bar Empty Area Menu =====
   "bar_menu.new": "New Tab",
@@ -61,26 +68,22 @@ export const enUS: Record<string, string> = {
   "dialog.cancel": "Cancel",
   "dialog.filter.all_files": "All Files",
   "dialog.filter.text_files": "Text Files",
-  "dialog.save": "Save",
-  "dialog.discard": "Don't Save",
 
   "dialog.ask_save_unnamed": 'Save file "{title}"?',
   "dialog.ask_save_named": 'Save changes to "{title}"?',
 
   // ===== Conflict Resolution =====
   "dialog.conflict_title":
-    "File has been modified externally. Choose how to proceed.",
+    "{path}\nFile has been modified externally, Choose how to proceed:",
   "dialog.conflict_overwrite": "Overwrite",
-  "dialog.conflict_discard": "Discard Changes",
+  "dialog.conflict_discard": "Reload",
+  "dialog.conflict_discard_close": "Discard",
   "dialog.conflict_compare": "Compare",
   "dialog.conflict_save_as": "Save As",
-  "dialog.conflict_not_implemented": "Compare feature coming soon",
 
   // ===== External Changes Dialogs =====
   "dialog.external_modified":
-    "This file has been modified by another program. Reload and discard changes in TXT Editor?",
-  "dialog.external_deleted_keep":
-    'File "{title}" has been deleted from disk. Keep it in the editor?',
+    "This file has been modified by another program. Reload and discard changes in FinchPad?",
   "dialog.external_deleted_save":
     'File "{title}" has been deleted from disk. Save to recreate it?',
   "dialog.external_unreachable_save":
@@ -99,18 +102,17 @@ export const enUS: Record<string, string> = {
   "pending.load": "Load Now",
 
   // ===== About Dialog =====
-  "about.title": "TXT Editor",
+  "about.title": "FinchPad",
   "about.version": "Version {version}",
   "about.line1": "A modern, lightweight, multi-tab plain-text editor.",
   "about.line2": "Aiming to be a better default text editor.",
   "about.tech": "Built with: Tauri 2 · Svelte 5 · Rust · Monaco Editor",
   "about.author": "Author: MaleyGoz",
   "about.license": "License: MIT",
-  "about.website": "Website: https://github.com/MaleyGoz/TXT-Editor",
+  "about.website": "Website: https://github.com/MaleyGoz/FinchPad",
   "about.ok": "OK",
 
   // ===== Untitled Tabs =====
   "tab.unnamed": "Untitled {index}",
   "tab.unnamed_fallback": "Untitled",
-  "tab.unnamed_default": "Untitled.txt",
 };

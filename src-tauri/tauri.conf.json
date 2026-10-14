@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "TXT Editor",
-  "mainBinaryName": "TXT Editor",
-  "version": "0.1.0",
-  "identifier": "com.txt-editor-tauri",
+  "productName": "FinchPad",
+  "mainBinaryName": "FinchPad",
+  "version": "0.2.0",
+  "identifier": "com.finchpad.app",
 
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -15,13 +15,13 @@
   "app": {
     "windows": [
       {
-        "title": "TXT Editor",
+        "title": "FinchPad",
         "width": 800,
         "height": 600,
         "dragDropEnabled": true,
         "minWidth": 500,
         "minHeight": 400,
-        "devtools": false,
+        "devtools": true,
         "visible": false,
         "decorations": false
       }

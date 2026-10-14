@@ -9,6 +9,8 @@ export type FileSizeInfo = {
 export type TabFullState = {
   disk_state: string;
   is_dirty: boolean;
+  /** ★ 新增：磁盘文件 mtime（秒级时间戳），null 表示文件不可达 */
+  disk_mtime: number | null;
 };
 
 export type Snapshot = {
@@ -36,6 +38,16 @@ export type Snapshot = {
   locale_choice: string;
   show_line_numbers: boolean;
   editor_bg: string;
+  last_used_path: string;
+};
+
+export type DiffPayload = {
+  mode: "tabs" | "disk";
+  left_title: string;
+  right_title: string;
+  left_content: string;
+  right_content: string;
+  conflict_idx: number;
 };
 
 export const api = {
@@ -77,4 +89,13 @@ export const api = {
     invoke("reorder_tabs", { from, to }),
   setLocale: (locale: string, unnamedTemplate: string, localeChoice: string) =>
     invoke("set_locale", { locale, unnamedTemplate, localeChoice }),
+  getTabContent: (index: number) =>
+    invoke<string>("get_tab_content", { index }),
+  getDiskContent: (index: number) =>
+    invoke<string>("get_disk_content", { index }),
+  openDiffWindow: (payload: DiffPayload) =>
+    invoke("open_diff_window", { payload }),
+  getDiffPayload: () => invoke<DiffPayload | null>("get_diff_payload"),
+  closeDiffWindow: () => invoke("close_diff_window"),
+  applyDiskVersion: (idx: number) => invoke("apply_disk_version", { idx }),
 };
