@@ -420,6 +420,11 @@
   <!-- 顶部留白：也是拖动区域 -->
   <div class="drag-strip" data-tauri-drag-region></div>
 
+  <!-- ★ 新增：仅在 Mac 端渲染的左侧留白，为原生红绿灯让位 -->
+  {#if isMac}
+    <div class="mac-traffic-spacer" data-tauri-drag-region></div>
+  {/if}
+
   <!-- 左侧 Logo -->
   <div class="app-logo" class:mac-space={isMac} data-tauri-drag-region>
     <img src="/tab-icon.png" alt="FinchPad" />
@@ -826,4 +831,11 @@
     pointer-events: none;
     border-radius: 1px;
   }
+
+  /* ★ Mac 端的红绿灯占位区宽度 */
+  .mac-traffic-spacer {
+    width: 72px; /* 约等于三个圆点加上边距的宽度 */
+    height: 100%;
+    flex-shrink: 0;
+  }  
 </style>
