@@ -16,7 +16,8 @@
 
     // 编译时注入的环境变量
   const platform = import.meta.env.TAURI_ENV_PLATFORM;
-  const isMac = platform === 'macos';
+  // 判断是否为 Mac 平台
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
 //重命名开始
   export let renamingIndex: number = -1;
@@ -420,7 +421,7 @@
   <!-- 顶部留白：也是拖动区域 -->
   <div class="drag-strip" data-tauri-drag-region></div>
 
-  <!-- ★ 新增：仅在 Mac 端渲染的左侧留白，为原生红绿灯让位 -->
+  <!-- ★ Mac 专属：左侧留白，给原生红绿灯让位 -->
   {#if isMac}
     <div class="mac-traffic-spacer" data-tauri-drag-region></div>
   {/if}
@@ -542,7 +543,7 @@
     </svg>
   </button>
 
-  <!-- 窗口控制按钮（Windows 11 风格）—— 仅在非 Mac 平台渲染 -->
+  <!-- 窗口控制按钮（仅 Windows/Linux 显示） -->
   {#if !isMac}
     <button class="window-btn" on:click={handleMinimize} aria-label="最小化">
       <svg width="10" height="10" viewBox="0 0 10 10">
