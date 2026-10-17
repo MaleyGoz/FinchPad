@@ -90,7 +90,11 @@ pub fn new_tab(state: tauri::State<AppState>) -> Result<i32, String> {
 pub fn update_active_text(state: tauri::State<AppState>, text: String) -> Result<bool, String> {
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
     let tab = ws.active_tab_mut();
-    tab.buffer = crate::model::TextBuffer::from_str(&text);
+
+    // ★ 关键修复：强制将前端传来的文本规范化，确保内存里永远是纯 \n
+    let normalized_text = crate::io::line_ending::normalize(&text);
+    tab.buffer = crate::model::TextBuffer::from_str(&normalized_text);
+
     // ★ 用 saved_hash 判定真实脏状态，而不是无条件 mark_dirty
     tab.is_dirty = tab.is_content_dirty();
     let (lines, chars) = crate::model::tab::count_text(&text);
@@ -438,7 +442,8 @@ pub fn save_active_file_as(
     let path_buf = std::path::PathBuf::from(&path);
 
     if ws.save_path_conflict(idx, &path_buf) {
-        return Err("该文件已在其它标签中打开".to_string());
+        // ★ 返回标准错误码，方便前端识别并做多语言提示
+        return Err("FileAlreadyOpen".to_string());
     }
 
     let (content, encoding, line_ending) = {
@@ -463,6 +468,53 @@ pub fn save_active_file_as(
         tab.title = title;
         tab.mark_saved(new_mtime);
     }
+    state.mark_session_dirty();
+    Ok(snapshot_from_workspace(&ws))
+}
+
+/// 重命名已打开的标签及其对应的物理文件
+#[tauri::command]
+pub fn rename_tab_file(
+    state: tauri::State<AppState>,
+    index: i32,
+    new_name: String,
+) -> Result<WorkspaceSnapshot, String> {
+    if index < 0 {
+        return Err("无效索引".to_string());
+    }
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    let idx = index as usize;
+
+    let tab = ws.tab(idx).ok_or("标签无效")?;
+    let old_path = tab.file_path.clone().ok_or("未命名标签无法重命名")?;
+    let parent = old_path.parent().ok_or("无法获取父目录")?;
+
+    let new_path = parent.join(&new_name);
+
+    // 如果新路径和旧路径一样，直接返回
+    if new_path == old_path {
+        return Ok(snapshot_from_workspace(&ws));
+    }
+
+    // 检查目标文件是否已存在（防覆盖）
+    if new_path.exists() {
+        return Err("FileExists".to_string());
+    }
+
+    // 执行物理重命名
+    std::fs::rename(&old_path, &new_path).map_err(|e| format!("RenameFailed: {}", e))?;
+
+    // 更新内存中的 Tab 状态
+    if let Some(tab) = ws.tab_mut(idx) {
+        tab.file_path = Some(new_path);
+        tab.title = new_name;
+        if let Ok(m) = std::fs::metadata(tab.file_path.as_ref().unwrap()) {
+            tab.file_size = m.len();
+            tab.last_known_mtime = m.modified().ok();
+        }
+        tab.cache_stale = true;
+    }
+
     state.mark_session_dirty();
     Ok(snapshot_from_workspace(&ws))
 }
@@ -742,6 +794,12 @@ fn build_session_from_ws(ws: &crate::model::Workspace) -> crate::io::session::Se
             is_dirty: tab.is_content_dirty(),
             cursor_line: tab.cursor_line,
             cursor_column: tab.cursor_column,
+            // ★ 新增：转成秒级时间戳保存
+            last_known_mtime: tab.last_known_mtime.and_then(|t| {
+                t.duration_since(std::time::UNIX_EPOCH)
+                    .ok()
+                    .map(|d| d.as_secs())
+            }),
         });
     }
 
@@ -834,6 +892,62 @@ pub fn restore_session(
     Ok(Some(snapshot_from_workspace(&ws)))
 }
 
+/// 处理恢复时的冲突裁决（比对缓存与磁盘内容），并更新 Tab 的状态。
+/// 返回值：无。直接修改传入的 tab。
+fn resolve_restore_state(
+    tab: &mut crate::model::Tab,
+    ts: &crate::io::session::TabSession,
+    cached_content: &str,
+    disk_text: &str,
+    disk_mtime: Option<std::time::SystemTime>,
+) {
+    use crate::model::tab::count_text;
+    use crate::model::TextBuffer;
+
+    let cached_hash = crate::model::Tab::hash_of(cached_content);
+    let disk_hash = crate::model::Tab::hash_of(disk_text);
+
+    if cached_hash != disk_hash {
+        // ★ 绝对真理：只要内容不一样，无论是谁改的，绝对不覆盖 buffer，强行标脏！
+        tab.is_dirty = true;
+        tab.saved_hash = disk_hash;
+
+        let current_mtime_sec = disk_mtime.and_then(|t| {
+            t.duration_since(std::time::UNIX_EPOCH)
+                .ok()
+                .map(|d| d.as_secs())
+        });
+
+        let is_time_changed = match (ts.last_known_mtime, current_mtime_sec) {
+            (Some(old_mt), Some(new_mt)) => old_mt != new_mt,
+            _ => false,
+        };
+
+        if is_time_changed {
+            // 正常情况：外部改了文件，时间也变了。保留旧时间触发前端 modified 弹窗
+            tab.last_known_mtime = ts.last_known_mtime.and_then(|sec| {
+                std::time::UNIX_EPOCH.checked_add(std::time::Duration::from_secs(sec))
+            });
+        } else {
+            // 极端情况：内容变了，但 mtime 没变。强制设为旧时间以触发弹窗
+            tab.last_known_mtime = Some(std::time::UNIX_EPOCH);
+        }
+    } else {
+        // ★ 内容完全一致（只是假脏）：信任 session 状态，直接用磁盘内容覆盖 buffer
+        tab.is_dirty = ts.is_dirty;
+        if let Some(mt) = disk_mtime {
+            tab.last_known_mtime = Some(mt);
+        }
+
+        // 强制抛弃缓存中的格式差异，用磁盘内容重建 buffer
+        tab.buffer = TextBuffer::from_str(disk_text);
+        let (lines, chars) = count_text(disk_text);
+        tab.line_count = lines;
+        tab.char_count = chars;
+        tab.saved_hash = disk_hash;
+    }
+}
+
 /// 从 TabSession 恢复单个标签。返回 None 表示该标签应被丢弃。
 fn restore_one_tab(ts: &crate::io::session::TabSession) -> Option<crate::model::Tab> {
     use crate::io::{encoding::TextEncoding, line_ending::LineEnding};
@@ -873,29 +987,16 @@ fn restore_one_tab(ts: &crate::io::session::TabSession) -> Option<crate::model::
             }
         }
 
-        // ★ 关键修复：记录磁盘 mtime，让 disk_state_string 能正确判定 modified
-        if let Some(mt) = disk_mtime {
-            tab.last_known_mtime = Some(mt);
-        }
-
         match disk_content {
             Some(disk_text) => {
-                // 磁盘可达：对比哈希
-                let cached_hash = Tab::hash_of(&content);
-                let disk_hash = Tab::hash_of(&disk_text);
-                if cached_hash == disk_hash {
-                    tab.is_dirty = false; // 内容一致，标记为干净
-                    tab.saved_hash = disk_hash;
-                } else {
-                    tab.is_dirty = true; // 内容不一致，标记为脏，状态栏将显示 modified
-                    tab.saved_hash = disk_hash;
-                }
+                resolve_restore_state(&mut tab, ts, &content, &disk_text, disk_mtime);
             }
             None => {
-                // 磁盘不可达：保留缓存内容，状态栏显示 unreachable 或 deleted
-                tab.is_dirty = ts.is_dirty; // 保持 session 中的状态
+                // ★ 磁盘不可达（文件被删或U盘拔出）：内存里的缓存成了唯一火种，强制标脏，防止直接关闭丢失！
+                tab.is_dirty = true;
             }
         }
+
         return Some(tab);
     }
 

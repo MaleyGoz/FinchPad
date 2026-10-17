@@ -38,7 +38,8 @@
     word_wrap: true,
     locale_choice: 'auto',
     show_line_numbers: true,
-    editor_bg: 'white',    
+    editor_bg: 'white',
+    last_used_path: '',
   };
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -54,6 +55,7 @@
   let showLineNumbers = true;
   let editorBg = 'white';  
   let closeQueueTabIds: string[] = [];
+  let renamingIndex = -1;
 
   // 编辑器组件引用（用于调用编辑区方法）
   let editorRef: Editor;
@@ -212,7 +214,40 @@
         // 干净 + Modified → 静默重载（保持不变）
         snapshot = await api.reloadTab(idx);
       }
+    } else if (full.disk_state === 'deleted' || full.disk_state === 'unreachable') {
+      // ★ 新增：如果文件被删除或路径不可达，强制将其标记为脏标签
+      // 这样关闭时一定会弹窗提示保存，防止内容丢失
+      if (!snapshot.tab_dirty_states[idx]) {
+        const newDirtyStates = [...snapshot.tab_dirty_states];
+        newDirtyStates[idx] = true;
+        snapshot = {
+          ...snapshot,
+          is_dirty: true,
+          tab_dirty_states: newDirtyStates,
+        };
+      }
     }
+  }
+
+  async function handleRenameCommit(index: number, newName: string) {
+    try {
+      snapshot = await api.renameTabFile(index, newName);
+      renamingIndex = -1;
+    } catch (e) {
+      renamingIndex = -1;
+      // ★ 把 e 强制转换成字符串进行比较和传参
+      const errStr = String(e); 
+      
+      if (errStr === "FileExists") {
+        alert(t('dialog.rename_exists', undefined, get(resolvedLocale)));
+      } else {
+        alert(t('dialog.rename_failed', { error: errStr }, get(resolvedLocale)));
+      }
+    }
+  }
+
+  function handleRenameCancel() {
+    renamingIndex = -1;
   }
 
   async function handleClose(i: number) {
@@ -384,7 +419,15 @@
         ],
       });
       if (!path) return;
-      snapshot = await api.saveActiveFileAs(path);
+      try {
+        snapshot = await api.saveActiveFileAs(path);
+      } catch (e) {
+        if (e === "FileAlreadyOpen") {
+          modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
+        } else {
+          console.error('保存失败：', e);
+        }
+      }
       return;
     }
 
@@ -529,7 +572,22 @@
         closeQueueActive = false;
         return;
       }
-      await api.saveActiveFileAs(path);
+      try {
+        await api.saveActiveFileAs(path);
+      } catch (e) {
+        if (e === "FileAlreadyOpen") {
+          modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
+          // 保存失败，中止当前关闭队列
+          closeQueue = [];
+          closeQueueActive = false;
+          return;
+        } else {
+          console.error('保存失败：', e);
+          closeQueue = [];
+          closeQueueActive = false;
+          return;
+        }
+      }
     } else {
       await api.saveActiveFile();
     }
@@ -797,7 +855,25 @@
         ],
     });
     if (!path) return;
-    snapshot = await api.saveActiveFileAs(path);
+    
+    // ★ 捕获后端错误
+    try {
+      snapshot = await api.saveActiveFileAs(path);
+    } catch (e) {
+      if (e === "FileAlreadyOpen") {
+        modal = {
+          visible: true,
+          title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)),
+          rows: [
+            [
+              { label: t('dialog.ok'), style: 'primary', action: closeModal }
+            ]
+          ]
+        };
+      } else {
+        console.error('另存为失败：', e);
+      }
+    }
   }
 
   function showSaveConflictModal(
@@ -897,13 +973,6 @@
     closeModal();
     await handleSaveAs();
   }
-
-  /** 占位：对比差异（暂未实现） */
-  async function showNotImplemented() {
-    closeModal();
-    // 暂用浏览器 alert 占位，后续换成自定义提示
-    alert(t('dialog.conflict_not_implemented'));
-  }  
 
   function handleStats(
     lineCount: number,
@@ -1119,7 +1188,8 @@
     || editorContextMenu.visible
     || contextMenu.visible
     || barContextMenu.visible
-    || diffSubmenu.visible;
+    || diffSubmenu.visible
+    || renamingIndex !== -1;
 
   function closeDiffSubmenu() {
     if (diffSubmenuCloseTimer) {
@@ -1298,6 +1368,8 @@
 
     // 3. 外部变化检测
     const handleDetect = () => {
+      // ★ 新增：如果正在重命名，或者有弹窗，不去检测，防止干扰 DOM 和状态
+      if (isAnyModalOpen || renamingIndex !== -1) return;
       detectExternalChanges().catch(console.error);
     };
     window.addEventListener('focus', handleDetect);
@@ -1364,6 +1436,12 @@
       }
       return;
     }
+
+    // 屏蔽 F2 键，防止触发浏览器的默认聚焦行为
+    if (e.key === 'F2') {
+      e.preventDefault();
+      return;
+    }    
 
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) return;
@@ -1443,7 +1521,10 @@
     onContextMenu={handleContextMenu}
     onReorder={handleReorder}
     onBarContextMenu={handleBarContextMenu}
-    onSettingsClick={handleSettingsClick}    
+    onSettingsClick={handleSettingsClick}
+    renamingIndex={renamingIndex}
+    onRenameCommit={handleRenameCommit}
+    onRenameCancel={handleRenameCancel}    
   />
 
   <div class="editor-area">
@@ -1507,10 +1588,10 @@
         tabindex="-1"
       >
         <button class="context-item" class:disabled={!cmIsDirty} disabled={!cmIsDirty} onclick={menuSave}>
-          <span>{t('tab_menu.save')}</span><span class="shortcut">Ctrl+S</span>
+          <span>{t('tab_menu.save')}</span><span class="shortcut">{mod}+S</span>
         </button>
         <button class="context-item" class:disabled={cmIsUnnamed && !cmIsDirty} disabled={cmIsUnnamed && !cmIsDirty} onclick={menuSaveAs}>
-          <span>{t('tab_menu.save_as')}</span><span class="shortcut">Ctrl+Shift+S</span>
+          <span>{t('tab_menu.save_as')}</span><span class="shortcut">{mod}+Shift+S</span>
         </button>
 
         <div class="context-divider"></div>
@@ -1529,7 +1610,7 @@
         <div class="context-divider"></div>
 
         <button class="context-item" onclick={menuCloseSingle}>
-          <span>{t('tab_menu.close')}</span><span class="shortcut">Ctrl+W</span>
+          <span>{t('tab_menu.close')}</span><span class="shortcut">{mod}+W</span>
         </button>
         <button class="context-item" class:disabled={!cmCanCloseOthers} disabled={!cmCanCloseOthers} onclick={menuCloseOthers}>
           <span>{t('tab_menu.close_others')}</span>
@@ -1543,7 +1624,18 @@
 
         <div class="context-divider"></div>
 
-
+        <button
+          class="context-item"
+          class:disabled={cmIsUnnamed}
+          disabled={cmIsUnnamed}
+          onclick={() => {
+            const idx = contextMenu.index;
+            closeContextMenu();
+            renamingIndex = idx;
+          }}
+        >
+          <span>{t('tab_menu.rename')}</span>
+        </button>
 
         <button class="context-item" class:disabled={cmIsUnnamed} disabled={cmIsUnnamed} onclick={menuCopyPath}>
           <span>{t('tab_menu.copy_path')}</span>
@@ -1574,10 +1666,10 @@
         tabindex="-1"
       >
         <button class="context-item" onclick={barMenuNew}>
-          <span>{t('bar_menu.new')}</span><span class="shortcut">Ctrl+N</span>
+          <span>{t('bar_menu.new')}</span><span class="shortcut">{mod}+N</span>
         </button>
         <button class="context-item" onclick={barMenuOpen}>
-          <span>{t('bar_menu.open')}</span><span class="shortcut">Ctrl+O</span>
+          <span>{t('bar_menu.open')}</span><span class="shortcut">{mod}+O</span>
         </button>
       </div>
     </div>
@@ -1909,6 +2001,13 @@
     font-family: inherit;
     /* 删除 min-width，让按钮自由平分 */
     transition: filter 0.1s, background-color 0.1s;
+  }
+  .modal-row > .modal-btn:only-child {
+    flex: none;
+    min-width: 100px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin: 0 auto;
   }
   .modal-btn:hover {
     filter: brightness(0.95);

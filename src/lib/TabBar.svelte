@@ -14,6 +14,66 @@
   export let onBarContextMenu: (x: number, y: number) => void = () => {};
   export let onSettingsClick: (anchorRight: number, anchorBottom: number) => void = () => {};
 
+    // 编译时注入的环境变量
+  const platform = import.meta.env.TAURI_ENV_PLATFORM;
+  const isMac = platform === 'macos';
+
+//重命名开始
+  export let renamingIndex: number = -1;
+  export let onRenameCommit: (index: number, newName: string) => void = () => {};
+  export let onRenameCancel: () => void = () => {};
+
+  let renameValue = '';
+  let isCancellingRename = false;
+  let lastRenamingIndex = -1;
+  let renameInputEl: HTMLInputElement; // ★ 新增：直接绑定 DOM 元素
+
+  $: if (renamingIndex !== lastRenamingIndex) {
+    lastRenamingIndex = renamingIndex;
+    if (renamingIndex >= 0 && titles[renamingIndex]) {
+      renameValue = titles[renamingIndex];
+      
+      // 使用 tick() 代替 setTimeout，确保 DOM 已渲染
+      tick().then(() => {
+        if (renameInputEl) {
+          renameInputEl.focus();
+          const dotIdx = renameInputEl.value.lastIndexOf('.');
+          if (dotIdx > 0) renameInputEl.setSelectionRange(0, dotIdx);
+          else renameInputEl.select();
+        }
+      });
+    } else {
+      renameValue = '';
+    }
+  }
+
+  function handleRenameKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      (e.target as HTMLInputElement).blur();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      isCancellingRename = true;
+      (e.target as HTMLInputElement).blur();
+    }
+  }
+
+  function handleRenameBlur() {
+    if (isCancellingRename) {
+      isCancellingRename = false;
+      onRenameCancel();
+      return;
+    }
+    
+    let newName = renameValue.trim().replace(/[\\/:*?"<>|]/g, '');
+    if (!newName || (renamingIndex >= 0 && newName === titles[renamingIndex])) {
+      onRenameCancel();
+      return;
+    }
+    onRenameCommit(renamingIndex, newName);
+  }
+// 重命名结束
+
   const MIN_TAB_W = 100;
   const MAX_TAB_W = 200;
   const ADD_BTN_W = 32;          // + 新建
@@ -26,7 +86,7 @@
   const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
   // 标签宽度计算的固定开销（不含文字）
-  const TAB_FONT = '13px sans-serif';  // 与 .tab 的 font-size 一致
+  const TAB_FONT = '13px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';  // 与 .tab 的 font-size 一致
   const TAB_PADDING_L = 10;            // .tab 的 padding-left
   const TAB_PADDING_R = 5;             // .tab 的 padding-right
   const CLOSE_BTN_W = 24;              // 关闭按钮 × / 脏标记 ● 的预留宽度
@@ -118,7 +178,7 @@
         tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, neededW));
         visibleCount = count;
         hasOverflow = false;
-      } else if (idealNoDD >= MIN_TAB_W) {
+      } else if (idealNoDD >= MIN_TAB_W+5) {
         // 刚好能放下所有标签（自动压缩）
         tabWidth = idealNoDD;
         visibleCount = count;
@@ -361,7 +421,7 @@
   <div class="drag-strip" data-tauri-drag-region></div>
 
   <!-- 左侧 Logo -->
-  <div class="app-logo" data-tauri-drag-region>
+  <div class="app-logo" class:mac-space={isMac} data-tauri-drag-region>
     <img src="/tab-icon.png" alt="FinchPad" />
   </div>
 
@@ -388,7 +448,20 @@
       tabindex="0"
       aria-selected={isActive}
     >
-      <span class="title">{title}</span>
+
+      {#if absIdx === renamingIndex}
+        <input
+          bind:this={renameInputEl}
+          class="rename-input"
+          bind:value={renameValue}
+          on:keydown|stopPropagation={handleRenameKeydown}
+          on:blur={handleRenameBlur}
+          on:click|stopPropagation
+          on:mousedown|stopPropagation
+        />
+      {:else}
+        <span class="title">{title}</span>
+      {/if}
 
       {#if isDirty}
         {#if isHovered}
@@ -464,32 +537,34 @@
     </svg>
   </button>
 
-  <!-- 窗口控制按钮（Windows 11 风格） -->
-  <button class="window-btn" on:click={handleMinimize} aria-label="最小化">
-    <svg width="10" height="10" viewBox="0 0 10 10">
-      <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1" />
-    </svg>
-  </button>
-
-  <button class="window-btn" on:click={handleToggleMaximize} aria-label={isMaximized ? '还原' : '最大化'}>
-    {#if isMaximized}
+  <!-- 窗口控制按钮（Windows 11 风格）—— 仅在非 Mac 平台渲染 -->
+  {#if !isMac}
+    <button class="window-btn" on:click={handleMinimize} aria-label="最小化">
       <svg width="10" height="10" viewBox="0 0 10 10">
-        <rect x="0" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1" />
-        <polyline points="2,2 2,0 10,0 10,8 8,8" fill="none" stroke="currentColor" stroke-width="1" />
+        <line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1" />
       </svg>
-    {:else}
-      <svg width="10" height="10" viewBox="0 0 10 10">
-        <rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1" />
-      </svg>
-    {/if}
-  </button>
+    </button>
 
-  <button class="window-btn window-btn-close" on:click={handleClose} aria-label="关闭">
-    <svg width="10" height="10" viewBox="0 0 10 10">
-      <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1" />
-      <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1" />
-    </svg>
-  </button>
+    <button class="window-btn" on:click={handleToggleMaximize} aria-label={isMaximized ? '还原' : '最大化'}>
+      {#if isMaximized}
+        <svg width="10" height="10" viewBox="0 0 10 10">
+          <rect x="0" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1" />
+          <polyline points="2,2 2,0 10,0 10,8 8,8" fill="none" stroke="currentColor" stroke-width="1" />
+        </svg>
+      {:else}
+        <svg width="10" height="10" viewBox="0 0 10 10">
+          <rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1" />
+        </svg>
+      {/if}
+    </button>
+
+    <button class="window-btn window-btn-close" on:click={handleClose} aria-label="关闭">
+      <svg width="10" height="10" viewBox="0 0 10 10">
+        <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1" />
+        <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1" />
+      </svg>
+    </button>
+  {/if}
 
   {#if dragIndicatorX >= 0}
     <div class="drag-indicator" style="left: {dragIndicatorX}px;"></div>
@@ -532,6 +607,9 @@
     display: block;
     pointer-events: none;
   }
+  .app-logo.mac-space {
+    margin-left: 75px; /* 给 Mac 的红黄绿按钮留出空间 */
+  }  
 
   .tab {
     display: flex;
@@ -547,6 +625,7 @@
     box-sizing: border-box;
     flex-shrink: 0;
     overflow: hidden;
+    /* outline: none; */
   }
   .tab.active {
     background: var(--tab-background-active);
@@ -563,6 +642,21 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .rename-input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    background: var(--editor-background);
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    color: var(--tab-foreground);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 0 4px;
+    outline: none;
+    height: 20px;
+    box-sizing: border-box;
+  }  
   .dot {
     color: var(--tab-foreground);
     font-size: 6px;

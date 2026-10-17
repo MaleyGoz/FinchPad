@@ -27,6 +27,7 @@ export const enUS: Record<string, string> = {
   "tab_menu.copy_path": "Copy File Path",
   "tab_menu.reveal_in_explorer": "Reveal in Explorer",
   "tab_menu.diff": "Compare",
+  "tab_menu.rename": "Rename",
 
   "diff.window_title": "Compare",
   "diff.left_disk": "Disk",
@@ -37,6 +38,11 @@ export const enUS: Record<string, string> = {
   // ===== Tab Bar Empty Area Menu =====
   "bar_menu.new": "New Tab",
   "bar_menu.open": "Open File",
+
+  // ===== Rename Dialog =====
+  "dialog.rename_exists":
+    "A file with this name already exists in the directory.",
+  "dialog.rename_failed": "Rename failed: {error}",
 
   // ===== Editor Context Menu =====
   "editor_menu.undo": "Undo",
@@ -80,14 +86,9 @@ export const enUS: Record<string, string> = {
   "dialog.conflict_discard_close": "Discard",
   "dialog.conflict_compare": "Compare",
   "dialog.conflict_save_as": "Save As",
-
-  // ===== External Changes Dialogs =====
-  "dialog.external_modified":
-    "This file has been modified by another program. Reload and discard changes in FinchPad?",
-  "dialog.external_deleted_save":
-    'File "{title}" has been deleted from disk. Save to recreate it?',
-  "dialog.external_unreachable_save":
-    'File "{title}" is currently unreachable. Save to another location?',
+  "dialog.save_as_conflict":
+    "Save failed: The file is already open in another tab. Please close it and try again.\nPath: {path}",
+  "dialog.ok": "OK",
 
   // ===== Large File Close Dialog =====
   "dialog.large_close":
