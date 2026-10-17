@@ -90,7 +90,7 @@
   type SettingsMenuState = { visible: boolean; anchorRight: number; anchorBottom: number };
   let settingsMenu: SettingsMenuState = { visible: false, anchorRight: 0, anchorBottom: 0 };
   let aboutVisible = false;
-  const APP_VERSION = '0.2.0';  // 和 Cargo.toml / package.json 里的版本号保持一致  
+  const APP_VERSION = '0.3.0';  // 和 Cargo.toml / package.json 里的版本号保持一致  
 
   function handleSettingsClick(anchorRight: number, anchorBottom: number) {
     closeContextMenu();
