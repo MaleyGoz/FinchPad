@@ -27,6 +27,8 @@ pub struct TabSession {
     pub is_dirty: bool,
     pub cursor_line: usize,
     pub cursor_column: usize,
+    #[serde(default)]
+    pub last_known_mtime: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

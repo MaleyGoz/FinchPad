@@ -27,6 +27,7 @@ export const zhCN: Record<string, string> = {
   "tab_menu.copy_path": "复制文件路径",
   "tab_menu.reveal_in_explorer": "打开所在文件夹",
   "tab_menu.diff": "对比",
+  "tab_menu.rename": "重命名",
 
   "diff.window_title": "对比",
   "diff.left_disk": "磁盘版本",
@@ -37,6 +38,10 @@ export const zhCN: Record<string, string> = {
   // ===== 标签栏空白处菜单 =====
   "bar_menu.new": "新建标签",
   "bar_menu.open": "打开文件",
+
+  // ===== 重命名弹窗提示 =====
+  "dialog.rename_exists": "该文件名在当前目录下已存在。",
+  "dialog.rename_failed": "重命名失败：{error}",
 
   // ===== 编辑区右键菜单 =====
   "editor_menu.undo": "撤销",
@@ -79,14 +84,9 @@ export const zhCN: Record<string, string> = {
   "dialog.conflict_discard_close": "放弃修改",
   "dialog.conflict_compare": "对比差异",
   "dialog.conflict_save_as": "另存为",
-
-  // ===== 外部变化弹窗 =====
-  "dialog.external_modified":
-    "此文件被另一个程序修改了。是否重新加载文件并放弃在 FinchPad 中的更改？",
-  "dialog.external_deleted_save":
-    "文件「{title}」已从磁盘删除。是否保存内容以重建该文件？",
-  "dialog.external_unreachable_save":
-    "文件「{title}」所在位置当前不可访问。是否另存为其它位置？",
+  "dialog.save_as_conflict":
+    "保存失败：文件已在另一个标签页中打开。请关闭该标签后再重试。\n路径：{path}",
+  "dialog.ok": "确定",
 
   // ===== 大文件关窗弹窗 =====
   "dialog.large_close": "文件「{title}」有未保存的修改。关闭后这些修改会丢失。",

@@ -68,7 +68,7 @@ export const THEMES: Record<string, Theme> = {
   gray: {
     editor_background: "#C0C0C0",
     editor_foreground: "#000000",
-    editor_cursor: "#000000",
+    editor_cursor: "#0066cc",
     editor_selection: "#9DA8B8",
     gutter_background: "#e4e4e4",
     gutter_foreground: "#888888",

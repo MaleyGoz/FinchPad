@@ -100,7 +100,7 @@ Even if you are not a developer, you are welcome to discuss product direction in
 
 This project is licensed under the MIT License.
 
-Copyright (c) 2024 MaleyGoz
+Copyright (c) 2026 MaleyGoz
 
 This means you are free to use, modify, and distribute this project, including for commercial purposes, as long as you retain the original copyright and license notices. For more details, please refer to the LICENSE file in the project root.
 

@@ -99,7 +99,7 @@ npm run tauri build
 ## 开源协议
 本项目采用 MIT License 开源协议。
 
-Copyright (c) 2024 MaleyGoz
+Copyright (c) 2026 MaleyGoz
 
 这意味着你可以自由地使用、修改、分发本项目，包括用于商业用途，只需保留原始的版权声明和许可声明即可。详细信息请参阅项目根目录下的 LICENSE 文件。
 
