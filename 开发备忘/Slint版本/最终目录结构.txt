@@ -1,0 +1,24 @@
+src/
+├── main.rs                 # 极简入口：初始化 Slint 和 App
+├── app.rs                  # 应用层：持有 Workspace 和 UI 状态，处理 Slint 回调
+│
+├── model/                  # 业务模型层：纯逻辑，无 IO / 无 UI 依赖
+│   ├── mod.rs
+│   ├── buffer.rs           # TextBuffer (原 editor/buffer.rs)
+│   ├── tab.rs              # Tab (原 editor/tab.rs)
+│   └── workspace.rs        # Workspace (原 app_state.rs 剥离 IO 操作)
+│
+├── io/                     # 基础设施层：与文件系统 / 外部世界交互
+│   ├── mod.rs
+│   ├── encoding.rs         # 原 encoding.rs
+│   ├── line_ending.rs      # 原 line_ending.rs
+│   ├── file.rs             # 原 file_io.rs
+│   ├── crypto.rs           # 未来预留：AES-256-GCM
+│   ├── session.rs          # 未来预留：会话恢复
+│   └── autosave.rs         # 未来预留：自动保存
+│
+└── ui/                     # 视图层
+    ├── mod.rs              # Slint 绑定与 sync_ui 逻辑
+    ├── tooltip.rs          # 原 main.rs 里 Windows 专用的 GDI 文本测量代码
+    ├── main.slint          # 主 Slint 文件
+    └── components/         # 未来拆分 Slint 组件的文件夹

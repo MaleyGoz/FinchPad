@@ -1,0 +1,1087 @@
+import { Button, LineEdit, TextEdit } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "TXT Editor";
+    icon: @image-url("../../assets/icon.png");
+    preferred-width: 800px;
+    preferred-height: 600px;
+
+    in property <[string]> tab-titles: [];
+    in property <[bool]> tab-dirty-states: [];
+    in property <int> active-index: 0;
+    in property <[string]> tab-paths: [];
+
+    in-out property <string> editor-text: "";
+    in-out property <bool> ctrl-pressed: false;
+
+    in-out property <bool> confirm-visible: false;
+    in-out property <string> confirm-title: "";
+
+    in-out property <bool> find-visible: false;
+    in-out property <string> find-query: "";
+
+    in-out property <bool> tab-menu-visible: false;
+    in-out property <int> tab-menu-index: -1;
+    in-out property <length> tab-menu-x: 8px;
+    in-out property <length> tab-menu-y: 44px;
+
+    // 编辑器缩放百分比（100 = 100%）
+    in-out property <int> zoom: 100;
+
+    // ===== 底部状态栏数据 =====
+    in property <string> status-badge-text: "";
+    in property <color> status-badge-color: transparent;
+    in property <int> status-line-count: 1;
+    in property <int> status-char-count: 0;
+    in property <int> status-selected-count: 0;
+    in property <string> status-encoding: "UTF-8";
+    in property <string> status-line-ending: "LF";
+
+    // ===== 外部冲突对话框 =====
+    in-out property <bool> conflict-visible: false;
+    in-out property <string> conflict-title: "";
+    in-out property <string> conflict-message: "";
+    // ===== 轻量冲突对话框（激活标签时用） =====
+    in-out property <bool> light-conflict-visible: false;
+    in-out property <string> light-conflict-title: "";
+    in-out property <string> light-conflict-message: "";
+    // ===== 文件被外部删除的确认对话框 =====
+    in-out property <bool> deleted-confirm-visible: false;
+    in-out property <string> deleted-confirm-title: "";
+    in-out property <string> deleted-confirm-message: "";
+    // ===== 关闭"已删除/不可达"标签时的保存询问 =====
+    in-out property <bool> deleted-save-visible: false;
+    in-out property <string> deleted-save-title: "";
+    in-out property <string> deleted-save-message: "";
+
+    // ===== 拖拽标签重排相关状态 =====
+    // 是否正在拖拽（true 时，tab-slot-x 会返回“拖拽中”的视觉位置）
+    in-out property <bool> tab-dragging: false;
+    // 被拖拽标签的原始索引（-1 表示没有正在拖拽）
+    in-out property <int> drag-from-index: -1;
+    // 当前指针悬停的目标槽位索引
+    in-out property <int> drag-to-index: -1;
+    // 按下瞬间，指针在「标签栏坐标系」里的 X
+    in-out property <length> drag-press-x: 0px;
+    // 当前指针在「标签栏坐标系」里的 X
+    in-out property <length> drag-pointer-x: 0px;
+    // 拖拽结束后用来吞掉一次多余的 clicked 事件
+    in-out property <bool> tab-was-dragged: false;
+
+    callback text-changed(string);
+    callback tab-clicked(int);
+    callback tab-close-requested(int);
+    callback new-tab-clicked();
+    callback open-file-requested();
+    callback save-requested();
+    callback save-as-requested();
+
+    callback confirm-save();
+    callback confirm-discard();
+    callback confirm-cancel();
+
+    callback next-tab-requested();
+    callback find-requested();
+    callback find-next-requested();
+    callback find-close-requested();
+    callback find-query-changed(string);
+
+    callback tab-middle-close-requested(int);
+    callback tab-context-requested(int);
+    callback tooltip-show-requested(int, length, length);
+    callback tooltip-hide-requested();
+    callback files-dropped(data-transfer);
+    callback close-other-tabs-requested(int);
+    callback close-left-tabs-requested(int);
+    callback close-right-tabs-requested(int);
+    callback light-conflict-reload();
+    callback light-conflict-keep();
+    callback deleted-confirm-keep();
+    callback deleted-confirm-close();
+    callback deleted-save-save();
+    callback deleted-save-discard();
+    callback deleted-save-cancel();
+
+    // ===== 拖拽标签重排相关回调 =====
+    // 开始拖拽（参数：被按下的标签索引）
+    callback tab-drag-started(int);
+    // 拖拽过程中目标槽位发生变化（参数：新的目标索引）
+    callback tab-drag-moved(int);
+    // 拖拽结束（参数：释放时的目标索引）
+    callback tab-drag-ended(int);
+    callback conflict-overwrite();
+    callback conflict-discard();
+    callback conflict-save-as();
+    callback conflict-cancel();
+    // ===== 拖拽相关的计算函数 =====
+    // 单个标签槽位宽度 = 标签宽度 120px
+    pure function tab-step() -> length { 120px }
+
+    // 拖放文件到窗口打开
+    DropArea {
+        width: parent.width;
+        height: parent.height;
+
+        can-drop(event) => {
+            debug("can-drop 被调用");
+            DragAction.copy
+        }
+
+        dropped(event) => {
+            root.files-dropped(event.data);
+            DragAction.copy
+        }
+    }
+
+    // 把「指针在标签栏坐标系里的 X」反推成目标槽位索引
+    // 超左返回 0，超右返回最后一个标签
+    pure function index-at-bar-x(bar-x: length) -> int {
+        let n = root.tab-titles.length;
+        if n <= 1 { return 0; }
+        let idx = floor(bar-x / 124px);
+        if idx < 0 { return 0; }
+        if idx >= n { return n - 1; }
+        return idx;
+    }
+
+    // 每个标签当前应该出现在标签栏里的 X 位置
+    // 未拖拽：base；拖拽中：被拖的跟随指针，其它标签让位
+    pure function tab-slot-x(i: int) -> length {
+        let base = i * 124px;
+
+        // 不在拖拽：待在原位
+        if !root.tab-dragging || root.drag-from-index < 0 {
+            return base;
+        }
+        let from = root.drag-from-index;
+        let to = root.drag-to-index;
+
+        // 被拖拽的那个：跟随指针水平位移
+        if i == from {
+            return base + (root.drag-pointer-x - root.drag-press-x);
+        }
+
+        // 其它标签平滑让位
+        if from < to && i > from && i <= to {
+            return base - 124px;   // 向左挪一格
+        }
+        if to < from && i >= to && i < from {
+            return base + 124px;   // 向右挪一格
+        }
+        return base;
+    }
+
+    // 快捷键
+    FocusScope {
+
+        key-pressed(event) => {
+            // ★ 跟踪 Ctrl 键状态（不 accept，继续往下走快捷键判断）
+            if event.modifiers.control {
+                root.ctrl-pressed = true;
+            }
+            if event.modifiers.control
+                && event.modifiers.shift
+                && (event.text == "s" || event.text == "S") {
+                root.save-as-requested();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "s" || event.text == "S") {
+                root.save-requested();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "o" || event.text == "O") {
+                root.open-file-requested();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "n" || event.text == "N") {
+                root.new-tab-clicked();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "w" || event.text == "W") {
+                root.tab-close-requested(root.active-index);
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "Tab" || event.text == "\u{0009}") {
+                root.next-tab-requested();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "f" || event.text == "F") {
+                root.find-requested();
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && (event.text == "=" || event.text == "+") {
+                if root.zoom < 400 {
+                    root.zoom = root.zoom + 10;
+                }
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && event.text == "-" {
+                if root.zoom > 50 {
+                    root.zoom = root.zoom - 10;
+                }
+                accept
+            } else if event.modifiers.control
+                && !event.modifiers.shift
+                && event.text == "0" {
+                root.zoom = 100;
+                accept
+            } else {
+                reject
+            }
+        }
+
+        key-released(event) => {
+            // ★ Ctrl 松开
+            if !event.modifiers.control {
+                root.ctrl-pressed = false;
+            }
+            reject
+        }
+
+        VerticalLayout {
+            padding-top: 0px;
+            padding-right: 0px;
+            padding-bottom: 24px;
+            padding-left: 0px;
+            spacing: 8px;
+
+            // 标签栏：改用手动 x 定位，才能实现“被拖标签跟手 + 其它标签让位”
+            tab-bar := Rectangle {
+                height: 32px;
+
+                for title[i] in root.tab-titles: tab-rect := Rectangle {
+                    // ★ 位置由纯函数 tab-slot-x(i) 决定，不再用布局自动排列
+                    x: root.tab-slot-x(i);
+                    y: 0px;
+                    width: 120px;
+                    height: 32px;
+
+                    // 被拖拽的标签浮到最上层，盖住其它标签
+                    z: (root.tab-dragging && i == root.drag-from-index) ? 100 : 10;
+
+                    background: i == root.active-index ? white : #d8dde3;
+                    border-radius: 4px;
+
+                    // 位置变化动画：让位标签 140ms 平滑滑动；
+                    // 被拖拽的标签 0ms（跟手，不能有延迟）
+                    animate x {
+                        duration: (root.tab-dragging && i == root.drag-from-index) ? 0ms : 140ms;
+                        easing: ease-out;
+                    }
+
+                    tab-area := TouchArea {
+                        x: 0px;
+                        y: 0px;
+                        width: parent.width;
+                        height: parent.height;
+                        z: 1;
+
+                        clicked => {
+                            // ★ 拖拽刚结束的这一次 clicked 要吞掉，
+                            //   否则会紧接着切回原标签
+                            if root.tab-was-dragged {
+                                root.tab-was-dragged = false;
+                                return;
+                            }
+                            root.tooltip-hide-requested();
+                            root.tab-clicked(i);
+                        }
+
+                        changed has-hover => {
+                            // ★ 拖拽过程中不要弹 tooltip
+                            if self.has-hover && !root.tab-dragging {
+                                if root.tab-paths[i] != "" {
+                                    root.tooltip-show-requested(
+                                        i,
+                                        tab-rect.absolute-position.x,
+                                        tab-rect.absolute-position.y + tab-rect.height);
+                                }
+                            } else if !self.has-hover {
+                                root.tooltip-hide-requested();
+                            }
+                        }
+
+                        pointer-event(event) => {
+                            if event.kind == PointerEventKind.down
+                                && event.button == PointerEventButton.left {
+                                // ★ 按下左键：进入拖拽预备状态
+                                //   注意 Slint 的 TouchArea 在 down 后会独占后续指针事件，
+                                //   所以 move / up 都会回到这里
+                                root.tab-was-dragged = false;
+
+                                // 把指针位置换算到「标签栏坐标系」：
+                                // tab-slot-x(i) = 标签在标签栏里的 x
+                                // event.position.x = 指针在标签内部的 x
+                                let bar_x = root.tab-slot-x(i) + self.mouse-x;
+
+                                root.tab-dragging = true;
+                                root.drag-from-index = i;
+                                root.drag-to-index = i;
+                                root.drag-press-x = bar_x;
+                                root.drag-pointer-x = bar_x;
+
+                                root.tooltip-hide-requested();
+                                root.tab-drag-started(i);
+                                EventResult.accept
+                            } else if event.kind == PointerEventKind.move
+                                && root.tab-dragging {
+                                // ★ 关键：move 事件只送到「按下的那个」TouchArea，
+                                //   所以不能用循环变量 i 当目标，要用绝对坐标反推
+                                let bar_x = root.tab-slot-x(i) + self.mouse-x;
+                                root.drag-pointer-x = bar_x;
+
+                                let target = root.index-at-bar-x(bar_x);
+                                if target != root.drag-to-index {
+                                    root.drag-to-index = target;
+                                    root.tab-drag-moved(target);
+                                }
+                                EventResult.accept
+                            } else if event.kind == PointerEventKind.up
+                                && event.button == PointerEventButton.left
+                                && root.tab-dragging {
+                                let from = root.drag-from-index;
+                                let target = root.drag-to-index;
+
+                                // ★ 先复位拖拽状态（让所有标签回到正常布局）。
+                                //   再通知 Rust 重排，避免视觉上出现“拖到一半的中间态”。
+                                root.tab-dragging = false;
+                                root.tab-was-dragged = (from != target);
+                                root.drag-from-index = -1;
+                                root.drag-to-index = -1;
+
+                                if from != target {
+                                    root.tab-drag-ended(target);
+                                }
+                                EventResult.accept
+                            } else if event.kind == PointerEventKind.down
+                                && event.button == PointerEventButton.middle {
+                                root.tooltip-hide-requested();
+                                root.tab-middle-close-requested(i);
+                                EventResult.accept
+                            } else if event.kind == PointerEventKind.down
+                                && event.button == PointerEventButton.right {
+                                root.tooltip-hide-requested();
+                                root.tab-context-requested(i);
+                                EventResult.accept
+                            } else {
+                                EventResult.reject
+                            }
+                        }
+                    }
+
+                    // ===== 以下 Text / close-area 全部保持原样 =====
+                    Text {
+                        x: 8px;
+                        width: 82px;
+                        text: title;
+                        color: i == root.active-index ? black : #555;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+
+                    close-area := TouchArea {
+                        x: 92px;
+                        width: 28px;
+                        height: 32px;
+                        z: 2;
+
+                        clicked => {
+                            root.tab-close-requested(i);
+                        }
+                    }
+
+                    // 未保存标签显示小圆点
+                    Text {
+                        x: 98px;
+                        width: 16px;
+                        text: "•";
+                        font-size: 18px;
+                        color: #555;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        visible: root.tab-dirty-states[i] && !close-area.has-hover;
+                    }
+
+                    // 未修改标签显示关闭按钮
+                    Text {
+                        x: 92px;
+                        width: 28px;
+                        text: "×";
+                        font-size: 18px;
+                        color: #555;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+
+                        visible: (root.tab-dirty-states[i] && close-area.has-hover)
+                            || (!root.tab-dirty-states[i]
+                            && (i == root.active-index || close-area.has-hover));
+                    }
+                }
+
+                // “+” 新建标签按钮：放在所有标签的右侧
+                Rectangle {
+                    x: root.tab-titles.length * 124px;
+                    y: 0px;
+                    width: 32px;
+                    height: 32px;
+                    background: #2a2a2a;
+                    border-radius: 4px;
+
+                    TouchArea {
+                        clicked => {
+                            root.new-tab-clicked();
+                        }
+                    }
+
+                    Text {
+                        text: "+";
+                        color: white;
+                        font-size: 16px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // 包裹层：让 TextEdit 底部超出 2px，用 clip 切掉 Fluent 的焦点蓝线
+            editor-clip := Rectangle {
+                vertical-stretch: 1;
+                clip: true;
+                background: white;
+
+                editor := TextEdit {
+                    x: 0px;
+                    y: 0px;
+                    width: parent.width;
+                    height: parent.height + 2px;
+                    text <=> root.editor-text;
+                    wrap: word-wrap;
+                    font-size: root.zoom * 15px / 100;
+
+                    edited(new-text) => {
+                        root.text-changed(new-text);
+                    }
+                }
+
+                // Ctrl + 滚轮缩放（仅在按住 Ctrl 时生效）
+                TouchArea {
+                    width: parent.width;
+                    height: parent.height;
+                    // 核心：只有按住 Ctrl 时才启用，否则完全“隐身”
+                    enabled: root.ctrl-pressed;
+
+                    scroll-event(event) => {
+                        if event.modifiers.control {
+                            if event.delta-y < 0 {
+                                // 向下滚 → 缩小
+                                if root.zoom > 50 {
+                                    root.zoom = root.zoom - 10;
+                                }
+                            } else if event.delta-y > 0 {
+                                // 向上滚 → 放大
+                                if root.zoom < 400 {
+                                    root.zoom = root.zoom + 10;
+                                }
+                            }
+                            accept
+                        } else {
+                            reject
+                        }
+                    }
+                }
+            }
+
+            if root.find-visible: Rectangle {
+                height: 42px;
+                background: #eeeeee;
+                border-radius: 4px;
+
+                HorizontalLayout {
+                    padding: 6px;
+                    spacing: 6px;
+
+                    Text {
+                        text: "查找：";
+                        vertical-alignment: center;
+                    }
+
+                    find-input := LineEdit {
+                        horizontal-stretch: 1;
+                        text <=> root.find-query;
+
+                        edited => {
+                            root.find-query-changed(self.text);
+                        }
+
+                        accepted => {
+                            root.find-next-requested();
+                        }
+                    }
+
+                    Button {
+                        text: "查找下一个";
+                        clicked => {
+                            root.find-next-requested();
+                        }
+                    }
+
+                    Button {
+                        text: "关闭";
+                        clicked => {
+                            root.find-close-requested();
+                        }
+                    }
+                }
+            }
+        }
+
+        // ===== 底部状态栏 =====
+        // 用绝对定位贴住窗口底部，不参与 VerticalLayout 布局。
+        // 只依赖 parent.height，无循环、无 Model、无重复重算。
+        status-bar := Rectangle {
+            x: 0px;
+            y: parent.height - 24px;
+            width: parent.width;
+            height: 24px;
+            background: #f3f3f3;
+            border-width: 1px;
+            border-color: #e0e0e0;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 8px;
+
+                // 状态标记（未保存 / 已被外部修改 / 已被外部删除）
+                Text {
+                    text: root.status-badge-text;
+                    color: root.status-badge-color;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                    visible: root.status-badge-text != "";
+                }
+
+                Text {
+                    text: "|";
+                    color: #cccccc;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                    visible: root.status-badge-text != "";
+                }
+
+                // 统计：行数 · 字符数 (· 选中数)
+                Text {
+                    text: "共 " + root.status-line-count + " 行 · "
+                        + root.status-char-count + " 字符"
+                        + (root.status-selected-count > 0
+                        ? " · 选中 " + root.status-selected-count + " 字符"
+                        : "");
+                    color: #555555;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                // 弹簧：把右侧的编码/换行/缩放推到最右
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+
+                // 编码
+                Text {
+                    text: root.status-encoding;
+                    color: #555555;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    text: "|";
+                    color: #cccccc;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                // 换行符
+                Text {
+                    text: root.status-line-ending;
+                    color: #555555;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    text: "|";
+                    color: #cccccc;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                // 缩放
+                Text {
+                    text: root.zoom + "%";
+                    color: #555555;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+
+    if root.confirm-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #66000000;
+
+        TouchArea {
+            // 阻止确认框显示时操作下面的编辑器
+        }
+
+        Rectangle {
+            x: (parent.width - 380px) / 2;
+            y: (parent.height - 160px) / 2;
+            width: 380px;
+            height: 160px;
+            background: white;
+            border-width: 1px;
+            border-color: #999;
+            border-radius: 6px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: "是否保存对“" + root.confirm-title + "”的修改？";
+                    wrap: word-wrap;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+
+                    Button {
+                        text: "保存";
+                        clicked => {
+                            root.confirm-save();
+                        }
+                    }
+
+                    Button {
+                        text: "不保存";
+                        clicked => {
+                            root.confirm-discard();
+                        }
+                    }
+
+                    Button {
+                        text: "取消";
+                        clicked => {
+                            root.confirm-cancel();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.conflict-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #66000000;
+        z: 50;
+
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - 520px) / 2;
+            y: (parent.height - 180px) / 2;
+            width: 520px;
+            height: 180px;
+            background: white;
+            border-width: 1px;
+            border-color: #999;
+            border-radius: 6px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: root.conflict-title;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                Text {
+                    text: root.conflict-message;
+                    color: #555;
+                    wrap: word-wrap;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+
+                    Button {
+                        text: "覆盖磁盘";
+                        clicked => { root.conflict-overwrite(); }
+                    }
+
+                    Button {
+                        text: "放弃我的修改";
+                        clicked => { root.conflict-discard(); }
+                    }
+
+                    Button {
+                        text: "另存为";
+                        clicked => { root.conflict-save-as(); }
+                    }
+
+                    Button {
+                        text: "取消";
+                        clicked => { root.conflict-cancel(); }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.light-conflict-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #66000000;
+        z: 60;
+
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - 440px) / 2;
+            y: (parent.height - 160px) / 2;
+            width: 440px;
+            height: 160px;
+            background: white;
+            border-width: 1px;
+            border-color: #999;
+            border-radius: 6px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: root.light-conflict-title;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                Text {
+                    text: root.light-conflict-message;
+                    color: #555;
+                    wrap: word-wrap;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+
+                    Button {
+                        text: "重新加载";
+                        clicked => { root.light-conflict-reload(); }
+                    }
+
+                    Button {
+                        text: "保留我的修改";
+                        clicked => { root.light-conflict-keep(); }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.deleted-confirm-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #66000000;
+        z: 61;
+
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - 460px) / 2;
+            y: (parent.height - 170px) / 2;
+            width: 460px;
+            height: 170px;
+            background: white;
+            border-width: 1px;
+            border-color: #999;
+            border-radius: 6px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: root.deleted-confirm-title;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                Text {
+                    text: root.deleted-confirm-message;
+                    color: #555;
+                    wrap: word-wrap;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+
+                    Button {
+                        text: "是(Y)";
+                        clicked => { root.deleted-confirm-keep(); }
+                    }
+
+                    Button {
+                        text: "否(N)";
+                        clicked => { root.deleted-confirm-close(); }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.deleted-save-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #66000000;
+        z: 62;
+
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - 480px) / 2;
+            y: (parent.height - 180px) / 2;
+            width: 480px;
+            height: 180px;
+            background: white;
+            border-width: 1px;
+            border-color: #999;
+            border-radius: 6px;
+
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+
+                Text {
+                    text: root.deleted-save-title;
+                    font-size: 14px;
+                    font-weight: 700;
+                }
+
+                Text {
+                    text: root.deleted-save-message;
+                    color: #555;
+                    wrap: word-wrap;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
+
+                    Button {
+                        text: "保存";
+                        clicked => { root.deleted-save-save(); }
+                    }
+
+                    Button {
+                        text: "不保存";
+                        clicked => { root.deleted-save-discard(); }
+                    }
+
+                    Button {
+                        text: "取消";
+                        clicked => { root.deleted-save-cancel(); }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.tab-menu-visible: Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        z: 100;
+
+        // 菜单外点击区域
+        TouchArea {
+            x: 0px;
+            y: 0px;
+            width: parent.width;
+            height: parent.height;
+
+            clicked => {
+                root.tab-menu-visible = false;
+            }
+
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down {
+                    root.tab-menu-visible = false;
+                    EventResult.accept
+                } else {
+                    EventResult.reject
+                }
+            }
+        }
+
+        Rectangle {
+            x: root.tab-menu-x;
+            y: root.tab-menu-y;
+            width: 180px;
+
+            // 两侧都有标签时显示 4 项，否则只显示 2 项
+            height: root.tab-menu-index > 0
+                && root.tab-menu-index < root.tab-titles.length - 1
+                ? 142px
+                : 74px;
+
+            background: white;
+            border-width: 1px;
+            border-color: #aaaaaa;
+            border-radius: 4px;
+            z: 101;
+
+            VerticalLayout {
+                padding: 4px;
+                spacing: 2px;
+
+                Button {
+                    text: "关闭标签";
+                    height: 32px;
+
+                    clicked => {
+                        root.tab-menu-visible = false;
+                        root.tab-close-requested(root.tab-menu-index);
+                    }
+                }
+
+                if root.tab-titles.length > 1: Button {
+                    text: "关闭其它标签";
+                    height: 32px;
+
+                    clicked => {
+                        root.tab-menu-visible = false;
+                        root.close-other-tabs-requested(root.tab-menu-index);
+                    }
+                }
+
+                // 只有左右两侧都存在标签时才显示这两个菜单
+                if root.tab-menu-index > 0
+                    && root.tab-menu-index < root.tab-titles.length - 1: Button {
+                    text: "关闭左侧标签";
+                    height: 32px;
+
+                    clicked => {
+                        root.tab-menu-visible = false;
+                        root.close-left-tabs-requested(root.tab-menu-index);
+                    }
+                }
+
+                if root.tab-menu-index > 0
+                    && root.tab-menu-index < root.tab-titles.length - 1: Button {
+                    text: "关闭右侧标签";
+                    height: 32px;
+
+                    clicked => {
+                        root.tab-menu-visible = false;
+                        root.close-right-tabs-requested(root.tab-menu-index);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// tooltip提示窗口
+export component TooltipWindow inherits Window {
+    title: "";
+    no-frame: true;
+    always-on-top: true;
+    background: transparent;
+
+    in property <string> tooltip-text: "";
+
+    Rectangle {
+        width: parent.width;
+        height: parent.height;
+        background: #f7f7f7;
+        border-width: 1px;
+        border-color: #d0d0d0;
+        border-radius: 5px;
+
+        Text {
+            x: 12px;
+            y: 6px;
+            width: parent.width - 24px;
+            height: parent.height - 12px;
+            text: tooltip-text;
+            color: #555555;
+            font-size: 12px;
+            font-family: "Segoe UI";
+            wrap: word-wrap;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+}

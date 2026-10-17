@@ -1,0 +1,29 @@
+前端
+src/
+├── lib/
+│   ├── TabBar.svelte        ← 顶部标签栏
+│   ├── Editor.svelte        ← Monaco 编辑器容器
+│   ├── StatusBar.svelte     ← 底部状态栏
+│   └── api.ts               ← 封装所有 invoke() 调用
+├── routes/
+│   └── +page.svelte         ← 组装三个组件 + 弹窗
+└── app.html
+
+
+后端
+src-tauri/src/
+├── io/                 ← 从 Slint 版本原封不动搬（6 个文件）
+│   ├── crypto.rs
+│   ├── encoding.rs
+│   ├── file.rs
+│   ├── line_ending.rs
+│   ├── mod.rs
+│   └── session.rs
+├── model/              ← 从 Slint 版本原封不动搬（4 个文件）
+│   ├── buffer.rs
+│   ├── mod.rs
+│   ├── tab.rs
+│   └── workspace.rs
+├── app.rs              ← 合并"App 结构体 + #[tauri::command]"
+├── lib.rs              ← 入口，注册命令
+└── main.rs             ← Tauri 桌面入口，几乎不用动

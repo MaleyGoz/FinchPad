@@ -1,0 +1,79 @@
+TXT-Editor/
+│
+├── Cargo.toml                    # 依赖配置：iced、iced-code-editor、rfd、encoding_rs、
+│                                 #   chardetng、serde、serde_json、aes-gcm 等
+├── build.rs                      # 编译脚本（保留，Slint 时代用于编译 .slint；
+│                                 #   换 Iced 后可清空或删除）
+├── Cargo.lock                    # 依赖锁文件（自动生成，勿手动改）
+├── .gitignore                    # Git 忽略规则
+├── LICENSE                       # 开源许可证
+├── README.md                     # 英文项目说明
+├── README.zh-CN.md               # 中文项目说明
+│
+├── assets/                       # 静态资源（不参与编译，运行时读取或嵌入）
+│   ├── icons/                    # 应用图标、窗口控制按钮图标（最小化/最大化/关闭）
+│   └── snapshots/                # 开发期截图、文档配图
+│
+├── src/                          # 源代码根目录
+│   │
+│   ├── main.rs                   # 【程序入口】~20 行
+│   │                             #   职责：初始化 Iced、创建 EditorApp、启动事件循环
+│   │                             #   约束：不放任何业务逻辑，只做"引导"
+│   │
+│   ├── app.rs                    # 【应用层】EditorApp 结构体 + Message 枚举
+│   │                             #   + update() 消息分发 + view() 视图组装
+│   │                             #   职责：协调 model / io / ui 三层
+│   │                             #   持有：workspace（业务）+ zoom / dialog 等 UI 状态
+│   │
+│   ├── model/                    # 【业务模型层】纯逻辑，零 IO / 零 UI 依赖
+│   │   │                         #   可以被单元测试、CLI、其它前端复用
+│   │   ├── mod.rs                #   模块导出：pub use workspace::Workspace;
+│   │   │                         #             pub use tab::Tab;
+│   │   │                         #             pub use buffer::TextBuffer;
+│   │   ├── buffer.rs             #   文本缓冲区（当前是 String 封装，
+│   │   │                         #     未来可换 ropey 而不影响其它模块）
+│   │   ├── tab.rs                #   单个标签：buffer + 路径 + 脏标记 + 编码
+│   │   │                         #     + 换行符 + mtime + 标题 + 行数/字符数缓存
+│   │   └── workspace.rs          #   标签集合 + 激活索引
+│   │                             #   （原 app_state.rs，删掉了 UI 适配器方法）
+│   │                             #   提供：open/save/close/reorder/switch 等业务操作
+│   │
+│   ├── io/                       # 【基础设施层】与文件系统 / 外部世界交互
+│   │   │                         #   可以依赖 model，但不依赖 ui
+│   │   ├── mod.rs                #   模块导出
+│   │   ├── encoding.rs           #   编码检测与转换（chardetng + encoding_rs）
+│   │   │                         #   TextEncoding 枚举、decode()、encode()、can_encode()
+│   │   ├── line_ending.rs        #   换行符检测与转换（CRLF / LF / CR）
+│   │   │                         #   LineEnding 枚举、detect()、normalize()、apply()
+│   │   ├── file.rs               #   文件读写（原子写入：临时文件 + rename）
+│   │   │                         #   read_file() / write_file() / pick_open_paths() 等
+│   │   ├── session.rs            #   会话持久化：保存/恢复"打开了哪些标签"
+│   │   │                         #   输出：JSON 元数据（标签路径、编码、换行符、脏标记）
+│   │   │                         #   暂空，待实现
+│   │   ├── autosave.rs           #   自动保存：把脏标签的内容落盘到缓存目录
+│   │   │                         #   输出：每个脏标签一个独立缓存文件
+│   │   │                         #   暂空，待实现
+│   │   └── crypto.rs             #   缓存加密（AES-256-GCM）
+│   │                             #   密钥存储走 OS keyring
+│   │                             #   暂空，待实现
+│   │
+│   └── ui/                       # 【视图层】Iced 视图组件，每个文件返回 Element<Message>
+│       │                         #   只做"显示"，不写业务逻辑
+│       ├── mod.rs                #   模块导出
+│       ├── tab_bar.rs            #   顶部标签栏（无边框窗口的"标题栏"）
+│       │                         #   布局：左侧标签区（含溢出左右按钮）
+│       │                         #        + 中部拖拽空白区
+│       │                         #        + 右侧窗口控制区（设置/最小化/最大化/关闭）
+│       │                         #   注意：窗口控制按钮的跨平台差异通过内部函数隔离
+│       ├── editor_view.rs        #   中部编辑区
+│       │                         #   包含：行号栏（若 iced-code-editor 不自带）
+│       │                         #        + 编辑器画布（iced-code-editor 实例）
+│       │                         #        + 滚动条（由 Iced scrollable 或组件自带）
+│       ├── status_bar.rs         #   底部状态栏
+│       │                         #   显示：状态标记 / 行数 / 字符数 / 编码 / 换行符 / 缩放
+│       └── dialog.rs             #   所有弹窗集中于此
+│                                 #   包含：保存确认框、完整冲突框（4 选项）、
+│                                 #        轻量冲突框（2 选项）
+│                                 #   三者共享"遮罩 + 卡片 + 按钮组"模式
+│
+└── target/                       # 编译产物目录（自动生成，勿手动改）

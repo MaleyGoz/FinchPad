@@ -1,0 +1,199 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export component App inherits Window {
+    title: "editor-core — Phase 3-B-1";
+    width: 1000px;
+    height: 700px;
+
+    in-out property <string> display-text: "";
+    in-out property <string> cursor-info: "";
+    in-out property <string> selection-info: "";
+    in-out property <string> status-text: "";
+
+    callback insert-text(string);
+    callback command(string);
+
+    background: #f5f5f5;
+
+    VerticalBox {
+        padding: 20px;
+        spacing: 12px;
+
+        Text {
+            text: "editor-core — Phase 3-B-1";
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        Text {
+            text: "Selection Test";
+            font-size: 14px;
+            color: #666666;
+        }
+
+        Rectangle {
+            border-width: 1px;
+            border-color: #cccccc;
+            background: white;
+            border-radius: 4px;
+
+            editor-focus := FocusScope {
+                focus-on-click: true;
+
+                key-pressed(event) => {
+                    // ------------------------------------------------
+                    // Ctrl + A
+                    // ------------------------------------------------
+
+                    if (event.modifiers.control && event.text == "a") {
+                        command("select-all");
+                    } else if (event.modifiers.control && event.text == "c") {
+                        command("copy");
+                    } else if (event.modifiers.control && event.text == "x") {
+                        command("cut");
+                    } else if (event.modifiers.control && event.text == "v") {
+                        command("paste");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + Left
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.LeftArrow) {
+
+                        command("shift-left");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + Right
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.RightArrow) {
+
+                        command("shift-right");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + Up
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.UpArrow) {
+
+                        command("shift-up");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + Down
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.DownArrow) {
+
+                        command("shift-down");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + Home
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.Home) {
+
+                        command("shift-home");
+                    }
+
+                    // ------------------------------------------------
+                    // Shift + End
+                    // ------------------------------------------------
+
+                    else if (event.modifiers.shift
+                        && event.text == Key.End) {
+
+                        command("shift-end");
+                    }
+
+                    // ------------------------------------------------
+                    // Normal keys from Phase 3-A
+                    // ------------------------------------------------
+
+                    else if (event.text == Key.Backspace) {
+                        command("backspace");
+                    }
+                    else if (event.text == Key.Return) {
+                        command("enter");
+                    }
+                    else if (event.text == Key.Tab) {
+                        command("tab");
+                    }
+                    else if (event.text == Key.LeftArrow) {
+                        command("left");
+                    }
+                    else if (event.text == Key.RightArrow) {
+                        command("right");
+                    }
+                    else if (event.text == Key.UpArrow) {
+                        command("up");
+                    }
+                    else if (event.text == Key.DownArrow) {
+                        command("down");
+                    }
+                    else if (event.text == Key.Home) {
+                        command("home");
+                    }
+                    else if (event.text == Key.End) {
+                        command("end");
+                    }
+                    else if (event.text != "") {
+                        insert-text(event.text);
+                    }
+                    accept
+                }
+
+                VerticalBox {
+                    padding: 16px;
+
+                    Text {
+                        text: display-text;
+                        font-family: "Consolas";
+                        font-size: 16px;
+                        color: #222222;
+                        vertical-alignment: top;
+                    }
+                }
+            }
+        }
+
+        Text {
+            text: selection-info;
+            font-size: 13px;
+        }
+
+        HorizontalBox {
+            spacing: 20px;
+
+            Text {
+                text: cursor-info;
+                font-size: 13px;
+            }
+
+            Text {
+                text: status-text;
+                font-size: 13px;
+                color: #666666;
+            }
+        }
+
+        Text {
+            text: "Selection: Shift+← → ↑ ↓ Home End · Ctrl+A";
+            font-size: 12px;
+            color: #888888;
+        }
+    }
+
+    init => {
+        editor-focus.focus();
+    }
+}

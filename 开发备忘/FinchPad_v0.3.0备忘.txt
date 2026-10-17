@@ -1,0 +1,38 @@
+1. 这三个没有任何引用，要不要删除呢
+    dialog.external_deleted_keep
+    dialog.external_deleted_save
+    dialog.external_unreachable_save
+
+2. 对比状态下没有换行。或者对比功能升级到标签，而不是原先的独立窗口。对比的时候能够编辑。
+
+3. app.rs里面
+    // ============ 打开 / 保存 ============
+    fn default_save_path_for(ws: &crate::model::Workspace, index: usize) -> String {
+        if let Some(tab) = ws.tab(index) {
+            if let Some(p) = &tab.file_path {
+                return p.to_string_lossy().into_owned();
+            }
+            let file_name = format!("{}.txt", tab.title);
+            if let Some(dir) = ws.last_used_path() {
+                return dir.join(&file_name).to_string_lossy().into_owned();
+            }
+            return file_name;
+        }
+        "未命名.txt".to_string()
+    }
+
+4. MD这种常见格式要不要，左右分屏预览
+
+5. 修复"文件已被外部删除"的状态处理，应该立即标注“脏标签”，保存的时候调用“另存为”。
+
+6. 修复下面冲突情况：已经打开了“a.txt”“未命名1”标签，将“未命名1”保存并覆盖“a.txt”，这是应该立即关闭原先的a.txt，删除它的缓存，将当前标签重命名为“a.txt”，而且内容是最新的。notepad++的处理是弹窗错误提示：a.txt已经在notepad++打开，并且取消刚才的保存操作。这里我们该怎么办呢。
+
+7. 要不要新增预览按钮，预览md和html格式
+
+8. 灰色主题下光标不明显，容易找不到。
+
+9. 安装包的logo嵌入
+
+10. 文件是脏标签状态，我明明按ctrl+S保存了，脏标签消失，关闭软件，但是脏标签又回来了。奇怪的是，第一个标签也是文件，但还是干净标签。第2~4个标签是文件，就变成脏标签了。
+
+11. 标签新增重命名功能

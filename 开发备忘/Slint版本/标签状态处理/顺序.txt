@@ -1,0 +1,16 @@
+下一步：代码实现的排期建议
+规范定稿后，推荐实现顺序（每步都独立可测）：
+
+拆 ExternalChange 为 4 变体 + 修改 external_file_state 判定逻辑
+
+让现有弹窗适配新枚举（conflict_text_for / light_conflict_text_for / deleted_confirm_text_for 里补 Unreachable 分支）
+
+实现 #8b / #5b 的静默行为（状态栏文案、D 自动另存为）
+
+实现弹窗 [3]（Slint + app.rs 接线）
+
+实现 session（Workspace::to_session / from_session + 启动/退出接线）
+
+实现 autosave（脏标签写缓存，配合 session）
+
+最后加密（crypto 层 + keyring）

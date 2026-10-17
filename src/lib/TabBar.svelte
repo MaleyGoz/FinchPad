@@ -413,11 +413,7 @@
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  class="tab-bar"
-  bind:this={tabBarEl}
-  on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}
->
+<div class="tab-bar" class:mac-platform={isMac} bind:this={tabBarEl} on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}>
   <!-- 顶部留白：也是拖动区域 -->
   <div class="drag-strip" data-tauri-drag-region></div>
 
@@ -426,10 +422,12 @@
     <div class="mac-traffic-spacer" data-tauri-drag-region></div>
   {/if}
 
-  <!-- 左侧 Logo -->
-  <div class="app-logo" class:mac-space={isMac} data-tauri-drag-region>
-    <img src="/tab-icon.png" alt="FinchPad" />
-  </div>
+  <!-- Logo（仅在 Windows/Linux 显示） -->
+  {#if !isMac}
+    <div class="app-logo" data-tauri-drag-region>
+      <img src="/tab-icon.png" alt="FinchPad" />
+    </div>
+  {/if}
 
   {#each titles.slice(visibleStart, visibleEnd) as title, k}
     {@const absIdx = visibleStart + k}
@@ -833,10 +831,29 @@
     border-radius: 1px;
   }
 
-  /* ★ Mac 端的红绿灯占位区宽度 */
+  /* ==========================================
+     Mac 专属视觉对齐与微调
+     ========================================== */
+  
+  /* 1. 占位符保持你调的 80px */
   .mac-traffic-spacer {
-    width: 72px; /* 约等于三个圆点加上边距的宽度 */
+    width: 100px; 
     height: 100%;
     flex-shrink: 0;
-  }  
+  }
+
+  /* 2. 强行让标签栏内部的所有元素往上提 5px */
+  /* 因为 Mac 的系统红绿灯位置较高，我们用负边距追上去 */
+  :global(.tab-bar.mac-platform) .tab,
+  :global(.tab-bar.mac-platform) .new-tab,
+  :global(.tab-bar.mac-platform) .settings-btn,
+  :global(.tab-bar.mac-platform) .dropdown-wrapper {
+    margin-top: 6px !important;  /* ★ 关键：用负边距强制上提，和红绿灯对齐 */
+  }
+
+  /* 3. 给设置按钮右侧留出一点呼吸空间 */
+  :global(.tab-bar.mac-platform) .settings-btn {
+    margin-right: 10px;
+  }
+
 </style>

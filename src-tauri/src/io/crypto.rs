@@ -1,10 +1,11 @@
 //! 缓存加密（AES-256-GCM）。
 //!
-//! 密钥加载策略（按优先级）：
-//!   1. 从 OS keyring 读取
-//!   2. 从 `<config>/finchpad/key.bin` 读取
-//!   3. 都没有 → 生成 32 字节随机密钥，先试 keyring，失败则写 key.bin
-//!   4. 全部失败 → 返回 None（上层决定禁用 cache）
+//! 密钥加载策略：
+//!   - macOS: 完全绕过系统钥匙串，强制使用 `<config>/finchpad/key.bin`，消除钥匙串弹窗。
+//!   - Windows / Linux: 
+//!     1. 从 OS keyring 读取
+//!     2. 从 `<config>/finchpad/key.bin` 读取
+//!     3. 都没有 → 生成 32 字节随机密钥，先试 keyring，失败则写 key.bin
 //!
 //! 密文格式：
 //!   [magic "TXTC" 4B][version 1B][nonce 12B][AES-GCM 密文+tag]
@@ -36,6 +37,10 @@ fn key_path() -> PathBuf {
 
 // ============ 密钥加载/生成 ============
 
+// ==========================================
+// Windows / Linux 专属：保留原有的 Keyring 优先策略
+// ==========================================
+#[cfg(not(target_os = "macos"))]
 fn load_or_create_key() -> Option<[u8; KEY_LEN]> {
     // 1. 优先 keyring
     match keyring_get() {
@@ -66,6 +71,32 @@ fn load_or_create_key() -> Option<[u8; KEY_LEN]> {
     None
 }
 
+// ==========================================
+// macOS 专属：绕过 Keyring，只使用私有目录文件密钥
+// ==========================================
+#[cfg(target_os = "macos")]
+fn load_or_create_key() -> Option<[u8; KEY_LEN]> {
+    // 1. 尝试读取本地私有文件 key.bin
+    if let Some(k) = file_get() {
+        return Some(k);
+    }
+
+    // 2. 文件不存在或损坏（用户手动删除等），重新生成
+    eprintln!("macOS: 密钥文件不存在，正在生成新的本地密钥...");
+    let mut k = [0u8; KEY_LEN];
+    OsRng.fill_bytes(&mut k);
+
+    if file_set(&k).is_ok() {
+        return Some(k);
+    }
+
+    eprintln!("警告：无法生成或保存加密密钥，缓存功能已禁用");
+    None
+}
+
+// ============ Keyring 操作（仅限非 Mac 平台） ============
+
+#[cfg(not(target_os = "macos"))]
 fn keyring_get() -> Result<Option<[u8; KEY_LEN]>, keyring::Error> {
     let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)?;
     match entry.get_password() {
@@ -85,10 +116,13 @@ fn keyring_get() -> Result<Option<[u8; KEY_LEN]>, keyring::Error> {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 fn keyring_set(key: &[u8; KEY_LEN]) -> Result<(), keyring::Error> {
     let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)?;
     entry.set_password(&hex_encode(key))
 }
+
+// ============ 本地文件操作（全平台通用） ============
 
 fn file_get() -> Option<[u8; KEY_LEN]> {
     let bytes = fs::read(key_path()).ok()?;
@@ -176,6 +210,7 @@ pub fn is_encrypted(data: &[u8]) -> bool {
 
 // ============ hex 编解码（用于 keyring 存储） ============
 
+#[cfg(not(target_os = "macos"))]
 fn hex_encode(bytes: &[u8]) -> String {
     use std::fmt::Write;
     let mut s = String::with_capacity(bytes.len() * 2);
@@ -185,6 +220,7 @@ fn hex_encode(bytes: &[u8]) -> String {
     s
 }
 
+#[cfg(not(target_os = "macos"))]
 fn hex_decode(s: &str) -> Option<Vec<u8>> {
     if s.len() % 2 != 0 {
         return None;
