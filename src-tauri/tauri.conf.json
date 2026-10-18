@@ -53,6 +53,9 @@
       "wix": {
         "language": "zh-CN"
       }
+    },
+    "macOS": {
+      "signingIdentity": "-"
     }
   }
 }
