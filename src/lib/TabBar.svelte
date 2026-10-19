@@ -13,6 +13,7 @@
   export let onReorder: (from: number, to: number) => void = () => {};
   export let onBarContextMenu: (x: number, y: number) => void = () => {};
   export let onSettingsClick: (anchorRight: number, anchorBottom: number) => void = () => {};
+  export let isWindowFocused: boolean = true;
 
     // 编译时注入的环境变量
   const platform = import.meta.env.TAURI_ENV_PLATFORM;
@@ -82,7 +83,7 @@
   const SETTINGS_BTN_W = 32;     // ⚙ 设置
   const WINDOW_BTNS_W = 46 * 3;  // ─ □ × 三个窗口按钮
   const LOGO_W = 38;
-  const MIN_BLANK = 100;         // 拖动区最小宽度（从 80 加大）
+  const MIN_BLANK = 80;         // 拖动区最小宽度（从 80 加大）
   const GAP = 1;
   const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
@@ -164,42 +165,44 @@
       tabWidth = MAX_TAB_W;
       hasOverflow = false;
     } else {
-      // 无 ▼ 时可用于标签区的宽度（扣掉所有固定按钮 + 拖动区最小值）
-      const avail = width - FIXED_WIDTH - MIN_BLANK;
-      const idealNoDD = (avail - GAP * count) / count;
+      // 1. 计算所有标签名中，最长的那个文字宽度
+      const maxTextW = Math.max(
+        ...titles.map((t) => measureTextWidth(t)),
+        0 // 保底，防止空数组报错
+      );
 
-      if (idealNoDD > MAX_TAB_W) {
-        // 空间充足 → 按最长标签名算宽度
-        const maxTextW = Math.max(
-          ...titles.map((t) => measureTextWidth(t)),
-          MIN_TAB_W - TAB_PADDING_L - TAB_PADDING_R - CLOSE_BTN_W - TAB_BORDER_W
-        );
-        const neededW =
-          maxTextW + TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
-        tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, neededW));
-        visibleCount = count;
-        hasOverflow = false;
-      } else if (idealNoDD >= MIN_TAB_W+5) {
-        // 刚好能放下所有标签（自动压缩）
-        tabWidth = idealNoDD;
+      // 2. 固定开销：左边距 + 右边距 + 关闭按钮预留 + 边框
+      const fixedOverhead = TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
+      
+      // 3. 核心公式：y (文字宽) + x (固定开销)，然后做 clamp 限制
+      const targetWidth = maxTextW + fixedOverhead;
+      tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, targetWidth));
+
+      // 4. 判断当前窗口能不能装下这么多固定宽度的标签
+      const avail = width - FIXED_WIDTH - MIN_BLANK;
+      
+      // 计算不加 ▼ 时，放得下所有的标签需要多宽
+      const totalNeeded = tabWidth * count + GAP * (count - 1);
+
+      if (totalNeeded <= avail) {
+        // 空间充足，全部显示
         visibleCount = count;
         hasOverflow = false;
       } else {
-        // 必须溢出 → 加 ▼
+        // 空间不足，必须溢出加 ▼
         hasOverflow = true;
         const availWithDD = avail - DD_BTN_W;
-        // 计算最多能显示多少个 80px 标签
+        
+        // 计算最多能放下几个
         const maxVisible = Math.max(
           1,
-          Math.floor((availWithDD - GAP * (count + 1)) / (MIN_TAB_W + GAP))
+          Math.floor((availWithDD + GAP) / (tabWidth + GAP))
         );
         visibleCount = maxVisible;
-        // 让可见标签宽度自适应填满剩余空间
-        const selfAdapt = (availWithDD - GAP * (visibleCount + 1)) / visibleCount;
-        tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, selfAdapt));
       }
     }
 
+    // 处理边界：如果可见数量变化，修正起始索引
     const maxStart = Math.max(0, count - visibleCount);
     if (visibleStart > maxStart) visibleStart = maxStart;
   }
@@ -413,7 +416,7 @@
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="tab-bar" class:mac-platform={isMac} bind:this={tabBarEl} on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}>
+<div class="tab-bar" class:inactive={!isWindowFocused} class:mac-platform={isMac} bind:this={tabBarEl} on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}>
   <!-- 顶部留白：也是拖动区域 -->
   <div class="drag-strip" data-tauri-drag-region></div>
 
@@ -578,12 +581,20 @@
 <style>
   .tab-bar {
     display: flex;
+    /* 默认使用激活背景色 */
     background: var(--tab-bar-background);
-    height: 38px;           /* 32 + 6 */
+    transition: background-color 0.2s ease; /* 平滑过渡 */
+    
+    height: 38px;
     align-items: stretch;
     user-select: none;
     position: relative;
     box-sizing: border-box;
+  }
+
+  /* ★ 当失去焦点时，类名为 inactive，背景色切换为变量 */
+  .tab-bar.inactive {
+    background: var(--tab-bar-background-inactive);
   }
   .drag-strip {
     position: absolute;
@@ -621,6 +632,10 @@
     padding: 0 5px 0 10px;
     margin-top: 6px;
     height: 32px;
+    
+    /* ★ 关键：未激活的标签背景透明，自动融入父容器 */
+    background: transparent; 
+
     background: var(--tab-background);
     border-right: 1px solid var(--tab-border);
     cursor: pointer;
@@ -629,7 +644,6 @@
     box-sizing: border-box;
     flex-shrink: 0;
     overflow: hidden;
-    /* outline: none; */
   }
   .tab.active {
     background: var(--tab-background-active);

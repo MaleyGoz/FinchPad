@@ -96,6 +96,17 @@ All forms of participation are welcome: code, UI/UX, testing, documentation, tra
 
 Even if you are not a developer, you are welcome to discuss product direction in Issues.
 
+## Privacy Policy
+
+FinchPad is designed with a **privacy-first, purely local** philosophy:
+
+1. **100% Local Data**: All your text, edits, and cached files are stored locally on your device (encrypted with AES-256-GCM). We **never collect or upload** your file contents, usage habits, or device information.
+2. **No Telemetry or Tracking**: The application contains no background telemetry, analytics, or user behavior tracking code.
+3. **Network Activities**:
+   - An anonymous request is sent to the GitHub API *only* when checking for software updates.
+   - When using Markdown/HTML preview, the WebView may load external network resources (e.g., images or links) if your document references them.
+   - Aside from the above, FinchPad never initiates network connections.
+
 ## License
 
 This project is licensed under the MIT License.

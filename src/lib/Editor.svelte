@@ -51,6 +51,15 @@ if (typeof window !== 'undefined') {
   let editor: monaco.editor.IStandaloneCodeEditor | null = null;
   let suppressChange = false;
 
+    // ★ 拦截并删除 Monaco 折叠图标的原生 title 属性，消灭系统的黑框提示
+    const removeTitleHandler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.title) {
+        target.removeAttribute('title');
+      }
+    };
+
+
   function calcFontSize(): number {
     return Math.round((BASE_FONT_SIZE * zoom) / 100);
   }
@@ -194,50 +203,67 @@ if (typeof window !== 'undefined') {
     container.addEventListener('contextmenu', contextmenuHandler);
     (container as any).__contextmenuHandler = contextmenuHandler;    
 
+    container.addEventListener('mouseover', removeTitleHandler);  
+
+    // 编辑区域初始化
     editor = monaco.editor.create(container, {
       value,
       language,
       theme: `txt-${editorBg}`,
       fontSize: calcFontSize(),
+      lineHeight: Math.round(calcFontSize() * 1.5),
       fontFamily: 'Consolas, monospace',
       minimap: { enabled: false },
       automaticLayout: true,
       lineNumbers: showLineNumbers ? 'on' : 'off',
       glyphMargin: false,
-      lineNumbersMinChars: 2,
-      lineDecorationsWidth: 20,
+      
+     
+      // 行号最小字符数设为当前位数
+      lineNumbersMinChars: value ? value.split('\n').length.toString().length : 1, 
+      // 纯文本保持 10px，代码文件设为 6px（让代码文件的右侧间距更紧凑，与 VS Code 一致）
+      lineDecorationsWidth: language === 'plaintext' ? 10 : 6,
+
       wordWrap: 'off',
       scrollBeyondLastLine: false,
       largeFileOptimizations: true,
       maxTokenizationLineLength: 20000,
       mouseWheelZoom: false,
-      unicodeHighlight: {
-        ambiguousCharacters: false,
-        invisibleCharacters: false,
-      },
-      // ---- 关闭我们不需要的高级功能 ----
-      folding: false,                                    // 代码折叠
-      bracketPairColorization: { enabled: false },       // 括号对着色
-      colorDecorators: false,                            // 颜色预览
-      quickSuggestions: false,                           // 快速建议
-      suggestOnTriggerCharacters: false,                 // 触发字符建议
-      wordBasedSuggestions: 'off',                       // 基于单词的建议
-      parameterHints: { enabled: false },                // 参数提示
-      lightbulb: { enabled: 'off' as any },              // 灯泡提示
-      codeLens: false,                                   // CodeLens
-      links: false,                                      // 链接检测
-      occurrencesHighlight: 'off',                       // 出现位置高亮
-      selectionHighlight: false,                         // 选中相同词高亮
-      renderWhitespace: 'none',                          // 不渲染空白字符
-      guides: { bracketPairs: false, indentation: false }, // 括号/缩进引导线
-      hover: { enabled: 'off' as const },                // 悬浮提示
-      contextmenu: false,                                // 禁用 Monaco 自带右键菜单
+      unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
+      
+      // ★ 动态控制折叠：如果是纯文本，则关闭折叠
+      folding: language !== 'plaintext',                     
+      showFoldingControls: 'mouseover', 
+      
+      bracketPairColorization: { enabled: false },       
+      colorDecorators: false,                            
+      quickSuggestions: false,                           
+      suggestOnTriggerCharacters: false,                 
+      wordBasedSuggestions: 'off',                       
+      parameterHints: { enabled: false },                
+      lightbulb: { enabled: 'off' as any },              
+      codeLens: false,                                   
+      links: false,                                      
+      occurrencesHighlight: 'off',                       
+      selectionHighlight: false,                         
+      renderWhitespace: 'none',                          
+      guides: { bracketPairs: false, indentation: false },
+      hover: { enabled: 'off' as const },                
+      contextmenu: false,                                
     });
 
     editor.onDidChangeModelContent(() => {
       if (suppressChange) return;
       onChange(editor!.getValue());
       reportStats();
+
+      // ★ 终极修复：动态计算行号位数，保证永远不截断，且宽度自适应
+      const lineCount = editor!.getModel()?.getLineCount() ?? 1;
+      const digits = lineCount.toString().length;
+      // 如果当前宽度限制和行数位数不一致（比如从 99 行变成了 100 行），才去更新
+      if (editor!.getOption(monaco.editor.EditorOption.lineNumbersMinChars) !== digits) {
+        editor!.updateOptions({ lineNumbersMinChars: digits });
+      }
     });
 
     editor.onDidChangeCursorSelection(() => {
@@ -284,7 +310,36 @@ if (typeof window !== 'undefined') {
       editor.updateOptions({ wordWrap: targetWrap });
     }
   }
-  
+
+  // ★ 终极动态控制：纯文本保持完美状态，代码文件单独调优
+  $: if (editor) {
+    const lineCount = editor.getModel()?.getLineCount() ?? 1;
+    const digits = lineCount.toString().length;
+    const isPlaintext = language === 'plaintext';
+
+    // 1. 控制折叠开关
+    const opts = editor.getOptions();
+    if (opts.get(monaco.editor.EditorOption.folding) === isPlaintext) {
+      editor.updateOptions({ folding: !isPlaintext });
+    }
+
+    // 2. 计算行号宽度
+    // 纯文本：digits + 2（保留你原来的）
+    // 代码文件：digits + 1（盒子自然左侧有留白，靠右对齐）
+    const targetMinChars = isPlaintext ? Math.max(3, digits + 2) : Math.max(3, digits + 1);
+    if (editor.getOption(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars) {
+      editor.updateOptions({ lineNumbersMinChars: targetMinChars });
+    }
+
+    // 3. 控制右侧折叠区宽度
+    // 纯文本：10px（保留你原来的）
+    // 代码文件：10px（缩小到 10px，折叠符自然就紧紧贴过来了）
+    const targetDecorWidth = isPlaintext ? 10 : 10;
+    if (editor.getOption(monaco.editor.EditorOption.lineDecorationsWidth) !== targetDecorWidth) {
+      editor.updateOptions({ lineDecorationsWidth: targetDecorWidth });
+    }
+  }
+
   // ★ 行号显示/隐藏
   $: if (editor) {
     const target = showLineNumbers ? 'on' : 'off';
@@ -300,6 +355,9 @@ if (typeof window !== 'undefined') {
   }  
 
   onDestroy(() => {
+    if (container) {
+      container.removeEventListener('mouseover', removeTitleHandler);
+    }
     const wh = (container as any).__wheelHandler;
     if (wh) {
       container.removeEventListener('wheel', wh, { capture: true });
@@ -312,7 +370,7 @@ if (typeof window !== 'undefined') {
   });
 </script>
 
-<div style="position: relative; width: 100%; height: 100%;">
+<div class="editor-container" class:is-plaintext={language === 'plaintext'} style="position: relative; width: 100%; height: 100%;">
   <div bind:this={container} style="width: 100%; height: 100%;"></div>
 
   {#if isPendingLoad}
@@ -328,15 +386,41 @@ if (typeof window !== 'undefined') {
 </div>
 
 <style>
-  /* 行号栏左侧内边距 */
-  :global(.monaco-editor .line-numbers) {
-    padding-left: 12px !important;
+  /* ==========================================================================
+     行号与折叠区样式配置
+     ========================================================================== */
+
+  /* ==================== 纯文本专属（完美居中状态） ==================== */
+  /* 行号数字栏：居中显示，左侧固定 10px，右侧 0px */
+  :global(.editor-container.is-plaintext .monaco-editor .line-numbers) {
+    text-align: center !important;
+    padding-left: 10px !important;
+    padding-right: 0 !important;
   }
 
-  /* 隐藏行号时，margin 至少保留一点宽度，避免编辑内容贴左边缘 */
-  :global(.monaco-editor .margin) {
-    min-width: 8px !important;
+  /* 纯文本的右侧装饰区：固定宽度 10px */
+  :global(.editor-container.is-plaintext .monaco-editor .line-decorations) {
+    width: 10px !important;
+    min-width: 10px !important;
+    max-width: 10px !important;
+    position: relative !important;
   }
+
+  /* ==================== 代码文件专属（右对齐状态） ==================== */
+  /* 代码文件的行号：靠右对齐，紧贴折叠符 */
+  /* 注：不要加 padding，否则会导致上下行号错位。左侧留白由 script 中的 lineNumbersMinChars 撑开 */
+  :global(.editor-container:not(.is-plaintext) .monaco-editor .line-numbers) {
+    text-align: right !important; 
+  }
+
+  /* ==================== 折叠符号（通用） ==================== */
+  /* 缩小平铺的折叠图标，保持点击热区正常 */
+  :global(.monaco-editor .codicon-folding-expanded),
+  :global(.monaco-editor .codicon-folding-collapsed) {
+    font-size: 12px !important; 
+    transform: scale(0.9) !important; 
+  }
+
 
   .pending-overlay {
     position: absolute;

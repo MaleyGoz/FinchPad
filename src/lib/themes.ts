@@ -9,10 +9,10 @@ export type Theme = {
   gutter_background: string;
   gutter_foreground: string;
   gutter_foreground_active: string;
-
   // 标签栏
   tab_bar_background: string;
-  tab_background: string;
+
+  tab_bar_background_inactive: string;
   tab_background_active: string;
   tab_foreground: string;
   tab_foreground_active: string;
@@ -46,9 +46,10 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#F3F3F3",
     gutter_foreground: "#C8C8C8",
     gutter_foreground_active: "#666666",
-    tab_bar_background: "#D8DDE3",
-    tab_background: "#D8DDE3",
-    tab_background_active: "#FFFFFF",
+    tab_bar_background: "#c9dfec", // 激活时的底色
+    tab_bar_background_inactive: "#e8e8e8", // 失焦时的底色
+    tab_background_active: "#FFFFFF", // 激活标签的亮色
+
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
@@ -73,9 +74,11 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#e4e4e4",
     gutter_foreground: "#888888",
     gutter_foreground_active: "#444444",
-    tab_bar_background: "#D8DDE3",
-    tab_background: "#D8DDE3",
-    tab_background_active: "#E5E5E5",
+
+    tab_bar_background: "#A8A8A8",
+    tab_bar_background_inactive: "#B0B0B0",
+    tab_background_active: "#C0C0C0",
+
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
@@ -100,9 +103,11 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#F0EAD8",
     gutter_foreground: "#B8C0C0",
     gutter_foreground_active: "#7A8A90",
-    tab_bar_background: "#D8DDE3",
-    tab_background: "#D8DDE3",
+
+    tab_bar_background: "#EAE0C8",
+    tab_bar_background_inactive: "#D6CCB5",
     tab_background_active: "#FDF6E3",
+
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
@@ -127,9 +132,11 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#BEE0C2",
     gutter_foreground: "#88B088",
     gutter_foreground_active: "#4A7A4A",
-    tab_bar_background: "#D8DDE3",
-    tab_background: "#D8DDE3",
+
+    tab_bar_background: "#B5D6B9",
+    tab_bar_background_inactive: "#C0D6C4",
     tab_background_active: "#CCE8CF",
+
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
@@ -155,7 +162,7 @@ export const THEMES: Record<string, Theme> = {
     gutter_foreground: "#606060",
     gutter_foreground_active: "#A0A0A0",
     tab_bar_background: "#2D2D2D",
-    tab_background: "#2D2D2D",
+    tab_bar_background_inactive: "#2D2D2D",
     tab_background_active: "#1E1E1E",
     tab_foreground: "#999999",
     tab_foreground_active: "#FFFFFF",

@@ -19,7 +19,7 @@
     const theme = THEMES[$currentTheme] ?? THEMES.white;
     const root = document.documentElement;
     root.style.setProperty('--tab-bar-background', theme.tab_bar_background);
-    root.style.setProperty('--tab-background', theme.tab_background);
+    root.style.setProperty('--tab-bar-background-inactive', theme.tab_bar_background_inactive);
     root.style.setProperty('--tab-background-active', theme.tab_background_active);
     root.style.setProperty('--tab-foreground', theme.tab_foreground);
     root.style.setProperty('--tab-foreground-active', theme.tab_foreground_active);

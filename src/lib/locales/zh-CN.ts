@@ -11,6 +11,14 @@ export const zhCN: Record<string, string> = {
   "settings.theme.dark": "深色",
   "settings.language": "语言",
   "settings.about": "关于FinchPad",
+  "settings.check_update": "检查更新",
+  "dialog.update_checking": "正在检查更新...",
+  "dialog.update_latest": "当前已是最新版本（v{version}）。",
+  "dialog.update_found":
+    "发现新版本！\n当前版本：v{current}\n最新版本：v{latest}\n\n是否前往 GitHub 下载？",
+  "dialog.update_failed": "检查更新失败，请检查网络连接。",
+  "dialog.update_confirm": "前往下载",
+  "dialog.update_cancel": "取消",
 
   // ===== 语言选项 =====
   "locale.auto": "跟随系统",
