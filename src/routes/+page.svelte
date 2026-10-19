@@ -57,6 +57,7 @@
   let closeQueueTabIds: string[] = [];
   let renamingIndex = -1;
   let isWindowFocused = true;
+  let isSaving = false; // 防止保存过程中的自动检测覆盖状态
 
   // 编辑器组件引用（用于调用编辑区方法）
   let editorRef: Editor;
@@ -255,6 +256,7 @@
    * 核心流程：先同步未保存编辑 → 拉最新状态 → 判定并处理。
    */
   async function detectExternalChanges() {
+    if (isSaving) return;  
     // 弹窗已显示 → 跳过
     if (modal.visible) return;
 
@@ -487,15 +489,37 @@
     if (snapshot.is_unnamed) {
       // 未命名 → 走另存为
       const path = await save({
-        defaultPath: snapshot.default_save_path,
+        defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
       });
-      if (!path) return;
+
+    if (!path) return;
+
+    // ★ Mac 专属：拦截并修正错误的后缀
+    let finalPath = path;
+    if (isMac) {
+      // 1. 如果系统自动拼了 .*（说明用户没写后缀，且选了所有文件），强改回 .txt
+      if (finalPath.endsWith('.*')) {
+        finalPath = finalPath.slice(0, -2) + '.txt';
+      }
+      // 2. 如果系统强行补了 .txt（比如用户写了 a.ts 变成了 a.ts.txt），切掉后缀
+      else if (finalPath.endsWith('.txt')) {
+        // 判断用户在默认带后缀的情况下，有没有手动改后缀
+        // 如果用户原名是 a.txt，用户输入了 a.ts，Mac 返回的可能是 a.ts.txt
+        // 只要是这种情况，我们就把多余的 .txt 掐掉
+        const baseName = finalPath.slice(0, -4); // 去掉 .txt
+        if (baseName.includes('.') && !baseName.endsWith('.txt')) {
+          // 比如 baseName 是 a.ts，说明用户改成了 a.ts
+          finalPath = baseName;
+        }
+      }
+    }
+
       try {
-        snapshot = await api.saveActiveFileAs(path);
+         snapshot = await api.saveActiveFileAs(finalPath); 
       } catch (e) {
         if (e === "FileAlreadyOpen") {
           modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
@@ -635,7 +659,7 @@
 
     if (isUnnamed) {
       const path = await save({
-        defaultPath: snapshot.default_save_path,
+        defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
@@ -647,12 +671,26 @@
         closeQueueActive = false;
         return;
       }
+
+      // ★ 新增：Mac 专属拦截逻辑
+      let finalPath = path;
+      if (isMac) {
+        if (finalPath.endsWith('.*')) {
+          finalPath = finalPath.slice(0, -2) + '.txt';
+        } else if (finalPath.endsWith('.txt')) {
+          const baseName = finalPath.slice(0, -4);
+          if (baseName.includes('.') && !baseName.endsWith('.txt')) {
+            finalPath = baseName;
+          }
+        }
+      }
+
       try {
-        await api.saveActiveFileAs(path);
+        // ★ 注意：这里要传 finalPath，不要传 path
+        await api.saveActiveFileAs(finalPath);
       } catch (e) {
         if (e === "FileAlreadyOpen") {
           modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
-          // 保存失败，中止当前关闭队列
           closeQueue = [];
           closeQueueActive = false;
           return;
@@ -783,14 +821,36 @@
     if (isUnnamed) {
       // 未命名 → 走另存为
       const path = await save({
-        defaultPath: snapshot.default_save_path,
+        defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
       });
-      if (!path) return;  // 用户取消 → 不关闭
-      await api.saveActiveFileAs(path);
+      
+    if (!path) return;
+
+    // ★ Mac 专属：拦截并修正错误的后缀
+    let finalPath = path;
+    if (isMac) {
+      // 1. 如果系统自动拼了 .*（说明用户没写后缀，且选了所有文件），强改回 .txt
+      if (finalPath.endsWith('.*')) {
+        finalPath = finalPath.slice(0, -2) + '.txt';
+      }
+      // 2. 如果系统强行补了 .txt（比如用户写了 a.ts 变成了 a.ts.txt），切掉后缀
+      else if (finalPath.endsWith('.txt')) {
+        // 判断用户在默认带后缀的情况下，有没有手动改后缀
+        // 如果用户原名是 a.txt，用户输入了 a.ts，Mac 返回的可能是 a.ts.txt
+        // 只要是这种情况，我们就把多余的 .txt 掐掉
+        const baseName = finalPath.slice(0, -4); // 去掉 .txt
+        if (baseName.includes('.') && !baseName.endsWith('.txt')) {
+          // 比如 baseName 是 a.ts，说明用户改成了 a.ts
+          finalPath = baseName;
+        }
+      }
+    }
+
+      await api.saveActiveFileAs(finalPath);
     } else {
       await api.saveActiveFile();
     }
@@ -807,6 +867,8 @@
   
 
   function handleTextChange(text: string) {
+    // ★ 修复假脏：如果文本和当前状态一模一样，说明是 Monaco 渲染触发的假事件，直接忽略
+    if (text === snapshot.active_text) return;     
     // ★ 乐观更新：先设为脏，给用户即时反馈
     const newDirtyStates = [...snapshot.tab_dirty_states];
     newDirtyStates[snapshot.active_index] = true;
@@ -867,73 +929,105 @@
   }
 
   async function handleSave() {
-    // 弹窗已显示时忽略快捷键，避免弹窗重叠
     if (modal.visible) return;
-    await flushPendingEdit();
-    await refresh();
+    
+    // ★ 新增：保存期间上锁，彻底阻断 detectExternalChanges 干扰
+    if (isSaving) return;
+    isSaving = true;
 
-    // 未命名 + 空/回到初始 → 无动作
-    if (snapshot.is_unnamed && !snapshot.is_dirty) return;
-    // 未命名 + 有内容 → 走另存为
-    if (snapshot.is_unnamed) {
-      await handleSaveAs();
-      return;
-    }
-    // 已命名 + 干净 → 无动作
-    if (!snapshot.is_dirty) return;
+    try {
+      await flushPendingEdit();
+      await refresh();
 
-    // 已命名 + 脏 → 检查磁盘状态
-    const idx = snapshot.active_index;
-    const full = await api.checkTabFullState(idx);
+      // 未命名 + 空/回到初始 → 无动作
+      if (snapshot.is_unnamed && !snapshot.is_dirty) return;
+      // 未命名 + 有内容 → 走另存为
+      if (snapshot.is_unnamed) {
+        await handleSaveAs();
+        return;
+      }
+      // 已命名 + 干净 → 无动作
+      if (!snapshot.is_dirty) return;
 
-    switch (full.disk_state) {
-      case 'normal':
-        try {
-          snapshot = await api.saveActiveFile();
-        } catch (e) {
-          // ★ 处理竞态条件：检查状态到保存之间，U盘可能被拔了
-          if (e === "NeedsSaveAs") {
-            await handleSaveAs();
-          } else {
-            console.error('保存失败：', e);
+      // 已命名 + 脏 → 检查磁盘状态
+      const idx = snapshot.active_index;
+      const full = await api.checkTabFullState(idx);
+
+      switch (full.disk_state) {
+        case 'normal':
+          try {
+            snapshot = await api.saveActiveFile();
+          } catch (e) {
+            if (e === "NeedsSaveAs") {
+              await handleSaveAs();
+            } else {
+              console.error('保存失败：', e);
+            }
           }
-        }
-        break;
-      case 'deleted':
-        // 文件已被外部删除，直接走另存为（安全兜底，防止覆盖空内容）
-        await handleSaveAs();
-        break;
-      case 'unreachable':
-        // 位置不可达 → 自动走另存为
-        await handleSaveAs();
-        break;
-      case 'modified':
-        // 冲突 → 弹 5 按钮框
-        showSaveConflictModal(idx);
-        break;
+          break;
+        case 'deleted':
+          // 文件已被外部删除，直接走另存为
+          await handleSaveAs();
+          break;
+        case 'unreachable':
+          // 位置不可达 → 自动走另存为
+          await handleSaveAs();
+          break;
+        case 'modified':
+          // 冲突 → 弹 5 按钮框
+          showSaveConflictModal(idx);
+          break;
+      }
+    } finally {
+      // ★ 无论中途是 return 还是报错，最终必须解锁
+      isSaving = false;
     }
   }
 
   async function handleSaveAs() {
+    if (isSaving) return;
+    isSaving = true;
+
     await flushPendingEdit();
     await refresh();
 
     // 未命名 + 空/回到初始 → 无动作
-    if (snapshot.is_unnamed && !snapshot.is_dirty) return;
+    if (snapshot.is_unnamed && !snapshot.is_dirty) {
+      isSaving = false;
+      return;
+    }
 
     // 其它情况：弹另存为
     const path = await save({
-      defaultPath: snapshot.default_save_path,
+      defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
     });
-    if (!path) return;
+
+    if (!path) {
+      isSaving = false;
+      return;
+    }
+
+    // ★ Mac 专属：拦截并修正错误的后缀
+    let finalPath = path;
+    if (isMac) {
+      if (finalPath.endsWith('.*')) {
+        finalPath = finalPath.slice(0, -2) + '.txt';
+      } else if (finalPath.endsWith('.txt')) {
+        const baseName = finalPath.slice(0, -4);
+        if (baseName.includes('.') && !baseName.endsWith('.txt')) {
+          finalPath = baseName;
+        }
+      }
+    }
     
     // ★ 捕获后端错误
     try {
-      snapshot = await api.saveActiveFileAs(path);
+      snapshot = await api.saveActiveFileAs(finalPath); 
+      lastDetectTime = Date.now(); // ★ 关键：保存成功后，重置检测冷却时间，防止立刻触发外部检测覆盖状态
     } catch (e) {
       if (e === "FileAlreadyOpen") {
         modal = {
@@ -948,6 +1042,8 @@
       } else {
         console.error('另存为失败：', e);
       }
+    } finally {
+      isSaving = false; // ★ 确保无论如何都会解锁
     }
   }
 
