@@ -83,7 +83,15 @@ export const LOCALE_OPTIONS: { key: LocaleChoice; label: string }[] = [
  */
 const LOCALES: Record<string, Record<string, string>> = {
   "zh-CN": zhCN,
-  "en-US": enUS, // 注意：语言代码规范一般用 en，但如果你用 en-US 也行，只要保持一致即可
+  "en-US": enUS,
+  "de": de,
+  "es": es,
+  "fr": fr,
+  "it": it,
+  "ko": ko,
+  "pt-BR": ptBR,
+  "ru": ru,
+  "zh-TW": zhTW,
 };
 
 // ==========================================
@@ -129,10 +137,10 @@ export function t(
 ): string {
   const lang = localeOverride ?? get(resolvedLocale);
 
-  // 回退策略：当前语言 -> 英文(en) -> 中文(zh-CN) -> key 本身
+  // 回退策略：当前语言 -> 英文(en-US) -> 中文(zh-CN) -> key 本身
   let text =
     LOCALES[lang]?.[key] ??
-    LOCALES["en"]?.[key] ??
+    LOCALES["en-US"]?.[key] ??
     LOCALES["zh-CN"]?.[key] ??
     key;
 
