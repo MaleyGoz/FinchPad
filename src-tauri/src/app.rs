@@ -1281,7 +1281,6 @@ pub async fn open_diff_window(
         .title("Compare")
         .inner_size(1200.0, 700.0)
         .min_inner_size(600.0, 400.0)
-        .decorations(false)
         .build()
         .map_err(|e| e.to_string())?;
 

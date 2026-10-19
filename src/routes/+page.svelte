@@ -12,7 +12,7 @@
   import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
   import { writeText } from '@tauri-apps/plugin-clipboard-manager';
   import { get } from 'svelte/store';
-  import { t, resolvedLocale, LOCALE_OPTIONS, localeChoice, setLocaleChoice, type LocaleChoice } from '$lib/i18n';
+  import { t, resolvedLocale, LOCALE_OPTIONS, LANGUAGE_NAMES, localeChoice, setLocaleChoice, type LocaleChoice } from '$lib/i18n';
 
   let snapshot: Snapshot = {
     tab_titles: [],
@@ -56,6 +56,7 @@
   let editorBg = 'white';  
   let closeQueueTabIds: string[] = [];
   let renamingIndex = -1;
+  let isWindowFocused = true;
 
   // 编辑器组件引用（用于调用编辑区方法）
   let editorRef: Editor;
@@ -101,6 +102,80 @@
   function closeSettingsMenu() {
     settingsMenu = { visible: false, anchorRight: 0, anchorBottom: 0 };
   }
+
+  // 比较版本号 (例如 v0.3.0 vs 0.4.0)
+  function isNewerVersion(current: string, latest: string): boolean {
+    // 去掉可能存在的 'v' 前缀
+    const cleanCurrent = current.replace(/^v/, '').split('.').map(Number);
+    const cleanLatest = latest.replace(/^v/, '').split('.').map(Number);
+
+    for (let i = 0; i < Math.max(cleanCurrent.length, cleanLatest.length); i++) {
+      const c = cleanCurrent[i] || 0;
+      const l = cleanLatest[i] || 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
+  }
+
+  // 检查更新主逻辑
+  async function checkForUpdates() {
+    closeSettingsMenu();
+    
+    // 弹出“正在检查”弹窗
+    modal = {
+      visible: true,
+      title: t('dialog.update_checking', undefined, get(resolvedLocale)),
+      rows: [], // 没有按钮，纯提示
+    };
+
+    try {
+      const res = await fetch("https://api.github.com/repos/MaleyGoz/FinchPad/releases/latest");
+      if (!res.ok) throw new Error("Network response was not ok");
+      
+      const data = await res.json();
+      const latestVersion = data.tag_name; // 例如 "v0.4.0"
+      
+      if (isNewerVersion(APP_VERSION, latestVersion)) {
+        // 发现新版本
+        modal = {
+          visible: true,
+          title: t('dialog.update_found', { 
+            current: APP_VERSION, 
+            latest: latestVersion.replace(/^v/, '') 
+          }, get(resolvedLocale)),
+          rows: [
+            [
+              { label: t('dialog.update_cancel'), action: closeModal },
+              { 
+                label: t('dialog.update_confirm'), 
+                style: 'primary', 
+                action: async () => {
+                  closeModal();
+                  await openUrl('https://github.com/MaleyGoz/FinchPad/releases/latest');
+                } 
+              }
+            ]
+          ]
+        };
+      } else {
+        // 已是最新版本
+        modal = {
+          visible: true,
+          title: t('dialog.update_latest', { version: APP_VERSION }, get(resolvedLocale)),
+          rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]]
+        };
+      }
+    } catch (err) {
+      console.error("检查更新失败:", err);
+      // 网络错误提示
+      modal = {
+        visible: true,
+        title: t('dialog.update_failed', undefined, get(resolvedLocale)),
+        rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]]
+      };
+    }
+  }  
 
   async function openGitHub() {
     try {
@@ -1181,6 +1256,27 @@
   };
   let diffSubmenuCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // 语言二级菜单
+  type LangSubmenuState = { visible: boolean; anchorLeft: number; anchorRight: number; anchorTop: number; };
+  let langSubmenu: LangSubmenuState = { visible: false, anchorLeft: 0, anchorRight: 0, anchorTop: 0 };
+
+  // ★ 新增：点击触发二级菜单
+  function toggleLangSubmenu(e: MouseEvent) {
+    if (langSubmenu.visible) {
+      langSubmenu.visible = false;
+      return;
+    }
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    langSubmenu = { visible: true, anchorLeft: rect.left, anchorRight: rect.right, anchorTop: rect.top };
+  }
+
+  function selectLanguage(choice: LocaleChoice) {
+    langSubmenu.visible = false;
+    setLocale(choice);
+  }
+  // 语言二级菜单  
+
   // ★ 任何 modal 打开时为 true，用于屏蔽全局快捷键
   $: isAnyModalOpen = modal.visible
     || aboutVisible
@@ -1189,7 +1285,8 @@
     || contextMenu.visible
     || barContextMenu.visible
     || diffSubmenu.visible
-    || renamingIndex !== -1;
+    || renamingIndex !== -1
+    || langSubmenu.visible
 
   function closeDiffSubmenu() {
     if (diffSubmenuCloseTimer) {
@@ -1365,6 +1462,11 @@
 
     // 2. 启动拖拽监听
     setupDragDrop().catch(console.error);
+        // 监听窗口焦点
+    const handleFocus = () => { isWindowFocused = true; };
+    const handleBlur = () => { isWindowFocused = false; };
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
 
     // 3. 外部变化检测
     const handleDetect = () => {
@@ -1524,7 +1626,8 @@
     onSettingsClick={handleSettingsClick}
     renamingIndex={renamingIndex}
     onRenameCommit={handleRenameCommit}
-    onRenameCancel={handleRenameCancel}    
+    onRenameCancel={handleRenameCancel}
+    isWindowFocused={isWindowFocused}
   />
 
   <div class="editor-area">
@@ -1546,21 +1649,25 @@
       onEditorContextMenu={handleEditorContextMenu}
     />
   </div>
-  <StatusBar
-    lineCount={snapshot.line_count}
-    charCount={snapshot.char_count}
-    selectedCount={selectedCount}
-    selectedLineCount={selectedLineCount}    
-    encoding={snapshot.encoding}
-    lineEnding={snapshot.line_ending}
-    isDirty={snapshot.is_dirty}
-    diskState={snapshot.disk_state}
-    zoom={zoom}
-    wordWrap={wordWrap}
-    wordWrapDisabled={snapshot.large_file}
-    onToggleWordWrap={handleToggleWordWrap}
-    onZoomChange={setZoomValue}
-  />
+
+  <div style="margin-top: -1px; position: relative; z-index: 2;">
+        <StatusBar
+            lineCount={snapshot.line_count}
+            charCount={snapshot.char_count}
+            selectedCount={selectedCount}
+            selectedLineCount={selectedLineCount}    
+            encoding={snapshot.encoding}
+            lineEnding={snapshot.line_ending}
+            isDirty={snapshot.is_dirty}
+            diskState={snapshot.disk_state}
+            zoom={zoom}
+            wordWrap={wordWrap}
+            wordWrapDisabled={snapshot.large_file}
+            onToggleWordWrap={handleToggleWordWrap}
+            onZoomChange={setZoomValue}
+        />
+    </div>
+
 
   {#if contextMenu.visible}
     {@const cmIndex = contextMenu.index}
@@ -1764,23 +1871,61 @@
 
         <div class="context-divider"></div>
 
+        <!-- 语言选择 -->
         <div class="settings-group-title">{t('settings.language')}</div>
-        {#each LOCALE_OPTIONS as opt}
-          <button class="context-item" onclick={() => setLocale(opt.key)}>
-            <span>
-              {opt.key === 'auto' ? t('locale.auto') :
-               opt.key === 'zh-CN' ? t('locale.zh-CN') :
-               t('locale.en-US')}
-            </span>
-            <span class="check">{$localeChoice === opt.key ? '✔' : ''}</span>
-          </button>
-        {/each}        
+        <button
+          class="context-item"
+          onclick={toggleLangSubmenu}
+        >
+          <span>
+            {t('settings.language')}: {LANGUAGE_NAMES[$resolvedLocale] || $resolvedLocale}
+          </span>
+          <span class="shortcut">▸</span>
+        </button>
 
         <div class="context-divider"></div>
+        <!-- 检查更新入口 -->
+        <button class="context-item" onclick={checkForUpdates}>
+          <span>{t('settings.check_update')}</span>
+        </button>
+
         <button class="context-item" onclick={() => { closeSettingsMenu(); aboutVisible = true; }}>
           <span>{t('settings.about')}</span>
         </button>
 
+      </div>
+    </div>
+  {/if}
+
+  {#if langSubmenu.visible}
+    {@const ddW = 180}
+    {@const ddH = Math.min(LOCALE_OPTIONS.length * 32 + 8, 400)}
+    
+    <!-- 计算方向：优先向左弹，如果左边没空间了，向右弹 -->
+    {@const hasLeft = langSubmenu.anchorLeft - ddW - 8 >= 0}
+    {@const ddLeft = hasLeft 
+      ? langSubmenu.anchorLeft - ddW - 4 
+      : langSubmenu.anchorRight + 4}
+      
+    <!-- 计算垂直方向：防止底部溢出 -->
+    {@const ddTop = Math.max(8, Math.min(langSubmenu.anchorTop, window.innerHeight - ddH - 8))}
+
+    <!-- ★ 关键：加一层全屏遮罩，点击空白处关闭，同时防止鼠标穿透导致菜单消失 -->
+    <div class="context-overlay" onclick={() => langSubmenu.visible = false} role="presentation">
+      <div
+        class="context-menu"
+        style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        onclick={(e) => e.stopPropagation()}
+        role="menu"
+        tabindex="-1"
+      >
+        {#each LOCALE_OPTIONS as opt}
+          <button class="context-item" onclick={() => selectLanguage(opt.key)}>
+            <!-- ★ 因为删除了 auto，这里直接显示对应的母语名称 -->
+            <span>{LANGUAGE_NAMES[opt.key]}</span>
+            <span class="check">{$localeChoice === opt.key ? '✔' : ''}</span>
+          </button>
+        {/each}
       </div>
     </div>
   {/if}  

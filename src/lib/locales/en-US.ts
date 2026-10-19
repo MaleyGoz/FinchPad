@@ -11,6 +11,15 @@ export const enUS: Record<string, string> = {
   "settings.theme.dark": "Dark",
   "settings.language": "Language",
   "settings.about": "About FinchPad",
+  "settings.check_update": "Check for Updates",
+  "dialog.update_checking": "Checking for updates...",
+  "dialog.update_latest": "You are on the latest version (v{version}).",
+  "dialog.update_found":
+    "New version found!\nCurrent: v{current}\nLatest: v{latest}\n\nGo to GitHub to download?",
+  "dialog.update_failed":
+    "Failed to check for updates. Please check your network.",
+  "dialog.update_confirm": "Download",
+  "dialog.update_cancel": "Cancel",
 
   // ===== Language Options =====
   "locale.auto": "Auto",
