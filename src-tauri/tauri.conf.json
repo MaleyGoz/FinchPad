@@ -44,7 +44,15 @@
     ],
     "fileAssociations": [
       {
-        "ext": ["txt"],
+        "ext": [
+          "txt", "log", "md", "markdown", "rst", 
+          "json", "jsonc", "xml", "yaml", "yml", "toml", "ini", "conf", "cfg", "env", "properties", "csv", "tsv", 
+          "html", "htm", "xhtml", "css", "scss", "less", 
+          "js", "mjs", "cjs", "jsx", "ts", "tsx", "vue", "svelte", 
+          "py", "pyw", "java", "c", "h", "cpp", "cc", "cxx", "hpp", "cs", "go", "rs", "rb", "php", "swift", "kt", "kts", "scala", "lua", "pl", "r", "dart", 
+          "sh", "bash", "zsh", "bat", "cmd", "ps1", "vbs", 
+          "sql", "tex", "diff", "patch", "gitignore", "dockerfile", "mk", "gradle", "proto"
+        ],
         "name": "Text File",
         "description": "Text File",
         "role": "Editor"

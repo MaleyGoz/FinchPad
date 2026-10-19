@@ -132,6 +132,34 @@ pub fn run() {
             apply_disk_version,
             rename_tab_file
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+                .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = event {
+                use tauri::Manager;
+                use tauri::Emitter;
+
+                let paths: Vec<String> = urls
+                    .into_iter()
+                    .filter_map(|url| url.to_file_path().ok())
+                    .map(|p| p.to_string_lossy().into_owned())
+                    .collect();
+
+                if !paths.is_empty() {
+                    // 冷启动：存入状态供前端 take
+                    if let Some(state) = app_handle.try_state::<AppState>() {
+                        if let Ok(mut files) = state.startup_files.lock() {
+                            files.extend(paths.clone());
+                        }
+                    }
+                    // 热启动：发事件给前端
+                    let _ = app_handle.emit("single-instance-files", paths);
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.set_focus();
+                        let _ = window.unminimize();
+                    }
+                }
+            }
+        });
 }

@@ -1,4 +1,4 @@
-export const ptBR: Record<string, string> = {
+export const pt: Record<string, string> = {
   // ===== Menu Configurações =====
   "settings.view": "Exibir",
   "settings.show_line_numbers": "Números de linha",
