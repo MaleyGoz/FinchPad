@@ -292,13 +292,22 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  // ★ 缩放变化时，更新 Monaco 字体
-  // 直接读 zoom，让 Svelte 5 正确追踪依赖
+  // ★ 缩放变化时，同步更新 Monaco 的字体大小和行高
   $: if (editor) {
     const targetSize = Math.round((BASE_FONT_SIZE * zoom) / 100);
+    const targetLineHeight = Math.round(targetSize * 1.5); // 行高必须跟着字体一起变！
+    
     const opts = editor.getOptions();
-    if (opts.get(monaco.editor.EditorOption.fontSize) !== targetSize) {
-      editor.updateOptions({ fontSize: targetSize });
+    
+    // 如果字号或行高有一个没对上，就一起更新
+    if (
+      opts.get(monaco.editor.EditorOption.fontSize) !== targetSize || 
+      opts.get(monaco.editor.EditorOption.lineHeight) !== targetLineHeight
+    ) {
+      editor.updateOptions({ 
+        fontSize: targetSize,
+        lineHeight: targetLineHeight
+      });
     }
   }
 

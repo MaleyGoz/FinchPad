@@ -102,6 +102,7 @@
       on:click={toggleZoomMenu}
       on:contextmenu|preventDefault|stopPropagation={toggleZoomMenu}
     >{zoom}%</span>
+
     {#if zoomMenuOpen}
       <div class="zoom-menu">
         {#each ZOOM_PRESETS as preset}
@@ -110,12 +111,22 @@
             class:active={preset === zoom}
             on:click={() => selectZoom(preset)}
           >
-            <span>{preset}%</span>
-            <span class="check">{preset === zoom ? '✔' : ''}</span>
+            <!-- 给文字加上 class -->
+            <span class="zoom-text">{preset}%</span>
+            
+            <!-- 右侧勾选 -->
+            <span class="check">
+              {#if preset === zoom}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              {/if}
+            </span>
           </button>
         {/each}
       </div>
     {/if}
+
   </div>
 
   <span class="sep">|</span>
@@ -199,6 +210,8 @@
     display: inline-flex;
     flex-shrink: 0;
   }
+
+  
   .zoom-menu {
     position: absolute;
     bottom: 22px;
@@ -209,32 +222,42 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 4px;
     z-index: 500;
-    min-width: 80px;
+    min-width: 80px; /* 稍微加宽一点 */
   }
+
   .zoom-item {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 6px;
     width: 100%;
     background: none;
     border: none;
-    padding: 5px 12px;
+    padding: 6px 2px 6px 12px;
     font-size: 12px;
     cursor: pointer;
     color: var(--overlay-foreground);
     border-radius: 3px;
     box-sizing: border-box;
     font-family: inherit;
+    /* 删除了 position: relative */
   }
+  
+  .zoom-item .zoom-text {
+    text-align: center;
+  }
+
+  .zoom-item .check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+  }
+  
   .zoom-item:hover {
     background: var(--overlay-hover-background);
-  }
-  .zoom-item .check {
-    width: 12px;
-    text-align: center;
-    color: var(--overlay-foreground);
-  }
+  }  
+
 
   .status-text {
     color: var(--status-bar-foreground);

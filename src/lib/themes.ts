@@ -1,3 +1,5 @@
+// 主题文件，新增系统识别优化
+
 import { writable } from "svelte/store";
 
 export type Theme = {
@@ -211,7 +213,6 @@ export function isDarkTheme(name: string): boolean {
 /** 当前主题名（响应式 store） */
 export const currentTheme = writable<string>("white");
 
-
 // ==========================================
 // 平台专属主题色覆盖
 // ==========================================
@@ -232,19 +233,17 @@ if (isMac) {
   THEMES.gray.tab_bar_background = "#B8B8B8";
   THEMES.gray.tab_bar_background_inactive = "#C8C8C8";
   THEMES.gray.tab_background_active = "#D9D9D9";
-
 } else if (isLinux) {
   // 🐧 Linux (Ubuntu Yaru 风格) 专属
   // 白色主题：采用 Ubuntu 标志性的带一点点暖紫调的浅灰
-  THEMES.white.tab_bar_background = "#EBE6E6"; 
-  THEMES.white.tab_bar_background_inactive = "#F2F1F0"; 
+  THEMES.white.tab_bar_background = "#EBE6E6";
+  THEMES.white.tab_bar_background_inactive = "#F2F1F0";
   THEMES.white.tab_background_active = "#FFFFFF";
 
   // 灰色主题：采用 Ubuntu 深色模式下的深冷灰
   THEMES.gray.tab_bar_background = "#3D3D3D";
   THEMES.gray.tab_bar_background_inactive = "#4A4A4A";
-  THEMES.gray.tab_background_active = "#5E5C64"; 
-  
+  THEMES.gray.tab_background_active = "#5E5C64";
 } else {
   // 🪟 Windows 平台保持原本的浅蓝色（不需要修改，已经在上面定义好了）
   // 这里留空即可，因为原本 themes.ts 里的定义就是 Windows 的。
