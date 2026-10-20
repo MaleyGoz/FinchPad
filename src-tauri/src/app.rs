@@ -1281,6 +1281,10 @@ pub async fn open_diff_window(
         .title("Compare")
         .inner_size(1200.0, 700.0)
         .min_inner_size(600.0, 400.0)
+<<<<<<< HEAD
+=======
+        .decorations(false)
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         .build()
         .map_err(|e| e.to_string())?;
 

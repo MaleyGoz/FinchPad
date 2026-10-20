@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // 主题文件，新增系统识别优化
 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 import { writable } from "svelte/store";
 
 export type Theme = {
@@ -11,10 +14,17 @@ export type Theme = {
   gutter_background: string;
   gutter_foreground: string;
   gutter_foreground_active: string;
+<<<<<<< HEAD
   // 标签栏
   tab_bar_background: string;
 
   tab_bar_background_inactive: string;
+=======
+
+  // 标签栏
+  tab_bar_background: string;
+  tab_background: string;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   tab_background_active: string;
   tab_foreground: string;
   tab_foreground_active: string;
@@ -48,11 +58,17 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#F3F3F3",
     gutter_foreground: "#C8C8C8",
     gutter_foreground_active: "#666666",
+<<<<<<< HEAD
 
     tab_bar_background: "#c9dfec", // 激活时的底色
     tab_bar_background_inactive: "#e8e8e8", // 失焦时的底色
     tab_background_active: "#FFFFFF", // 激活标签的亮色
 
+=======
+    tab_bar_background: "#D8DDE3",
+    tab_background: "#D8DDE3",
+    tab_background_active: "#FFFFFF",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
@@ -77,23 +93,38 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#e4e4e4",
     gutter_foreground: "#888888",
     gutter_foreground_active: "#444444",
+<<<<<<< HEAD
 
     tab_bar_background: "#c9dfec", // 激活时的底色
     tab_bar_background_inactive: "#e8e8e8", // 失焦时的底色
     tab_background_active: "#ffffff", // 激活标签的亮色
 
+=======
+    tab_bar_background: "#D8DDE3",
+    tab_background: "#D8DDE3",
+    tab_background_active: "#E5E5E5",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
     status_bar_background: "#e4e4e4",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
+<<<<<<< HEAD
     overlay_background: "#F0F0F0",     // 浅灰底色，不再是纯白
     overlay_foreground: "#000000",     // 纯黑文字，保证对比度
     overlay_foreground_muted: "#777777", 
     overlay_border: "#C0C0C0",         // 灰边框
     overlay_hover_background: "#E4E4E4", // 悬停加深
     overlay_divider: "#D0D0D0",        // 分割线
+=======
+    overlay_background: "#FFFFFF",
+    overlay_foreground: "#222222",
+    overlay_foreground_muted: "#999999",
+    overlay_border: "#CCCCCC",
+    overlay_hover_background: "#F0F0F0",
+    overlay_divider: "#E0E0E0",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
@@ -106,17 +137,24 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#F0EAD8",
     gutter_foreground: "#B8C0C0",
     gutter_foreground_active: "#7A8A90",
+<<<<<<< HEAD
 
     tab_bar_background: "#D8CDB8", // 激活时的底色
     tab_bar_background_inactive: "#E5DCC9", // 失焦时的底色
     tab_background_active: "#FDF6E3", // 激活标签的亮色
 
+=======
+    tab_bar_background: "#D8DDE3",
+    tab_background: "#D8DDE3",
+    tab_background_active: "#FDF6E3",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
     status_bar_background: "#F0EAD8",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
+<<<<<<< HEAD
     overlay_background: "#FDF6E3",     // 奶油米黄底色，和编辑器完美融合
     overlay_foreground: "#3A4A52",     // 暖色深灰文字
     overlay_foreground_muted: "#8899A0", 
@@ -124,6 +162,14 @@ export const THEMES: Record<string, Theme> = {
     overlay_hover_background: "#F2EAD3", // 悬停加深的米色
     overlay_divider: "#E5DCC9",        // 暖色分割线
 
+=======
+    overlay_background: "#FFFFFF",
+    overlay_foreground: "#222222",
+    overlay_foreground_muted: "#999999",
+    overlay_border: "#CCCCCC",
+    overlay_hover_background: "#F0F0F0",
+    overlay_divider: "#E0E0E0",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
@@ -136,23 +182,38 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#BEE0C2",
     gutter_foreground: "#88B088",
     gutter_foreground_active: "#4A7A4A",
+<<<<<<< HEAD
 
     tab_bar_background: "#A8C5B0", // 激活时的底色
     tab_bar_background_inactive: "#C0D6C4", // 失焦时的底色
     tab_background_active: "#CCE8CF", // 激活标签的亮色
 
+=======
+    tab_bar_background: "#D8DDE3",
+    tab_background: "#D8DDE3",
+    tab_background_active: "#CCE8CF",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     tab_foreground: "#333333",
     tab_foreground_active: "#000000",
     tab_border: "#C0C5CC",
     status_bar_background: "#BEE0C2",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
+<<<<<<< HEAD
     overlay_background: "#F0F7F0",     // 极淡的绿色底色
     overlay_foreground: "#1A3A1A",     // 深绿/黑文字
     overlay_foreground_muted: "#6B8E6B", 
     overlay_border: "#B5D6B9",         // 绿色边框
     overlay_hover_background: "#E0EFE3", // 悬停加深的浅绿
     overlay_divider: "#CCE8CF",        
+=======
+    overlay_background: "#FFFFFF",
+    overlay_foreground: "#222222",
+    overlay_foreground_muted: "#999999",
+    overlay_border: "#CCCCCC",
+    overlay_hover_background: "#F0F0F0",
+    overlay_divider: "#E0E0E0",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
@@ -165,11 +226,17 @@ export const THEMES: Record<string, Theme> = {
     gutter_background: "#252526",
     gutter_foreground: "#606060",
     gutter_foreground_active: "#A0A0A0",
+<<<<<<< HEAD
 
     tab_bar_background: "#2D2D2D", // 激活时的底色
     tab_bar_background_inactive: "#2D2D2D", // 失焦时的底色
     tab_background_active: "#1E1E1E", // 激活标签的亮色
 
+=======
+    tab_bar_background: "#2D2D2D",
+    tab_background: "#2D2D2D",
+    tab_background_active: "#1E1E1E",
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     tab_foreground: "#999999",
     tab_foreground_active: "#FFFFFF",
     tab_border: "#404040",
@@ -213,6 +280,7 @@ export function isDarkTheme(name: string): boolean {
 
 /** 当前主题名（响应式 store） */
 export const currentTheme = writable<string>("white");
+<<<<<<< HEAD
 
 // ==========================================
 // 平台专属主题色覆盖
@@ -249,3 +317,5 @@ if (isMac) {
   // 🪟 Windows 平台保持原本的浅蓝色（不需要修改，已经在上面定义好了）
   // 这里留空即可，因为原本 themes.ts 里的定义就是 Windows 的。
 }
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368

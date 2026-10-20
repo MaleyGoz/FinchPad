@@ -12,10 +12,14 @@
   import { revealItemInDir, openUrl } from '@tauri-apps/plugin-opener';
   import { writeText } from '@tauri-apps/plugin-clipboard-manager';
   import { get } from 'svelte/store';
+<<<<<<< HEAD
   import { t, resolvedLocale, LOCALE_OPTIONS, LANGUAGE_NAMES, localeChoice, setLocaleChoice, type LocaleChoice } from '$lib/i18n';
   import { getVersion } from '@tauri-apps/api/app';
   import AppOverlays from '$lib/AppOverlays.svelte';
 import { fetch } from '@tauri-apps/plugin-http';  
+=======
+  import { t, resolvedLocale, LOCALE_OPTIONS, localeChoice, setLocaleChoice, type LocaleChoice } from '$lib/i18n';
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   let snapshot: Snapshot = {
     tab_titles: [],
@@ -59,8 +63,11 @@ import { fetch } from '@tauri-apps/plugin-http';
   let editorBg = 'white';  
   let closeQueueTabIds: string[] = [];
   let renamingIndex = -1;
+<<<<<<< HEAD
   let isWindowFocused = true;
   let isSaving = false; // 防止保存过程中的自动检测覆盖状态
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   // 编辑器组件引用（用于调用编辑区方法）
   let editorRef: Editor;
@@ -95,7 +102,11 @@ import { fetch } from '@tauri-apps/plugin-http';
   type SettingsMenuState = { visible: boolean; anchorRight: number; anchorBottom: number };
   let settingsMenu: SettingsMenuState = { visible: false, anchorRight: 0, anchorBottom: 0 };
   let aboutVisible = false;
+<<<<<<< HEAD
   let APP_VERSION = '0.0.0'; // 动态获取版本号
+=======
+  const APP_VERSION = '0.3.0';  // 和 Cargo.toml / package.json 里的版本号保持一致  
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   function handleSettingsClick(anchorRight: number, anchorBottom: number) {
     closeContextMenu();
@@ -107,6 +118,7 @@ import { fetch } from '@tauri-apps/plugin-http';
     settingsMenu = { visible: false, anchorRight: 0, anchorBottom: 0 };
   }
 
+<<<<<<< HEAD
   // 比较版本号 (例如 v0.3.0 vs 0.4.0)
   function isNewerVersion(current: string, latest: string): boolean {
     // 去掉可能存在的 'v' 前缀
@@ -190,6 +202,8 @@ import { fetch } from '@tauri-apps/plugin-http';
     }
   }
 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   async function openGitHub() {
     try {
       await openUrl('https://github.com/MaleyGoz/FinchPad');
@@ -268,7 +282,10 @@ import { fetch } from '@tauri-apps/plugin-http';
    * 核心流程：先同步未保存编辑 → 拉最新状态 → 判定并处理。
    */
   async function detectExternalChanges() {
+<<<<<<< HEAD
     if (isSaving) return;  
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     // 弹窗已显示 → 跳过
     if (modal.visible) return;
 
@@ -501,12 +518,17 @@ import { fetch } from '@tauri-apps/plugin-http';
     if (snapshot.is_unnamed) {
       // 未命名 → 走另存为
       const path = await save({
+<<<<<<< HEAD
         defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
+=======
+        defaultPath: snapshot.default_save_path,
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
       });
+<<<<<<< HEAD
 
     if (!path) return;
 
@@ -532,6 +554,11 @@ import { fetch } from '@tauri-apps/plugin-http';
 
       try {
          snapshot = await api.saveActiveFileAs(finalPath); 
+=======
+      if (!path) return;
+      try {
+        snapshot = await api.saveActiveFileAs(path);
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
       } catch (e) {
         if (e === "FileAlreadyOpen") {
           modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
@@ -671,7 +698,11 @@ import { fetch } from '@tauri-apps/plugin-http';
 
     if (isUnnamed) {
       const path = await save({
+<<<<<<< HEAD
         defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
+=======
+        defaultPath: snapshot.default_save_path,
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
@@ -683,6 +714,7 @@ import { fetch } from '@tauri-apps/plugin-http';
         closeQueueActive = false;
         return;
       }
+<<<<<<< HEAD
 
       // ★ 新增：Mac 专属拦截逻辑
       let finalPath = path;
@@ -703,6 +735,14 @@ import { fetch } from '@tauri-apps/plugin-http';
       } catch (e) {
         if (e === "FileAlreadyOpen") {
           modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
+=======
+      try {
+        await api.saveActiveFileAs(path);
+      } catch (e) {
+        if (e === "FileAlreadyOpen") {
+          modal = { visible: true, title: t('dialog.save_as_conflict', { path }, get(resolvedLocale)), rows: [[{ label: t('dialog.ok'), style: 'primary', action: closeModal }]] };
+          // 保存失败，中止当前关闭队列
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
           closeQueue = [];
           closeQueueActive = false;
           return;
@@ -833,12 +873,17 @@ import { fetch } from '@tauri-apps/plugin-http';
     if (isUnnamed) {
       // 未命名 → 走另存为
       const path = await save({
+<<<<<<< HEAD
         defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
+=======
+        defaultPath: snapshot.default_save_path,
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
       });
+<<<<<<< HEAD
       
     if (!path) return;
 
@@ -863,6 +908,10 @@ import { fetch } from '@tauri-apps/plugin-http';
     }
 
       await api.saveActiveFileAs(finalPath);
+=======
+      if (!path) return;  // 用户取消 → 不关闭
+      await api.saveActiveFileAs(path);
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     } else {
       await api.saveActiveFile();
     }
@@ -877,9 +926,14 @@ import { fetch } from '@tauri-apps/plugin-http';
     await refresh();
   }
   
+<<<<<<< HEAD
   function handleTextChange(text: string) {
     // ★ 修复假脏：如果文本和当前状态一模一样，说明是 Monaco 渲染触发的假事件，直接忽略
     if (text === snapshot.active_text) return;     
+=======
+
+  function handleTextChange(text: string) {
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     // ★ 乐观更新：先设为脏，给用户即时反馈
     const newDirtyStates = [...snapshot.tab_dirty_states];
     newDirtyStates[snapshot.active_index] = true;
@@ -939,6 +993,7 @@ import { fetch } from '@tauri-apps/plugin-http';
     snapshot = await api.openFiles(paths);
   }
 
+<<<<<<< HEAD
   //保存
   async function handleSave() {
     if (modal.visible) return;
@@ -1007,10 +1062,16 @@ import { fetch } from '@tauri-apps/plugin-http';
     if (isSaving) return;
     isSaving = true;
 
+=======
+  async function handleSave() {
+    // 弹窗已显示时忽略快捷键，避免弹窗重叠
+    if (modal.visible) return;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     await flushPendingEdit();
     await refresh();
 
     // 未命名 + 空/回到初始 → 无动作
+<<<<<<< HEAD
     if (snapshot.is_unnamed && !snapshot.is_dirty) {
       isSaving = false;
       return;
@@ -1019,11 +1080,65 @@ import { fetch } from '@tauri-apps/plugin-http';
     // 其它情况：弹另存为
     const path = await save({
       defaultPath: isMac ? snapshot.default_save_path.replace(/\.txt$/i, '') : snapshot.default_save_path,
+=======
+    if (snapshot.is_unnamed && !snapshot.is_dirty) return;
+    // 未命名 + 有内容 → 走另存为
+    if (snapshot.is_unnamed) {
+      await handleSaveAs();
+      return;
+    }
+    // 已命名 + 干净 → 无动作
+    if (!snapshot.is_dirty) return;
+
+    // 已命名 + 脏 → 检查磁盘状态
+    const idx = snapshot.active_index;
+    const full = await api.checkTabFullState(idx);
+
+    switch (full.disk_state) {
+      case 'normal':
+        try {
+          snapshot = await api.saveActiveFile();
+        } catch (e) {
+          // ★ 处理竞态条件：检查状态到保存之间，U盘可能被拔了
+          if (e === "NeedsSaveAs") {
+            await handleSaveAs();
+          } else {
+            console.error('保存失败：', e);
+          }
+        }
+        break;
+      case 'deleted':
+        // 文件已被外部删除，直接走另存为（安全兜底，防止覆盖空内容）
+        await handleSaveAs();
+        break;
+      case 'unreachable':
+        // 位置不可达 → 自动走另存为
+        await handleSaveAs();
+        break;
+      case 'modified':
+        // 冲突 → 弹 5 按钮框
+        showSaveConflictModal(idx);
+        break;
+    }
+  }
+
+  async function handleSaveAs() {
+    await flushPendingEdit();
+    await refresh();
+
+    // 未命名 + 空/回到初始 → 无动作
+    if (snapshot.is_unnamed && !snapshot.is_dirty) return;
+
+    // 其它情况：弹另存为
+    const path = await save({
+      defaultPath: snapshot.default_save_path,
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         filters: [
             { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt'] },
             { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
         ],
     });
+<<<<<<< HEAD
 
     if (!path) {
       isSaving = false;
@@ -1047,6 +1162,13 @@ import { fetch } from '@tauri-apps/plugin-http';
     try {
       snapshot = await api.saveActiveFileAs(finalPath); 
       lastDetectTime = Date.now(); // ★ 关键：保存成功后，重置检测冷却时间，防止立刻触发外部检测覆盖状态
+=======
+    if (!path) return;
+    
+    // ★ 捕获后端错误
+    try {
+      snapshot = await api.saveActiveFileAs(path);
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     } catch (e) {
       if (e === "FileAlreadyOpen") {
         modal = {
@@ -1061,8 +1183,11 @@ import { fetch } from '@tauri-apps/plugin-http';
       } else {
         console.error('另存为失败：', e);
       }
+<<<<<<< HEAD
     } finally {
       isSaving = false; // ★ 确保无论如何都会解锁
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     }
   }
 
@@ -1371,6 +1496,7 @@ import { fetch } from '@tauri-apps/plugin-http';
   };
   let diffSubmenuCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
+<<<<<<< HEAD
   // 语言二级菜单
   type LangSubmenuState = { visible: boolean; anchorLeft: number; anchorRight: number; anchorTop: number; };
   let langSubmenu: LangSubmenuState = { visible: false, anchorLeft: 0, anchorRight: 0, anchorTop: 0 };
@@ -1392,6 +1518,8 @@ import { fetch } from '@tauri-apps/plugin-http';
   }
   // 语言二级菜单  
 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   // ★ 任何 modal 打开时为 true，用于屏蔽全局快捷键
   $: isAnyModalOpen = modal.visible
     || aboutVisible
@@ -1400,8 +1528,12 @@ import { fetch } from '@tauri-apps/plugin-http';
     || contextMenu.visible
     || barContextMenu.visible
     || diffSubmenu.visible
+<<<<<<< HEAD
     || renamingIndex !== -1
     || langSubmenu.visible
+=======
+    || renamingIndex !== -1;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   function closeDiffSubmenu() {
     if (diffSubmenuCloseTimer) {
@@ -1516,6 +1648,7 @@ import { fetch } from '@tauri-apps/plugin-http';
     abort?.();
   }
 
+<<<<<<< HEAD
   function closeModal() {
     modal = { visible: false, title: '', rows: [] };
   }
@@ -1524,6 +1657,15 @@ import { fetch } from '@tauri-apps/plugin-http';
     // 获取真实的 App 版本号
     getVersion().then(v => APP_VERSION = v).catch(console.error);
 
+=======
+
+  function closeModal() {
+    modal = { visible: false, title: '', rows: [] };
+  }
+  
+  
+  onMount(() => {
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     // autosave 定时器：每秒 tick 一次
     const autosaveTimer = setInterval(() => {
       api.tickAutosave().catch(console.error);
@@ -1578,11 +1720,14 @@ import { fetch } from '@tauri-apps/plugin-http';
 
     // 2. 启动拖拽监听
     setupDragDrop().catch(console.error);
+<<<<<<< HEAD
         // 监听窗口焦点
     const handleFocus = () => { isWindowFocused = true; };
     const handleBlur = () => { isWindowFocused = false; };
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
     // 3. 外部变化检测
     const handleDetect = () => {
@@ -1637,7 +1782,11 @@ import { fetch } from '@tauri-apps/plugin-http';
       if (unlistenSingleInstance) unlistenSingleInstance();
     };
   });
+<<<<<<< HEAD
 </script>
+=======
+  </script>
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
 <svelte:window
   on:keydown={(e) => {
@@ -1742,8 +1891,12 @@ import { fetch } from '@tauri-apps/plugin-http';
     onSettingsClick={handleSettingsClick}
     renamingIndex={renamingIndex}
     onRenameCommit={handleRenameCommit}
+<<<<<<< HEAD
     onRenameCancel={handleRenameCancel}
     isWindowFocused={isWindowFocused}
+=======
+    onRenameCancel={handleRenameCancel}    
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   />
 
   <div class="editor-area">
@@ -1765,6 +1918,7 @@ import { fetch } from '@tauri-apps/plugin-http';
       onEditorContextMenu={handleEditorContextMenu}
     />
   </div>
+<<<<<<< HEAD
 
   <div style="margin-top: -1px; position: relative; z-index: 2;">
         <StatusBar
@@ -1842,6 +1996,386 @@ import { fetch } from '@tauri-apps/plugin-http';
     onCloseEditorContextMenu={closeEditorContextMenu}
     onRunEditorAction={runEditorAction}
   />
+=======
+  <StatusBar
+    lineCount={snapshot.line_count}
+    charCount={snapshot.char_count}
+    selectedCount={selectedCount}
+    selectedLineCount={selectedLineCount}    
+    encoding={snapshot.encoding}
+    lineEnding={snapshot.line_ending}
+    isDirty={snapshot.is_dirty}
+    diskState={snapshot.disk_state}
+    zoom={zoom}
+    wordWrap={wordWrap}
+    wordWrapDisabled={snapshot.large_file}
+    onToggleWordWrap={handleToggleWordWrap}
+    onZoomChange={setZoomValue}
+  />
+
+  {#if contextMenu.visible}
+    {@const cmIndex = contextMenu.index}
+    {@const cmTabCount = snapshot.tab_titles.length}
+    {@const cmIsDirty = snapshot.tab_dirty_states[cmIndex] ?? false}
+    {@const cmIsUnnamed = snapshot.tab_unnamed_states[cmIndex] ?? false}
+    {@const cmCanCloseOthers = cmTabCount > 1}
+    {@const cmCanCloseLeft = cmIndex > 0}
+    {@const cmCanCloseRight = cmIndex < cmTabCount - 1}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={closeContextMenu}
+      oncontextmenu={(e) => { e.preventDefault(); closeContextMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu"
+        style="{contextMenu.left !== null
+          ? `left: ${contextMenu.left}px;`
+          : `right: ${contextMenu.right}px;`} top: {contextMenu.top}px;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        role="menu"
+        tabindex="-1"
+      >
+        <button class="context-item" class:disabled={!cmIsDirty} disabled={!cmIsDirty} onclick={menuSave}>
+          <span>{t('tab_menu.save')}</span><span class="shortcut">{mod}+S</span>
+        </button>
+        <button class="context-item" class:disabled={cmIsUnnamed && !cmIsDirty} disabled={cmIsUnnamed && !cmIsDirty} onclick={menuSaveAs}>
+          <span>{t('tab_menu.save_as')}</span><span class="shortcut">{mod}+Shift+S</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <button
+          class="context-item"
+          class:disabled={cmTabCount <= 1}
+          disabled={cmTabCount <= 1}
+          onmouseenter={(e) => showDiffSubmenu(e)}
+          onmouseleave={scheduleCloseDiffSubmenu}
+        >
+          <span>{t('tab_menu.diff')}</span>
+          <span class="shortcut">▸</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <button class="context-item" onclick={menuCloseSingle}>
+          <span>{t('tab_menu.close')}</span><span class="shortcut">{mod}+W</span>
+        </button>
+        <button class="context-item" class:disabled={!cmCanCloseOthers} disabled={!cmCanCloseOthers} onclick={menuCloseOthers}>
+          <span>{t('tab_menu.close_others')}</span>
+        </button>
+        <button class="context-item" class:disabled={!cmCanCloseLeft} disabled={!cmCanCloseLeft} onclick={menuCloseLeft}>
+          <span>{t('tab_menu.close_left')}</span>
+        </button>
+        <button class="context-item" class:disabled={!cmCanCloseRight} disabled={!cmCanCloseRight} onclick={menuCloseRight}>
+          <span>{t('tab_menu.close_right')}</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <button
+          class="context-item"
+          class:disabled={cmIsUnnamed}
+          disabled={cmIsUnnamed}
+          onclick={() => {
+            const idx = contextMenu.index;
+            closeContextMenu();
+            renamingIndex = idx;
+          }}
+        >
+          <span>{t('tab_menu.rename')}</span>
+        </button>
+
+        <button class="context-item" class:disabled={cmIsUnnamed} disabled={cmIsUnnamed} onclick={menuCopyPath}>
+          <span>{t('tab_menu.copy_path')}</span>
+        </button>
+        <button class="context-item" class:disabled={cmIsUnnamed} disabled={cmIsUnnamed} onclick={menuRevealInExplorer}>
+          <span>{t('tab_menu.reveal_in_explorer')}</span>
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if barContextMenu.visible}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={closeBarContextMenu}
+      oncontextmenu={(e) => { e.preventDefault(); closeBarContextMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu"
+        style="{barContextMenu.left !== null
+          ? `left: ${barContextMenu.left}px;`
+          : `right: ${barContextMenu.right}px;`} top: {barContextMenu.top}px;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        role="menu"
+        tabindex="-1"
+      >
+        <button class="context-item" onclick={barMenuNew}>
+          <span>{t('bar_menu.new')}</span><span class="shortcut">{mod}+N</span>
+        </button>
+        <button class="context-item" onclick={barMenuOpen}>
+          <span>{t('bar_menu.open')}</span><span class="shortcut">{mod}+O</span>
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if diffSubmenu.visible}
+    {@const ddW = 200}
+    {@const ddH = Math.min((snapshot.tab_titles.length - 1) * 32 + 8, 400)}
+    {@const hasRight = diffSubmenu.anchorRight + ddW + 8 <= window.innerWidth}
+    {@const ddLeft = hasRight
+      ? diffSubmenu.anchorRight + 4
+      : Math.max(8, diffSubmenu.anchorLeft - ddW - 4)}
+    {@const ddTop = Math.max(8, Math.min(diffSubmenu.anchorTop, window.innerHeight - ddH - 8))}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={() => { closeDiffSubmenu(); closeContextMenu(); }}
+      oncontextmenu={(e) => { e.preventDefault(); closeDiffSubmenu(); closeContextMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu"
+        style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        onmouseenter={cancelCloseDiffSubmenu}
+        onmouseleave={scheduleCloseDiffSubmenu}
+        role="menu"
+        tabindex="-1"
+      >
+        {#each snapshot.tab_titles as title, idx}
+          {#if idx !== contextMenu.index}
+            <button
+              class="context-item"
+              onclick={() => selectDiffTarget(idx)}
+            >
+              <span>{title}</span>
+            </button>
+          {/if}
+        {/each}
+
+      </div>
+    </div>
+  {/if}
+  
+  {#if settingsMenu.visible}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={closeSettingsMenu}
+      oncontextmenu={(e) => { e.preventDefault(); closeSettingsMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu settings-menu"
+        style="right: {window.innerWidth - settingsMenu.anchorRight}px; top: {settingsMenu.anchorBottom + 4}px;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        role="menu"
+        tabindex="-1"
+      >
+        <div class="settings-group-title">{t('settings.view')}</div>
+        <button class="context-item" onclick={toggleShowLineNumbers}>
+          <span>{t('settings.show_line_numbers')}</span>
+          <span class="check">{showLineNumbers ? '✔' : ''}</span>
+        </button>
+        <button
+          class="context-item"
+          class:disabled={snapshot.large_file}
+          disabled={snapshot.large_file}
+          onclick={toggleWordWrapFromSettings}
+        >
+          <span>{t('settings.word_wrap')}</span>
+          <span class="check">{wordWrap && !snapshot.large_file ? '✔' : ''}</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <div class="settings-group-title">{t('settings.theme')}</div>
+        {#each THEME_ORDER as key}
+          <button class="context-item" onclick={() => setTheme(key)}>
+            <span class="theme-label">
+              <span
+                class="theme-swatch"
+                style="background: {THEMES[key].editor_background}; border-color: {THEMES[key].overlay_border};"
+              ></span>
+              <span>{t('settings.theme.' + key)}</span>
+            </span>
+            <span class="check">{editorBg === key ? '✔' : ''}</span>
+          </button>
+        {/each}
+
+        <div class="context-divider"></div>
+
+        <div class="settings-group-title">{t('settings.language')}</div>
+        {#each LOCALE_OPTIONS as opt}
+          <button class="context-item" onclick={() => setLocale(opt.key)}>
+            <span>
+              {opt.key === 'auto' ? t('locale.auto') :
+               opt.key === 'zh-CN' ? t('locale.zh-CN') :
+               t('locale.en-US')}
+            </span>
+            <span class="check">{$localeChoice === opt.key ? '✔' : ''}</span>
+          </button>
+        {/each}        
+
+        <div class="context-divider"></div>
+        <button class="context-item" onclick={() => { closeSettingsMenu(); aboutVisible = true; }}>
+          <span>{t('settings.about')}</span>
+        </button>
+
+      </div>
+    </div>
+  {/if}  
+
+  {#if aboutVisible}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="modal-overlay"
+      onclick={() => (aboutVisible = false)}
+      role="presentation"
+    >
+      <div
+        class="about-card"
+        onclick={(e) => e.stopPropagation()}
+        role="dialog"
+        tabindex="-1"
+      >
+        <img src="/icon.png" alt="FinchPad" class="about-icon" />
+        <div class="about-title">{t('about.title')}</div>
+        <div class="about-version">{t('about.version', { version: APP_VERSION })}</div>
+        <div class="about-desc">{t('about.line1')}</div>
+        <div class="about-desc">{t('about.line2')}</div>
+        <div class="about-divider"></div>
+        <div class="about-info">
+          <div>{t('about.tech')}</div>
+          <div>{t('about.author')}</div>
+          <div>{t('about.license')}</div>
+          <div>
+            <span
+              class="link"
+              role="link"
+              tabindex="0"
+              onclick={openGitHub}
+              onkeydown={(e) => e.key === 'Enter' && openGitHub()}
+            >{t('about.website')}</span>
+          </div>
+        </div>
+        <button class="about-btn" onclick={() => (aboutVisible = false)}>{t('about.ok')}</button>
+      </div>
+    </div>
+  {/if}  
+
+  {#if editorContextMenu.visible}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+      class="context-overlay"
+      onclick={closeEditorContextMenu}
+      oncontextmenu={(e) => { e.preventDefault(); closeEditorContextMenu(); }}
+      role="presentation"
+    >
+      <div
+        class="context-menu"
+        style="{editorContextMenu.left !== null
+          ? `left: ${editorContextMenu.left}px;`
+          : `right: ${editorContextMenu.right}px;`} top: {editorContextMenu.top}px;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        role="menu"
+        tabindex="-1"
+      >
+        <button
+          class="context-item"
+          class:disabled={!editorContextMenu.canUndo}
+          disabled={!editorContextMenu.canUndo}
+          onclick={() => runEditorAction('undo')}
+        >
+          <span>{t('editor_menu.undo')}</span><span class="shortcut">{mod}+Z</span>
+        </button>
+        <button
+          class="context-item"
+          class:disabled={!editorContextMenu.canRedo}
+          disabled={!editorContextMenu.canRedo}
+          onclick={() => runEditorAction('redo')}
+        >
+          <span>{t('editor_menu.redo')}</span><span class="shortcut">{isMac ? mod + '+Shift+Z' : mod + '+Y'}</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <button
+          class="context-item"
+          class:disabled={!editorContextMenu.hasSelection}
+          disabled={!editorContextMenu.hasSelection}
+          onclick={() => runEditorAction('cut')}
+        >
+          <span>{t('editor_menu.cut')}</span><span class="shortcut">{mod}+X</span>
+        </button>
+        <button
+          class="context-item"
+          class:disabled={!editorContextMenu.hasSelection}
+          disabled={!editorContextMenu.hasSelection}
+          onclick={() => runEditorAction('copy')}
+        >
+          <span>{t('editor_menu.copy')}</span><span class="shortcut">{mod}+C</span>
+        </button>
+        <button class="context-item" onclick={() => runEditorAction('paste')}>
+          <span>{t('editor_menu.paste')}</span><span class="shortcut">{mod}+V</span>
+        </button>
+        <button class="context-item" onclick={() => runEditorAction('delete')}>
+          <span>{t('editor_menu.delete')}</span><span class="shortcut">Delete</span>
+        </button>
+
+        <div class="context-divider"></div>
+
+        <button class="context-item" onclick={() => runEditorAction('selectAll')}>
+          <span>{t('editor_menu.select_all')}</span><span class="shortcut">{mod}+A</span>
+        </button>
+      </div>
+    </div>
+  {/if}
+
+{#if modal.visible}
+  <!-- 忽略遮罩层的键盘事件警告（点击遮罩关闭不需要键盘焦点） -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="modal-overlay" role="presentation">
+    
+    <!-- 忽略内部容器的键盘事件警告，并给 dialog 加上 tabindex="-1" -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div 
+      class="modal" 
+      onclick={(e) => e.stopPropagation()} 
+      role="dialog" 
+      tabindex="-1"
+    >
+      <div class="modal-title">{modal.title}</div>
+      {#each modal.rows as row}
+        <div class="modal-row">
+          {#each row as btn}
+            <button
+              class="modal-btn"
+              class:primary={btn.style === 'primary'}
+              class:large={btn.size === 'large'}
+              class:small={btn.size === 'small'}
+              onclick={btn.action}
+            >{btn.label}</button>
+          {/each}
+        </div>
+      {/each}
+    </div>
+  </div>
+{/if}
+  
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 </main>
 
 <style>

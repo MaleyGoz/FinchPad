@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * ============================================================================
  * 🌟 FinchPad 多语言核心引擎 (最终版)
@@ -57,10 +58,27 @@ export const LANGUAGE_NAMES: Record<string, string> = {
 "pl": "Polski",
 "nl": "Nederlands",
 "fa": "فارسی",
+=======
+import { derived, get, writable } from "svelte/store";
+import { zhCN } from "./locales/zh-CN";
+import { enUS } from "./locales/en-US";
+
+/** 用户选择（持久化到 session） */
+export type LocaleChoice = "auto" | "zh-CN" | "en-US";
+
+/** 实际生效的语言（不做 'auto'） */
+export type Locale = "zh-CN" | "en-US";
+
+/** 所有可用语言及词条 —— 加新语言只需在这里加一行 */
+const LOCALES: Record<Locale, Record<string, string>> = {
+  "zh-CN": zhCN,
+  "en-US": enUS,
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 };
 
 /** 语言下拉菜单的显示项 */
 export const LOCALE_OPTIONS: { key: LocaleChoice; label: string }[] = [
+<<<<<<< HEAD
   ...Object.entries(LANGUAGE_NAMES).map(([key, label]) => ({ key, label })),
 ];
 
@@ -96,18 +114,42 @@ function detectSystemLocale(): Locale {
 export const localeChoice = writable<LocaleChoice>("auto");
 
 /** 实际生效的语言（响应式） */
+=======
+  { key: "auto", label: "跟随系统" },
+  { key: "zh-CN", label: "简体中文" },
+  { key: "en-US", label: "English" },
+];
+
+/** 检测系统语言 */
+function detectSystemLocale(): Locale {
+  if (typeof navigator === "undefined") return "en-US";
+  const lang = (navigator.language || "en-US").toLowerCase();
+  if (lang.startsWith("zh")) return "zh-CN";
+  return "en-US";
+}
+
+/** 用户选择（'auto' / 'zh-CN' / 'en-US'） */
+export const localeChoice = writable<LocaleChoice>("auto");
+
+/** 实际生效的语言 —— 跟随系统时动态解析 */
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 export const resolvedLocale = derived(localeChoice, ($choice): Locale => {
   if ($choice === "auto") return detectSystemLocale();
   return $choice;
 });
 
+<<<<<<< HEAD
 /** 翻译函数 */
+=======
+/** 翻译函数。用法：t('menu.view') 或 t('status.line_and_chars', { lines: '5', chars: '20' }) */
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 export function t(
   key: string,
   params?: Record<string, string | number>,
   localeOverride?: Locale,
 ): string {
   const lang = localeOverride ?? get(resolvedLocale);
+<<<<<<< HEAD
 
   let text =
     LOCALES[lang]?.[key] ??
@@ -115,6 +157,9 @@ export function t(
     LOCALES["zh-CN"]?.[key] ??
     key;
 
+=======
+  let text = LOCALES[lang]?.[key] ?? LOCALES["zh-CN"][key] ?? key;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       text = text.split(`{${k}}`).join(String(v));
@@ -128,4 +173,8 @@ export function setLocaleChoice(choice: LocaleChoice) {
   localeChoice.set(choice);
   const actual = choice === "auto" ? detectSystemLocale() : choice;
   document.documentElement.lang = actual;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368

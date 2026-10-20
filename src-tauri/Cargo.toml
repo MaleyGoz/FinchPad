@@ -1,6 +1,10 @@
 [package]
 name = "finchpad"
+<<<<<<< HEAD
 version = "0.4.0"
+=======
+version = "0.3.0"
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 description = "A modern, lightweight, multi-tab plain-text editor designed to replace the default text editors on Windows, Linux, and macOS."
 authors = ["MaleyGoz"]
 edition = "2021"
@@ -20,7 +24,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
+<<<<<<< HEAD
 tauri-plugin-http = "2"
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

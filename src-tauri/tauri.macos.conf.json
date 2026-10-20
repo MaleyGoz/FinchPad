@@ -5,7 +5,12 @@
         "decorations": true,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
+<<<<<<< HEAD
         "trafficLightPosition": { "x": 18.0, "y": 22.0 }
+=======
+        "visible": false,
+        "transparent": true
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
       }
     ]
   }

@@ -13,7 +13,10 @@
   export let onReorder: (from: number, to: number) => void = () => {};
   export let onBarContextMenu: (x: number, y: number) => void = () => {};
   export let onSettingsClick: (anchorRight: number, anchorBottom: number) => void = () => {};
+<<<<<<< HEAD
   export let isWindowFocused: boolean = true;
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
     // 编译时注入的环境变量
   const platform = import.meta.env.TAURI_ENV_PLATFORM;
@@ -83,7 +86,11 @@
   const SETTINGS_BTN_W = 32;     // ⚙ 设置
   const WINDOW_BTNS_W = 46 * 3;  // ─ □ × 三个窗口按钮
   const LOGO_W = 38;
+<<<<<<< HEAD
   const MIN_BLANK = 80;         // 拖动区最小宽度（从 80 加大）
+=======
+  const MIN_BLANK = 100;         // 拖动区最小宽度（从 80 加大）
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   const GAP = 1;
   const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
@@ -165,6 +172,7 @@
       tabWidth = MAX_TAB_W;
       hasOverflow = false;
     } else {
+<<<<<<< HEAD
       // 1. 计算所有标签名中，最长的那个文字宽度
       const maxTextW = Math.max(
         ...titles.map((t) => measureTextWidth(t)),
@@ -203,6 +211,44 @@
     }
 
     // 处理边界：如果可见数量变化，修正起始索引
+=======
+      // 无 ▼ 时可用于标签区的宽度（扣掉所有固定按钮 + 拖动区最小值）
+      const avail = width - FIXED_WIDTH - MIN_BLANK;
+      const idealNoDD = (avail - GAP * count) / count;
+
+      if (idealNoDD > MAX_TAB_W) {
+        // 空间充足 → 按最长标签名算宽度
+        const maxTextW = Math.max(
+          ...titles.map((t) => measureTextWidth(t)),
+          MIN_TAB_W - TAB_PADDING_L - TAB_PADDING_R - CLOSE_BTN_W - TAB_BORDER_W
+        );
+        const neededW =
+          maxTextW + TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
+        tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, neededW));
+        visibleCount = count;
+        hasOverflow = false;
+      } else if (idealNoDD >= MIN_TAB_W+5) {
+        // 刚好能放下所有标签（自动压缩）
+        tabWidth = idealNoDD;
+        visibleCount = count;
+        hasOverflow = false;
+      } else {
+        // 必须溢出 → 加 ▼
+        hasOverflow = true;
+        const availWithDD = avail - DD_BTN_W;
+        // 计算最多能显示多少个 80px 标签
+        const maxVisible = Math.max(
+          1,
+          Math.floor((availWithDD - GAP * (count + 1)) / (MIN_TAB_W + GAP))
+        );
+        visibleCount = maxVisible;
+        // 让可见标签宽度自适应填满剩余空间
+        const selfAdapt = (availWithDD - GAP * (visibleCount + 1)) / visibleCount;
+        tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, selfAdapt));
+      }
+    }
+
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     const maxStart = Math.max(0, count - visibleCount);
     if (visibleStart > maxStart) visibleStart = maxStart;
   }
@@ -416,7 +462,11 @@
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
+<<<<<<< HEAD
 <div class="tab-bar" class:inactive={!isWindowFocused} class:mac-platform={isMac} bind:this={tabBarEl} on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}>
+=======
+<div class="tab-bar" class:mac-platform={isMac} bind:this={tabBarEl} on:contextmenu|preventDefault={(e) => onBarContextMenu(e.clientX, e.clientY)}>
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   <!-- 顶部留白：也是拖动区域 -->
   <div class="drag-strip" data-tauri-drag-region></div>
 
@@ -442,8 +492,11 @@
       class="tab"
       class:active={isActive}
       class:dragging={isBeingDragged}
+<<<<<<< HEAD
       class:prev-is-active={absIdx + 1 === activeIndex}
       class:is-hovered={isHovered && !isActive}
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
       style="width: {tabWidth}px;"
       use:tooltip={paths[absIdx]}
       on:click={(e) => onTabClick(e, absIdx)}
@@ -475,6 +528,7 @@
       {#if isDirty}
         {#if isHovered}
           <button
+<<<<<<< HEAD
             class="close-btn"
             on:click|stopPropagation={() => onClose(absIdx)}
             aria-label="关闭标签">
@@ -482,11 +536,17 @@
               <path d="M18 6L6 18M6 6l12 12"></path>
             </svg>
           </button>
+=======
+            class="close"
+            on:click|stopPropagation={() => onClose(absIdx)}
+            aria-label="关闭标签">×</button>
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         {:else}
           <span class="dot" aria-label="未保存">●</span>
         {/if}
       {:else if isHovered || isActive}
         <button
+<<<<<<< HEAD
           class="close-btn"
           on:click|stopPropagation={() => onClose(absIdx)}
           aria-label="关闭标签">
@@ -494,6 +554,11 @@
               <path d="M18 6L6 18M6 6l12 12"></path>
             </svg>
         </button>
+=======
+          class="close"
+          on:click|stopPropagation={() => onClose(absIdx)}
+          aria-label="关闭标签">×</button>
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
       {/if}
     </div>
   {/each}
@@ -591,21 +656,29 @@
 <style>
   .tab-bar {
     display: flex;
+<<<<<<< HEAD
     /* 默认使用激活背景色 */
     background: var(--tab-bar-background);
     transition: background-color 0.2s ease; /* 平滑过渡 */
     
     height: 38px;
+=======
+    background: var(--tab-bar-background);
+    height: 38px;           /* 32 + 6 */
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     align-items: stretch;
     user-select: none;
     position: relative;
     box-sizing: border-box;
   }
+<<<<<<< HEAD
 
   /* ★ 当失去焦点时，类名为 inactive，背景色切换为变量 */
   .tab-bar.inactive {
     background: var(--tab-bar-background-inactive);
   }
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   .drag-strip {
     position: absolute;
     top: 0;
@@ -650,6 +723,7 @@
     box-sizing: border-box;
     flex-shrink: 0;
     overflow: hidden;
+<<<<<<< HEAD
     
     position: relative; /* ★ 新增：给伪元素做定位参考 */
   }
@@ -676,16 +750,23 @@
   }
 
 
+=======
+    /* outline: none; */
+  }
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   .tab.active {
     background: var(--tab-background-active);
     color: var(--tab-foreground-active);
     border-radius: 8px 8px 0 0;
     border-right-color: transparent;
   }
+<<<<<<< HEAD
     /* ★ 新增：如果下一个标签是激活状态，隐藏当前标签的右边框，消除激活标签左侧的竖线 */
   .tab.prev-is-active {
     border-right-color: transparent;
   }
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   .tab.dragging {
     opacity: 0.5;
   }
@@ -694,12 +775,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+<<<<<<< HEAD
     
     /* ★ 强制文字自己成为一个居中的 Flex 盒子，消除不同系统字体的行高影响 */
     display: flex;
     align-items: center;
     height: 100%; 
     line-height: 1; 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   }
   .rename-input {
     flex: 1;
@@ -716,6 +800,7 @@
     height: 20px;
     box-sizing: border-box;
   }  
+<<<<<<< HEAD
 
 
   /* 全新的 SVG 关闭按钮 */
@@ -762,14 +847,38 @@
     font-size: 6px;
     color: var(--tab-foreground);
     margin-left: 4px;  /* ★ 必须和 close-btn 左间距一致 */
+=======
+  .dot {
+    color: var(--tab-foreground);
+    font-size: 6px;
+    line-height: 1;
+    padding: 0 6px;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     user-select: none;
     flex-shrink: 0;
   }
   .tab.active .dot {
     color: var(--tab-foreground-active);
+<<<<<<< HEAD
   }  
 
 
+=======
+  }
+  .close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--tab-foreground);
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .close:hover {
+    color: var(--tab-foreground-active);
+  }
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   .new-tab {
     background: transparent;
     background-clip: padding-box;

@@ -5,11 +5,14 @@
   "windows": ["main", "diff"],
   "permissions": [
     "core:default",
+<<<<<<< HEAD
     "http:default",
     {
       "identifier": "http:allow-fetch",
       "allow": [{ "url": "https://api.github.com/*" }]
     },
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     "core:window:allow-set-title",
     "opener:default",
     "opener:allow-reveal-item-in-dir",

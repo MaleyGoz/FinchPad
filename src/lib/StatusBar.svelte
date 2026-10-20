@@ -102,7 +102,10 @@
       on:click={toggleZoomMenu}
       on:contextmenu|preventDefault|stopPropagation={toggleZoomMenu}
     >{zoom}%</span>
+<<<<<<< HEAD
 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     {#if zoomMenuOpen}
       <div class="zoom-menu">
         {#each ZOOM_PRESETS as preset}
@@ -111,6 +114,7 @@
             class:active={preset === zoom}
             on:click={() => selectZoom(preset)}
           >
+<<<<<<< HEAD
             <!-- 给文字加上 class -->
             <span class="zoom-text">{preset}%</span>
             
@@ -122,11 +126,18 @@
                 </svg>
               {/if}
             </span>
+=======
+            <span>{preset}%</span>
+            <span class="check">{preset === zoom ? '✔' : ''}</span>
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
           </button>
         {/each}
       </div>
     {/if}
+<<<<<<< HEAD
 
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   </div>
 
   <span class="sep">|</span>
@@ -210,8 +221,11 @@
     display: inline-flex;
     flex-shrink: 0;
   }
+<<<<<<< HEAD
 
   
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   .zoom-menu {
     position: absolute;
     bottom: 22px;
@@ -222,6 +236,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 4px;
     z-index: 500;
+<<<<<<< HEAD
     min-width: 80px; /* 稍微加宽一点 */
   }
 
@@ -233,12 +248,26 @@
     background: none;
     border: none;
     padding: 6px 2px 6px 12px;
+=======
+    min-width: 80px;
+  }
+  .zoom-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 5px 12px;
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
     font-size: 12px;
     cursor: pointer;
     color: var(--overlay-foreground);
     border-radius: 3px;
     box-sizing: border-box;
     font-family: inherit;
+<<<<<<< HEAD
     /* 删除了 position: relative */
   }
   
@@ -258,6 +287,17 @@
     background: var(--overlay-hover-background);
   }  
 
+=======
+  }
+  .zoom-item:hover {
+    background: var(--overlay-hover-background);
+  }
+  .zoom-item .check {
+    width: 12px;
+    text-align: center;
+    color: var(--overlay-foreground);
+  }
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   .status-text {
     color: var(--status-bar-foreground);

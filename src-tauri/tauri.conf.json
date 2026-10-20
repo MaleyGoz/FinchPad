@@ -2,14 +2,24 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "FinchPad",
   "mainBinaryName": "FinchPad",
+<<<<<<< HEAD
   "version": "0.4.0",
   "identifier": "com.finchpad.desktop",
+=======
+  "version": "0.3.0",
+  "identifier": "com.finchpad.desktop",
+
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../build"
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   "app": {
     "windows": [
       {
@@ -21,14 +31,22 @@
         "minHeight": 400,
         "devtools": true,
         "visible": false,
+<<<<<<< HEAD
         "decorations": false,
         "transparent": true
+=======
+        "decorations": false
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
       }
     ],
     "security": {
       "csp": null
     }
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
   "bundle": {
     "active": true,
     "targets": "all",
@@ -41,6 +59,7 @@
     ],
     "fileAssociations": [
       {
+<<<<<<< HEAD
         "ext": [
           "txt",
           "log",
@@ -242,6 +261,9 @@
           "asciidoc",
           "bbcode"
         ],
+=======
+        "ext": ["txt"],
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         "name": "Text File",
         "description": "Text File",
         "role": "Editor"
@@ -251,6 +273,15 @@
       "wix": {
         "language": "zh-CN"
       }
+<<<<<<< HEAD
     }
   }
 }
+=======
+    },
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
+}
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368

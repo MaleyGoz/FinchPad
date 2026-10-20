@@ -77,7 +77,10 @@ pub fn run() {
                 let _ = window.unminimize();
             }
         }))
+<<<<<<< HEAD
         .plugin(tauri_plugin_http::init())
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -133,6 +136,7 @@ pub fn run() {
             apply_disk_version,
             rename_tab_file
         ])
+<<<<<<< HEAD
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app_handle, event| {
@@ -163,4 +167,8 @@ pub fn run() {
                 }
             }
         });
+=======
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 }

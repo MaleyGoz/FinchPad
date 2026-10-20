@@ -11,6 +11,7 @@ export const enUS: Record<string, string> = {
   "settings.theme.dark": "Dark",
   "settings.language": "Language",
   "settings.about": "About FinchPad",
+<<<<<<< HEAD
   "settings.check_update": "Check for Updates",
   "dialog.update_checking": "Checking for updates...",
   "dialog.update_latest": "You are on the latest version (v{version}).",
@@ -20,6 +21,8 @@ export const enUS: Record<string, string> = {
     "Failed to check for updates. Please check your network.",
   "dialog.update_confirm": "Download",
   "dialog.update_cancel": "Cancel",
+=======
+>>>>>>> e8704ae241c732be062884b4e02f27a8e3b04368
 
   // ===== Language Options =====
   "locale.auto": "Auto",
