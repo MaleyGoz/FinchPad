@@ -442,6 +442,8 @@
       class="tab"
       class:active={isActive}
       class:dragging={isBeingDragged}
+      class:prev-is-active={absIdx + 1 === activeIndex}
+      class:is-hovered={isHovered && !isActive}
       style="width: {tabWidth}px;"
       use:tooltip={paths[absIdx]}
       on:click={(e) => onTabClick(e, absIdx)}
@@ -473,17 +475,25 @@
       {#if isDirty}
         {#if isHovered}
           <button
-            class="close"
+            class="close-btn"
             on:click|stopPropagation={() => onClose(absIdx)}
-            aria-label="关闭标签">×</button>
+            aria-label="关闭标签">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+          </button>
         {:else}
           <span class="dot" aria-label="未保存">●</span>
         {/if}
       {:else if isHovered || isActive}
         <button
-          class="close"
+          class="close-btn"
           on:click|stopPropagation={() => onClose(absIdx)}
-          aria-label="关闭标签">×</button>
+          aria-label="关闭标签">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+        </button>
       {/if}
     </div>
   {/each}
@@ -632,10 +642,6 @@
     padding: 0 5px 0 10px;
     margin-top: 6px;
     height: 32px;
-    
-    /* ★ 关键：未激活的标签背景透明，自动融入父容器 */
-    background: transparent; 
-
     background: var(--tab-background);
     border-right: 1px solid var(--tab-border);
     cursor: pointer;
@@ -644,11 +650,40 @@
     box-sizing: border-box;
     flex-shrink: 0;
     overflow: hidden;
+    
+    position: relative; /* ★ 新增：给伪元素做定位参考 */
   }
+
+  /* ★ 新增：内部悬停胶囊背景 */
+  .tab.is-hovered::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 6px;
+    right: 6px;
+    background-color: var(--tab-background-active);
+    border-radius: 6px;
+    opacity: 0.6; /* ★ 关键：不能是 1.0，要有一点点透，防止和激活标签混淆 */
+    z-index: 0;
+    pointer-events: none; /* 防止伪元素挡住鼠标点击标签或关闭按钮 */
+  }
+
+  /* ★ 新增：确保文字、脏标记、关闭按钮浮在伪元素上方 */
+  .title, .close-btn, .dot {
+    position: relative;
+    z-index: 1;
+  }
+
+
   .tab.active {
     background: var(--tab-background-active);
     color: var(--tab-foreground-active);
     border-radius: 8px 8px 0 0;
+    border-right-color: transparent;
+  }
+    /* ★ 新增：如果下一个标签是激活状态，隐藏当前标签的右边框，消除激活标签左侧的竖线 */
+  .tab.prev-is-active {
     border-right-color: transparent;
   }
   .tab.dragging {
@@ -659,6 +694,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    
+    /* ★ 强制文字自己成为一个居中的 Flex 盒子，消除不同系统字体的行高影响 */
+    display: flex;
+    align-items: center;
+    height: 100%; 
+    line-height: 1; 
   }
   .rename-input {
     flex: 1;
@@ -675,30 +716,60 @@
     height: 20px;
     box-sizing: border-box;
   }  
-  .dot {
+
+
+  /* 全新的 SVG 关闭按钮 */
+  .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%; /* 为 hover 圆圈做准备 */
+    border: none;
+    background: transparent;
     color: var(--tab-foreground);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    margin-left: 4px; 
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  /* 激活状态下的标签，X 的默认颜色 */
+  .tab.active .close-btn {
+    color: var(--tab-foreground-active);
+  }
+
+  /* 鼠标悬停在关闭按钮时，出现圆圈圈 */
+  .close-btn:hover {
+    background-color: var(--overlay-hover-background);
+    color: var(--tab-foreground-active);
+  }
+  /* 防止在深色模式下 hover 看不清，根据你的主题微调 */
+  .tab.active .close-btn:hover {
+    background-color: var(--overlay-hover-background);
+    color: var(--tab-foreground-active);
+  }
+
+  /* 更新圆点占位 */
+  .dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;       /* ★ 必须和 close-btn 宽度一致 */
+    height: 20px;      /* ★ 必须和 close-btn 高度一致 */
     font-size: 6px;
-    line-height: 1;
-    padding: 0 6px;
+    color: var(--tab-foreground);
+    margin-left: 4px;  /* ★ 必须和 close-btn 左间距一致 */
     user-select: none;
     flex-shrink: 0;
   }
   .tab.active .dot {
     color: var(--tab-foreground-active);
-  }
-  .close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--tab-foreground);
-    font-size: 16px;
-    padding: 0 4px;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-  .close:hover {
-    color: var(--tab-foreground-active);
-  }
+  }  
+
+
   .new-tab {
     background: transparent;
     background-clip: padding-box;
