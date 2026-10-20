@@ -126,7 +126,11 @@
       <div class="settings-group-title">{t('settings.view', undefined, $resolvedLocale)}</div>
       <button class="context-item" onclick={onToggleLineNumbers}>
         <span>{t('settings.show_line_numbers', undefined, $resolvedLocale)}</span>
-        <span class="check">{showLineNumbers ? '✔' : ''}</span>
+        {#if showLineNumbers}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        {/if}
       </button>
       <button
         class="context-item"
@@ -135,7 +139,11 @@
         onclick={onToggleWordWrap}
       >
         <span>{t('settings.word_wrap', undefined, $resolvedLocale)}</span>
-        <span class="check">{wordWrap && !largeFile ? '✔' : ''}</span>
+        {#if wordWrap && !largeFile}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        {/if}
       </button>
 
       <div class="context-divider"></div>
@@ -150,20 +158,25 @@
             ></span>
             <span>{t('settings.theme.' + key, undefined, $resolvedLocale)}</span>
           </span>
-          <span class="check">{editorBg === key ? '✔' : ''}</span>
+        {#if editorBg === key}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        {/if}
         </button>
       {/each}
 
       <div class="context-divider"></div>
 
       <!-- 语言选择 -->
-      <div class="settings-group-title">{t('settings.language', undefined, $resolvedLocale)}</div>
-      <button class="context-item" onclick={onToggleLangSubmenu}>
+        <button class="context-item" style="margin-top: 4px;" onclick={onToggleLangSubmenu}>
         <span>
-          {t('settings.language', undefined, $resolvedLocale)}: {LANGUAGE_NAMES[$resolvedLocale] || $resolvedLocale}
+            {t('settings.language', undefined, $resolvedLocale)}: {LANGUAGE_NAMES[$resolvedLocale] || $resolvedLocale}
         </span>
-        <span class="shortcut">▸</span>
-      </button>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; color: var(--overlay-foreground);">
+            <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
 
       <div class="context-divider"></div>
       <!-- 检查更新入口 -->
@@ -198,7 +211,11 @@
       {#each LOCALE_OPTIONS as opt}
         <button class="context-item" onclick={() => onSelectLanguage(opt.key)}>
           <span>{LANGUAGE_NAMES[opt.key]}</span>
-          <span class="check">{$localeChoice === opt.key ? '✔' : ''}</span>
+            {#if $localeChoice === opt.key}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {/if}
         </button>
       {/each}
     </div>
@@ -246,7 +263,9 @@
         onmouseleave={onScheduleCloseDiffSubmenu}
       >
         <span>{t('tab_menu.diff', undefined, $resolvedLocale)}</span>
-        <span class="shortcut">▸</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto; color: var(--overlay-foreground);">
+            <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
       </button>
 
       <div class="context-divider"></div>
