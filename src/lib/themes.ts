@@ -88,12 +88,12 @@ export const THEMES: Record<string, Theme> = {
     status_bar_background: "#e4e4e4",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
-    overlay_background: "#FFFFFF",
-    overlay_foreground: "#222222",
-    overlay_foreground_muted: "#999999",
-    overlay_border: "#CCCCCC",
-    overlay_hover_background: "#F0F0F0",
-    overlay_divider: "#E0E0E0",
+    overlay_background: "#F0F0F0",     // 浅灰底色，不再是纯白
+    overlay_foreground: "#000000",     // 纯黑文字，保证对比度
+    overlay_foreground_muted: "#777777", 
+    overlay_border: "#C0C0C0",         // 灰边框
+    overlay_hover_background: "#E4E4E4", // 悬停加深
+    overlay_divider: "#D0D0D0",        // 分割线
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
@@ -117,12 +117,13 @@ export const THEMES: Record<string, Theme> = {
     status_bar_background: "#F0EAD8",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
-    overlay_background: "#FFFFFF",
-    overlay_foreground: "#222222",
-    overlay_foreground_muted: "#999999",
-    overlay_border: "#CCCCCC",
-    overlay_hover_background: "#F0F0F0",
-    overlay_divider: "#E0E0E0",
+    overlay_background: "#FDF6E3",     // 奶油米黄底色，和编辑器完美融合
+    overlay_foreground: "#3A4A52",     // 暖色深灰文字
+    overlay_foreground_muted: "#8899A0", 
+    overlay_border: "#D8CDB8",         // 暖咖色边框
+    overlay_hover_background: "#F2EAD3", // 悬停加深的米色
+    overlay_divider: "#E5DCC9",        // 暖色分割线
+
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
@@ -146,12 +147,12 @@ export const THEMES: Record<string, Theme> = {
     status_bar_background: "#BEE0C2",
     status_bar_foreground: "#555555",
     status_bar_foreground_muted: "#CCCCCC",
-    overlay_background: "#FFFFFF",
-    overlay_foreground: "#222222",
-    overlay_foreground_muted: "#999999",
-    overlay_border: "#CCCCCC",
-    overlay_hover_background: "#F0F0F0",
-    overlay_divider: "#E0E0E0",
+    overlay_background: "#F0F7F0",     // 极淡的绿色底色
+    overlay_foreground: "#1A3A1A",     // 深绿/黑文字
+    overlay_foreground_muted: "#6B8E6B", 
+    overlay_border: "#B5D6B9",         // 绿色边框
+    overlay_hover_background: "#E0EFE3", // 悬停加深的浅绿
+    overlay_divider: "#CCE8CF",        
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
