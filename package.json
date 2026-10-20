@@ -1,6 +1,6 @@
 {
   "name": "finchpad",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "description": "A modern, lightweight, multi-tab plain-text editor designed to replace the default editors on Windows, Linux, and macOS.",
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-clipboard-manager": "^2.4.0",
     "@tauri-apps/plugin-dialog": "^2.8.0",
+    "@tauri-apps/plugin-http": "^2.8.3",
     "@tauri-apps/plugin-opener": "^2",
     "monaco-editor": "^0.57.0"
   },

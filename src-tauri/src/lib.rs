@@ -77,6 +77,7 @@ pub fn run() {
                 let _ = window.unminimize();
             }
         }))
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -132,13 +133,13 @@ pub fn run() {
             apply_disk_version,
             rename_tab_file
         ])
-                .build(tauri::generate_context!())
+        .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app_handle, event| {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = event {
-                use tauri::Manager;
                 use tauri::Emitter;
+                use tauri::Manager;
 
                 let paths: Vec<String> = urls
                     .into_iter()
