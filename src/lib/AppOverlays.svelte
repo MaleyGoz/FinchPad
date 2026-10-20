@@ -592,4 +592,36 @@
   .context-divider { height: 1px; background: var(--overlay-divider); margin: 4px 0; }
   .shortcut { font-size: 11px; color: var(--overlay-foreground-muted); margin-left: auto; }
   .context-item.disabled .shortcut { color: var(--overlay-foreground-muted); }  
+
+  /* ==========================================
+     极简超细滚动条定制 (让菜单和编辑器风格统一)
+     ========================================== */
+     
+  /* 针对所有带有滚动条的右键菜单和二级菜单 */
+  .context-menu::-webkit-scrollbar {
+    width: 6px;  /* 宽度极细 */
+    height: 6px; /* 横向滚动条也变细 */
+  }
+
+  /* 滚动条轨道（底色）保持透明，不占用视觉空间 */
+  .context-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* 滚动条滑块（那根可以拖动的条） */
+  .context-menu::-webkit-scrollbar-thumb {
+    background: var(--overlay-foreground-muted);
+    opacity: 0.5; 
+    border-radius: 4px; /* 圆角显得更柔和 */
+  }
+
+  /* 鼠标悬停在滑块上时，颜色加深，提示用户 */
+  .context-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--overlay-foreground);
+  }
+
+  /* 隐藏原生滚动条两端的上下小箭头（极其丑陋） */
+  .context-menu::-webkit-scrollbar-button {
+    display: none;
+  }  
 </style>
