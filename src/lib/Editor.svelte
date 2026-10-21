@@ -187,49 +187,41 @@ if (typeof window !== 'undefined') {
     lastIsPlaintext = isPlaintext;
     lastShowLineNumbers = showLineNumbers;
 
+    // 1. 决定最终的目标值（初始默认）
+    let targetMinChars = 0;
+    let targetDecorWidth = 0;
+
     // === 问题 3 & 4：隐藏行号时 ===
     if (!showLineNumbers) {
-      editor.updateOptions({
-        lineNumbers: 'off',
-        folding: false,            // 同时隐藏折叠图标
-        lineNumbersMinChars: 0,    // 不占用字符空间
-        lineDecorationsWidth: 10,  // 固定的 10px 左侧留白（不随缩放改变）
-      });
-      return;
-    }
-
-    // === 显示行号时 ===
-    editor.updateOptions({ 
-      lineNumbers: 'on',
-      folding: !isPlaintext 
-    });
-
-    if (isPlaintext) {
-      // 纯文本：保持你满意的宽间距和居中
-      const targetMinChars = Math.max(4, digits + 2);
-      if (opts.get(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars) {
-        editor.updateOptions({ 
-          lineNumbersMinChars: targetMinChars, 
-          lineDecorationsWidth: 0 
-        });
-      }
+      targetMinChars = 0;
+      targetDecorWidth = 10; // 隐藏行号时的呼吸空间
+      editor.updateOptions({ lineNumbers: 'off', folding: false });
     } else {
-      // 代码文件：问题 2 修复。收窄左侧，大幅缩小右侧折叠区。
-      const targetMinChars = Math.max(3, digits + 1); 
-      // 1.1 倍字号，紧紧包住折叠小箭头即可
-      const targetDecorWidth = Math.round(currentFontSize * 0.95); 
+      // === 显示行号时 ===
+      editor.updateOptions({ lineNumbers: 'on', folding: !isPlaintext });
       
-      if (
-        opts.get(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars ||
-        opts.get(monaco.editor.EditorOption.lineDecorationsWidth) !== targetDecorWidth
-      ) {
-        editor.updateOptions({ 
-          lineNumbersMinChars: targetMinChars, 
-          lineDecorationsWidth: targetDecorWidth 
-        });
+      if (isPlaintext) {
+        // 纯文本：宽间距居中
+        targetMinChars = Math.max(4, digits + 2);
+        targetDecorWidth = 0; // 纯文本右侧不需要留白，归零
+      } else {
+        // 代码文件：紧凑
+        targetMinChars = Math.max(3, digits + 1); 
+        targetDecorWidth = Math.round(currentFontSize * 0.95); 
       }
     }
-  }  
+
+    // 2. ★ 核心修复：统一获取当前值，同时对比两个参数
+    const currentMinChars = opts.get(monaco.editor.EditorOption.lineNumbersMinChars);
+    const currentDecorWidth = opts.get(monaco.editor.EditorOption.lineDecorationsWidth);
+
+    if (currentMinChars !== targetMinChars || currentDecorWidth !== targetDecorWidth) {
+      editor.updateOptions({ 
+        lineNumbersMinChars: targetMinChars, 
+        lineDecorationsWidth: targetDecorWidth 
+      });
+    }
+  }
 
 
 
@@ -495,11 +487,19 @@ if (typeof window !== 'undefined') {
     /* 颜色交给主题配置，这里加一个顺滑过渡即可 */
     transition: background 0.2s ease-in-out; 
   }
-
   /* 确保滚动条轨道背景透明 */
   :global(.monaco-scrollable-element > .scrollbar) {
     background: transparent !important;
   }
+  /* ★ 垂直滚动条：强制最小高度，防止长文件滑块太小点不中 */
+  :global(.monaco-scrollable-element > .scrollbar.vertical > .slider) {
+    min-height: 40px !important; /* 滑块至少 24px 高 */
+  }
+  /* ★ 水平滚动条：强制最小宽度 */
+  :global(.monaco-scrollable-element > .scrollbar.horizontal > .slider) {
+    min-width: 40px !important; /* 滑块至少 24px 宽 */
+  }
+
 
 
   .pending-overlay {
