@@ -63,7 +63,3 @@ pub fn normalize_path(path: &Path) -> PathBuf {
 pub fn same_path(left: &Path, right: &Path) -> bool {
     normalize_path(left) == normalize_path(right)
 }
-
-pub fn file_mtime(path: &Path) -> io::Result<SystemTime> {
-    fs::metadata(path)?.modified()
-}

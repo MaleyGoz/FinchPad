@@ -565,29 +565,6 @@ pub const TOTAL_LOADED_THRESHOLD: u64 = 50 * 1024 * 1024;
 /// 中等文件阈值：10MB。10-50MB 的脏标签每 60 秒才写 cache。
 pub const MEDIUM_FILE_THRESHOLD: u64 = 10 * 1024 * 1024;
 
-#[derive(serde::Serialize)]
-pub struct FileSizeInfo {
-    pub path: String,
-    pub size: u64,
-    pub is_large: bool,
-}
-
-/// 只读取文件大小，不读内容。用于打开前预检。
-#[tauri::command]
-pub fn check_file_sizes(paths: Vec<String>) -> Vec<FileSizeInfo> {
-    paths
-        .into_iter()
-        .map(|path| {
-            let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-            FileSizeInfo {
-                is_large: size >= LARGE_FILE_THRESHOLD,
-                path,
-                size,
-            }
-        })
-        .collect()
-}
-
 /// 检测指定标签的磁盘状态，返回字符串
 #[tauri::command]
 pub fn check_tab_state(state: tauri::State<AppState>, index: i32) -> Result<String, String> {

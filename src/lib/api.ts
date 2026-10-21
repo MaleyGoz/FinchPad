@@ -63,8 +63,6 @@ export const api = {
     invoke<Snapshot>("save_active_file_as", { path }),
   renameTabFile: (index: number, newName: string) =>
     invoke<Snapshot>("rename_tab_file", { index, newName }),
-  checkFileSizes: (paths: string[]) =>
-    invoke<FileSizeInfo[]>("check_file_sizes", { paths }),
   loadPendingTab: (index: number) =>
     invoke<Snapshot>("load_pending_tab", { index }),
   checkTabState: (index: number) =>

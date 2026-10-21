@@ -21,7 +21,6 @@ if (typeof window !== 'undefined') {
 }
   export let value: string = '';
   export let language: string = 'plaintext';
-  export let largeFile: boolean = false;
   export let isPendingLoad: boolean = false;
   export let fileSize: number = 0;
   export let zoom: number = 100;
@@ -217,7 +216,7 @@ if (typeof window !== 'undefined') {
     } else {
       // 代码文件：问题 2 修复。收窄左侧，大幅缩小右侧折叠区。
       const targetMinChars = Math.max(3, digits + 1); 
-      // 0.95倍字号，紧紧包住折叠小箭头即可
+      // 1.1 倍字号，紧紧包住折叠小箭头即可
       const targetDecorWidth = Math.round(currentFontSize * 0.95); 
       
       if (
@@ -250,6 +249,10 @@ if (typeof window !== 'undefined') {
           'editorLineNumber.activeForeground': t.gutter_foreground_active,
           'editorCursor.foreground': t.editor_cursor,
           'editor.selectionBackground': t.editor_selection,
+          // ★ 新增：通过 Monaco 原生主题配置滚动条颜色
+          'scrollbarSlider.background': t.scrollbar_slider,
+          'scrollbarSlider.hoverBackground': t.scrollbar_slider_hover,
+          'scrollbarSlider.activeBackground': t.scrollbar_slider_hover,
         },
       });
     } 
@@ -300,6 +303,13 @@ if (typeof window !== 'undefined') {
       lineNumbers: showLineNumbers ? 'on' : 'off',
       glyphMargin: false,
       
+      // ★ 在这里添加 scrollbar 配置
+      scrollbar: {
+        verticalScrollbarSize: 10,   // 垂直滚动条宽度，8px 是比较细腻的尺寸
+        horizontalScrollbarSize: 10, // 水平滚动条高度
+        useShadows: false,          // 关闭滚动条阴影，让胶囊效果更干净
+        alwaysConsumeMouseWheel: true, // 防止滚轮事件冒泡到编辑器外部
+      },
      
       lineNumbersMinChars: language === 'plaintext' ? 6 : 3,
       lineDecorationsWidth: language === 'plaintext' ? 0 : 12,
@@ -474,6 +484,22 @@ if (typeof window !== 'undefined') {
         font-size: 1.1em !important; 
         /* 提示：不需要写 transform: scale()，因为字体本身的 font-size 缩小不会影响点击热区 */
     }
+
+
+  /* ==========================================================================
+     滚动条样式优化 —— 细长胶囊风格（模仿 Chrome/Edge）
+     ========================================================================== */
+  /* 核心：覆盖 Monaco 内部滑块（slider）的样式 */
+  :global(.monaco-scrollable-element > .scrollbar > .slider) {
+    border-radius: 5px !important; /* 10px 宽度的滚动条，5px 圆角就是完美胶囊 */
+    /* 颜色交给主题配置，这里加一个顺滑过渡即可 */
+    transition: background 0.2s ease-in-out; 
+  }
+
+  /* 确保滚动条轨道背景透明 */
+  :global(.monaco-scrollable-element > .scrollbar) {
+    background: transparent !important;
+  }
 
 
   .pending-overlay {

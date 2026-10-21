@@ -37,6 +37,11 @@ export type Theme = {
   accent: string;
   warning: string; // 一般警告（未保存）
   warning_strong: string; // 严重警告（外部删除/修改）
+
+  // ★ 新增：滚动条专属颜色
+  scrollbar_slider: string;
+  scrollbar_slider_hover: string;
+
 };
 
 export const THEMES: Record<string, Theme> = {
@@ -68,6 +73,11 @@ export const THEMES: Record<string, Theme> = {
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
+
+    // scrollbar_slider: "#8b8b8b",
+    // scrollbar_slider_hover: "#636363",
+    scrollbar_slider: "#8b8b8b80", // 50% 透明度
+    scrollbar_slider_hover: "#8b8b8bcc", // 80% 透明度
   },
   gray: {
     editor_background: "#C0C0C0",
@@ -97,6 +107,9 @@ export const THEMES: Record<string, Theme> = {
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
+
+    scrollbar_slider: "#a0a0a080",
+    scrollbar_slider_hover: "#888888cc",
   },
   sepia: {
     editor_background: "#FDF6E3",
@@ -127,6 +140,9 @@ export const THEMES: Record<string, Theme> = {
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
+
+    scrollbar_slider: "#d8cdb880",
+    scrollbar_slider_hover: "#c0b59fcc",
   },
   green: {
     editor_background: "#CCE8CF",
@@ -156,6 +172,9 @@ export const THEMES: Record<string, Theme> = {
     accent: "#0db3db",
     warning: "#C08000",
     warning_strong: "#CC6600",
+
+    scrollbar_slider: "#9dc0a380",
+    scrollbar_slider_hover: "#82a888cc",
   },
   dark: {
     editor_background: "#1E1E1E",
@@ -185,6 +204,9 @@ export const THEMES: Record<string, Theme> = {
     accent: "#4A9EFF",
     warning: "#E0A040",
     warning_strong: "#E08040",
+
+    scrollbar_slider: "#424242",
+    scrollbar_slider_hover: "#4f4f4f",
   },
 };
 

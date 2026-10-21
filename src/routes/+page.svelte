@@ -924,15 +924,32 @@ import { fetch } from '@tauri-apps/plugin-http';
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   }
 
+  //打开
   async function handleOpen() {
-    const selected = await open({
+    // 1. 先构建基础参数
+    const openOptions: any = {
       multiple: true,
       defaultPath: snapshot.last_used_path || undefined,
-      filters: [
-        { name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), extensions: ['*'] },
-        { name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), extensions: ['txt', 'md', 'csv', 'json', 'xml', 'html', 'css', 'js', 'ts', 'py', 'log', 'yaml', 'yml', 'ini', 'conf', 'toml', 'sh', 'bat', 'ps1', 'rs', 'java', 'c', 'cpp', 'h', 'hpp', 'go', 'php', 'rb', 'swift', 'kt'] },
-      ],
-    });
+    };
+
+    // 2. 只有非 Mac 平台（Windows / Linux）才添加 filters
+    // macOS 下如果传了 filters 会限制选择，不传则默认允许选择所有文件
+    if (!isMac) {
+      openOptions.filters = [
+        { 
+          name: t('dialog.filter.all_files', undefined, get(resolvedLocale)), 
+          extensions: ['*'] 
+        },
+        { 
+          name: t('dialog.filter.text_files', undefined, get(resolvedLocale)), 
+          extensions: ['txt', 'md', 'csv', 'json', 'xml', 'html', 'css', 'js', 'ts', 'py', 'log', 'yaml', 'yml', 'ini', 'conf', 'toml', 'sh', 'bat', 'ps1', 'rs', 'java', 'c', 'cpp', 'h', 'hpp', 'go', 'php', 'rb', 'swift', 'kt'] 
+        },
+      ];
+    }
+
+    // 3. 调出系统对话框
+    const selected = await open(openOptions);
+    
     if (!selected) return;
     const paths = Array.isArray(selected) ? selected : [selected];
     await flushPendingEdit();

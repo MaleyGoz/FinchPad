@@ -78,13 +78,13 @@
     diffEditor.setModel({ original: leftModel, modified: rightModel });
   }
 
-  onMount(() => {
-    let unlistenPayload: (() => void) | null = null;
-
   // ★ 动态设置原生窗口标题
   $: if (appWindow && $resolvedLocale) {
     appWindow.setTitle(t('diff.window_title', undefined, $resolvedLocale));
   }
+
+  onMount(() => {
+    let unlistenPayload: (() => void) | null = null;
 
     (async () => {
       const urlParams = new URLSearchParams(window.location.search);

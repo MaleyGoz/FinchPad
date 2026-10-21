@@ -14,15 +14,6 @@ pub enum ExternalChange {
     Unreachable,
 }
 
-#[derive(Debug)]
-pub enum SaveOutcome {
-    Saved,
-    /// 磁盘已被外部修改，需要用户决策
-    Conflict(ExternalChange),
-    /// 路径暂时不可达（外设未连接等），调用方应自动走"另存为"
-    Unreachable,
-}
-
 pub struct Workspace {
     tabs: Vec<Tab>,
     active_index: usize,
@@ -171,12 +162,6 @@ impl Workspace {
         }
     }
 
-    pub fn switch_to_next(&mut self) {
-        if self.tabs.len() > 1 {
-            self.active_index = (self.active_index + 1) % self.tabs.len();
-        }
-    }
-
     pub fn reorder_tabs(&mut self, from: usize, to: usize) {
         let len = self.tabs.len();
         if from >= len || to >= len || from == to {
@@ -298,9 +283,6 @@ impl Workspace {
     pub fn active_index(&self) -> usize {
         self.active_index
     }
-    pub fn tab_count(&self) -> usize {
-        self.tabs.len()
-    }
 
     pub fn tab_titles(&self) -> Vec<String> {
         self.tabs.iter().map(|tab| tab.title.clone()).collect()
@@ -308,21 +290,7 @@ impl Workspace {
     pub fn tab_dirty_states(&self) -> Vec<bool> {
         self.tabs.iter().map(|tab| tab.is_dirty).collect()
     }
-    pub fn tab_title(&self, index: usize) -> Option<String> {
-        self.tabs.get(index).map(|tab| tab.title.clone())
-    }
-    pub fn tab_needs_close_confirmation(&self, index: usize) -> bool {
-        self.tabs
-            .get(index)
-            .map(|tab| tab.is_dirty)
-            .unwrap_or(false)
-    }
-    pub fn save_tab_needs_dialog(&self, index: usize) -> bool {
-        self.tabs
-            .get(index)
-            .map(|tab| !tab.is_persisted())
-            .unwrap_or(false)
-    }
+
     pub fn tab_paths(&self) -> Vec<String> {
         self.tabs
             .iter()
@@ -334,17 +302,7 @@ impl Workspace {
             })
             .collect()
     }
-    pub fn save_default_name(&self, index: usize) -> String {
-        let Some(tab) = self.tabs.get(index) else {
-            return "未命名.txt".to_string();
-        };
-        // 已保存过的标签：用原文件名
-        if let Some(name) = tab.file_path.as_ref().and_then(|p| p.file_name()) {
-            return name.to_string_lossy().into_owned();
-        }
-        // 未命名标签：用 title + .txt
-        format!("{}.txt", tab.title)
-    }
+
     pub fn save_path_conflict(&self, index: usize, path: &Path) -> bool {
         self.tabs.iter().enumerate().any(|(other_index, tab)| {
             if index == other_index {
@@ -354,16 +312,6 @@ impl Workspace {
                 .as_deref()
                 .is_some_and(|open_path| crate::io::file::same_path(open_path, path))
         })
-    }
-
-    /// 把一个标签彻底重置为新的未命名标签。
-    /// 用于"文件被外部删除且用户放弃修改"。
-    pub fn reset_tab_to_blank(&mut self, index: usize) {
-        if index >= self.tabs.len() {
-            return;
-        }
-        let tab = self.make_blank_tab();
-        self.tabs[index] = tab;
     }
 
     pub fn locale_choice_restore(&mut self, choice: String) {

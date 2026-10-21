@@ -212,52 +212,11 @@ impl Tab {
         self.file_path.is_none() && !self.is_dirty && self.buffer.is_empty()
     }
 
-    /// 标记这个标签有未保存的改动(每次编辑后调用)
-    pub fn mark_dirty(&mut self) {
-        self.is_dirty = true;
-    }
-
     /// 保存成功后调用,清除脏标记并更新已知的磁盘修改时间
     pub fn mark_saved(&mut self, new_mtime: SystemTime) {
         self.is_dirty = false;
         self.last_known_mtime = Some(new_mtime);
         self.saved_hash = Self::hash_of(&self.buffer.to_string());
-        self.cache_stale = true;
-    }
-
-    /// 用户放弃对"已被外部删除文件"的修改：
-    /// 清空内容、清除脏标记，但保留 file_path，
-    /// 让状态栏能继续显示"已被外部删除"。
-    pub fn discard_changes_keep_path(&mut self) {
-        self.buffer = TextBuffer::new();
-        self.is_dirty = false;
-        self.line_count = 1;
-        self.char_count = 0;
-        // file_path 和 last_known_mtime 保留，下次检测仍会发现文件不存在
-    }
-
-    /// 这个标签是否已经关联到磁盘上的真实文件
-    pub fn is_persisted(&self) -> bool {
-        self.file_path.is_some()
-    }
-
-    /// 用磁盘上的新内容刷新当前标签（保留 file_path 与 title）。
-    pub fn refresh_from_disk(
-        &mut self,
-        content: &str,
-        encoding: TextEncoding,
-        line_ending: LineEnding,
-        mtime: SystemTime,
-    ) {
-        self.buffer = TextBuffer::from_str(content);
-        self.encoding = encoding;
-        self.line_ending = line_ending;
-        let (line_count, char_count) = count_text(content);
-        self.line_count = line_count;
-        self.char_count = char_count;
-        self.is_dirty = false;
-        self.last_known_mtime = Some(mtime);
-        self.saved_hash = Self::hash_of(content);
         self.cache_stale = true;
     }
 }
