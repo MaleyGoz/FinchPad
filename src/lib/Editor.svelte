@@ -153,6 +153,88 @@ if (typeof window !== 'undefined') {
     }
   }  
 
+
+// 行号栏相关
+  // ★ 缓存上一次的状态，用于极速性能判断
+  let lastLineCount = -1;
+  let lastFontSize = -1;
+  let lastIsPlaintext: boolean | null = null;
+  let lastShowLineNumbers: boolean | null = null;
+
+  // ★ 终极独立函数：按需触发，内置防抖与状态缓存
+  function updateGutter() {
+    if (!editor) return;
+    const model = editor.getModel();
+    if (!model) return;
+
+    const lineCount = model.getLineCount();
+    const digits = lineCount.toString().length;
+    const isPlaintext = language === 'plaintext';
+    const opts = editor.getOptions();
+    const currentFontSize = opts.get(monaco.editor.EditorOption.fontSize);
+
+    // === 性能优化核心：如果这 4 个关键指标都没变，直接 return！ ===
+    if (
+      lineCount === lastLineCount &&
+      currentFontSize === lastFontSize &&
+      isPlaintext === lastIsPlaintext &&
+      showLineNumbers === lastShowLineNumbers
+    ) {
+      return;
+    }
+    // 更新缓存
+    lastLineCount = lineCount;
+    lastFontSize = currentFontSize;
+    lastIsPlaintext = isPlaintext;
+    lastShowLineNumbers = showLineNumbers;
+
+    // === 问题 3 & 4：隐藏行号时 ===
+    if (!showLineNumbers) {
+      editor.updateOptions({
+        lineNumbers: 'off',
+        folding: false,            // 同时隐藏折叠图标
+        lineNumbersMinChars: 0,    // 不占用字符空间
+        lineDecorationsWidth: 10,  // 固定的 10px 左侧留白（不随缩放改变）
+      });
+      return;
+    }
+
+    // === 显示行号时 ===
+    editor.updateOptions({ 
+      lineNumbers: 'on',
+      folding: !isPlaintext 
+    });
+
+    if (isPlaintext) {
+      // 纯文本：保持你满意的宽间距和居中
+      const targetMinChars = Math.max(4, digits + 2);
+      if (opts.get(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars) {
+        editor.updateOptions({ 
+          lineNumbersMinChars: targetMinChars, 
+          lineDecorationsWidth: 0 
+        });
+      }
+    } else {
+      // 代码文件：问题 2 修复。收窄左侧，大幅缩小右侧折叠区。
+      const targetMinChars = Math.max(3, digits + 1); 
+      // 0.95倍字号，紧紧包住折叠小箭头即可
+      const targetDecorWidth = Math.round(currentFontSize * 0.95); 
+      
+      if (
+        opts.get(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars ||
+        opts.get(monaco.editor.EditorOption.lineDecorationsWidth) !== targetDecorWidth
+      ) {
+        editor.updateOptions({ 
+          lineNumbersMinChars: targetMinChars, 
+          lineDecorationsWidth: targetDecorWidth 
+        });
+      }
+    }
+  }  
+
+
+
+
   onMount(() => {
     // 从 THEMES 注册所有编辑区主题
     for (const [key, t] of Object.entries(THEMES)) {
@@ -219,10 +301,8 @@ if (typeof window !== 'undefined') {
       glyphMargin: false,
       
      
-      // 行号最小字符数设为当前位数
-      lineNumbersMinChars: value ? value.split('\n').length.toString().length : 1, 
-      // 纯文本保持 10px，代码文件设为 6px（让代码文件的右侧间距更紧凑，与 VS Code 一致）
-      lineDecorationsWidth: language === 'plaintext' ? 10 : 6,
+      lineNumbersMinChars: language === 'plaintext' ? 6 : 3,
+      lineDecorationsWidth: language === 'plaintext' ? 0 : 12,
 
       wordWrap: 'off',
       scrollBeyondLastLine: false,
@@ -252,18 +332,12 @@ if (typeof window !== 'undefined') {
       contextmenu: false,                                
     });
 
+    // 打字内容变化时
     editor.onDidChangeModelContent(() => {
       if (suppressChange) return;
       onChange(editor!.getValue());
       reportStats();
-
-      // ★ 终极修复：动态计算行号位数，保证永远不截断，且宽度自适应
-      const lineCount = editor!.getModel()?.getLineCount() ?? 1;
-      const digits = lineCount.toString().length;
-      // 如果当前宽度限制和行数位数不一致（比如从 99 行变成了 100 行），才去更新
-      if (editor!.getOption(monaco.editor.EditorOption.lineNumbersMinChars) !== digits) {
-        editor!.updateOptions({ lineNumbersMinChars: digits });
-      }
+      updateGutter();
     });
 
     editor.onDidChangeCursorSelection(() => {
@@ -276,6 +350,7 @@ if (typeof window !== 'undefined') {
     (container as any).__wheelHandler = wheelHandler;
   });
 
+//   切换标签
   $: if (editor && value !== editor.getValue()) {
     suppressChange = true;
     const pos = editor.getPosition();
@@ -283,6 +358,7 @@ if (typeof window !== 'undefined') {
     if (pos) editor.setPosition(pos);
     suppressChange = false;
     reportStats();
+    updateGutter();
   }
 
   $: if (editor) {
@@ -308,6 +384,8 @@ if (typeof window !== 'undefined') {
         fontSize: targetSize,
         lineHeight: targetLineHeight
       });
+      // ★ 关键补充：字体大小变了，行号栏和折叠区宽度必须重算！
+      updateGutter(); // ✅ 
     }
   }
 
@@ -320,33 +398,9 @@ if (typeof window !== 'undefined') {
     }
   }
 
-  // ★ 终极动态控制：纯文本保持完美状态，代码文件单独调优
-  $: if (editor) {
-    const lineCount = editor.getModel()?.getLineCount() ?? 1;
-    const digits = lineCount.toString().length;
-    const isPlaintext = language === 'plaintext';
-
-    // 1. 控制折叠开关
-    const opts = editor.getOptions();
-    if (opts.get(monaco.editor.EditorOption.folding) === isPlaintext) {
-      editor.updateOptions({ folding: !isPlaintext });
-    }
-
-    // 2. 计算行号宽度
-    // 纯文本：digits + 2（保留你原来的）
-    // 代码文件：digits + 1（盒子自然左侧有留白，靠右对齐）
-    const targetMinChars = isPlaintext ? Math.max(3, digits + 2) : Math.max(3, digits + 1);
-    if (editor.getOption(monaco.editor.EditorOption.lineNumbersMinChars) !== targetMinChars) {
-      editor.updateOptions({ lineNumbersMinChars: targetMinChars });
-    }
-
-    // 3. 控制右侧折叠区宽度
-    // 纯文本：10px（保留你原来的）
-    // 代码文件：10px（缩小到 10px，折叠符自然就紧紧贴过来了）
-    const targetDecorWidth = isPlaintext ? 10 : 10;
-    if (editor.getOption(monaco.editor.EditorOption.lineDecorationsWidth) !== targetDecorWidth) {
-      editor.updateOptions({ lineDecorationsWidth: targetDecorWidth });
-    }
+  // 监听语言、缩放比例、是否显示行号的改变
+  $: if (editor && (language || zoom || showLineNumbers)) {
+    updateGutter(); // ✅ 只要这三个变量有一个变了，就重新算
   }
 
   // ★ 行号显示/隐藏
@@ -379,7 +433,12 @@ if (typeof window !== 'undefined') {
   });
 </script>
 
-<div class="editor-container" class:is-plaintext={language === 'plaintext'} style="position: relative; width: 100%; height: 100%;">
+<div
+  class="editor-container"
+  class:is-plaintext={language === 'plaintext'}
+  class:no-lines={!showLineNumbers}
+  style="position: relative; width: 100%; height: 100%;"
+>
   <div bind:this={container} style="width: 100%; height: 100%;"></div>
 
   {#if isPendingLoad}
@@ -388,7 +447,9 @@ if (typeof window !== 'undefined') {
         <div class="pending-title">{t('pending.title', undefined, $resolvedLocale)}</div>
         <div class="pending-size">{t('pending.size', { size: formatSize(fileSize) }, $resolvedLocale)}</div>
         <div class="pending-hint">{t('pending.hint', undefined, $resolvedLocale)}</div>
-        <button class="pending-btn" onclick={onLoadRequest}>{t('pending.load', undefined, $resolvedLocale)}</button>
+        <button class="pending-btn" onclick={onLoadRequest}>
+          {t('pending.load', undefined, $resolvedLocale)}
+        </button>
       </div>
     </div>
   {/if}
@@ -398,37 +459,21 @@ if (typeof window !== 'undefined') {
   /* ==========================================================================
      行号与折叠区样式配置
      ========================================================================== */
-
-  /* ==================== 纯文本专属（完美居中状态） ==================== */
-  /* 行号数字栏：居中显示，左侧固定 10px，右侧 0px */
-  :global(.editor-container.is-plaintext .monaco-editor .line-numbers) {
-    text-align: center !important;
-    padding-left: 10px !important;
-    padding-right: 0 !important;
-  }
-
-  /* 纯文本的右侧装饰区：固定宽度 10px */
-  :global(.editor-container.is-plaintext .monaco-editor .line-decorations) {
-    width: 10px !important;
-    min-width: 10px !important;
-    max-width: 10px !important;
-    position: relative !important;
-  }
-
-  /* ==================== 代码文件专属（右对齐状态） ==================== */
-  /* 代码文件的行号：靠右对齐，紧贴折叠符 */
-  /* 注：不要加 padding，否则会导致上下行号错位。左侧留白由 script 中的 lineNumbersMinChars 撑开 */
-  :global(.editor-container:not(.is-plaintext) .monaco-editor .line-numbers) {
-    text-align: right !important; 
-  }
-
-  /* ==================== 折叠符号（通用） ==================== */
-  /* 缩小平铺的折叠图标，保持点击热区正常 */
-  :global(.monaco-editor .codicon-folding-expanded),
-  :global(.monaco-editor .codicon-folding-collapsed) {
-    font-size: 12px !important; 
-    transform: scale(0.9) !important; 
-  }
+    /* 纯文本行号居中 */
+    :global(.editor-container.is-plaintext .monaco-editor .line-numbers) {
+        text-align: center !important;
+    }
+    /* 当隐藏行号时，让左侧留白（Margin/Gutter）的背景色完全透明，透出底层的 editor_background */
+    :global(.editor-container.no-lines .monaco-editor .margin) {
+        background-color: transparent !important;
+    }
+    /* ==================== 折叠符号微调（方案B） ==================== */
+    /* 使用 em 相对单位，让图标随字体大小自动缩放。0.85em 在视觉上与行号完美等大 */
+    :global(.monaco-editor .codicon-folding-expanded),
+    :global(.monaco-editor .codicon-folding-collapsed) {
+        font-size: 1.1em !important; 
+        /* 提示：不需要写 transform: scale()，因为字体本身的 font-size 缩小不会影响点击热区 */
+    }
 
 
   .pending-overlay {
