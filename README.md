@@ -26,19 +26,166 @@ It is more powerful than the built-in Notepad, yet lighter than professional edi
 
 ## Why Choose FinchPad?
 
-| Feature / Attribute | **FinchPad** | Windows Notepad | macOS TextEdit | Linux gedit | Notepad++ | Sublime Text |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Cross-platform Support** | ✅ **Win / macOS / Linux** | ❌ Windows only | ❌ macOS only | ❌ Linux primarily | ❌ Windows only | ✅ Win / macOS / Linux |
-| **Ultra-lightweight (Installer / RAM)** | ✅ **~5MB / ~10MB** | ✅ Tiny / Low | ✅ Small / Low | ✅ Small / Low | ⚠️ Small / ~30-60MB | ✅ ~80-150MB |
-| **Cold Start Speed** | ✅ **Extremely fast (Native)** | ✅ Instant | ✅ Extremely fast | ✅ Fast | ✅ <0.5s | ✅ Fast (<1s) |
-| **Modern Tabs** | ✅ **Browser-style drag & middle-click close** | ⚠️ Basic tabs | ❌ Single window only | ⚠️ Basic tabs | ✅ Mature tabs | ✅ Mature tabs |
-| **Crash/Restart Session Recovery** | ✅ **AES-256 encrypted cache, never lose work** | ❌ None | ❌ None | ❌ None | ⚠️ Basic, unencrypted | ⚠️ Hot exit recovery |
-| **External Modification Detection** | ✅ **Popup on tab activation, prevents overwriting** | ❌ None | ❌ None | ❌ None | ⚠️ Manual reload needed | ⚠️ Weak prompts |
-| **Large File Lazy Loading (>50MB)** | ✅ **On-demand loading, no UI freeze** | ❌ Laggy on large files | ❌ Struggles with large files | ⚠️ Average | ✅ Good capability | ✅ Excellent |
-| **Built-in Text Diff** | ✅ **Quickly view differences** | ❌ None | ❌ None | ❌ None | ⚠️ Requires plugin | ⚠️ Requires plugin |
-| **Tab Inline Rename (F2)** | ✅ **Rename like a file explorer** | ❌ None | ❌ None | ❌ None | ❌ None | ❌ None |
-| **Borderless Modern UI** | ✅ **Cross-platform consistent custom title bar** | ❌ System native | ❌ System native | ❌ System native | ❌ Traditional Win32 | ✅ Native elegance |
-| **Price / License** | ✅ **Free & Open Source (MIT)** | ✅ Built-in | ✅ Built-in | ✅ Free & Open Source | ✅ Free & Open Source | ❌ Paid ($99) |
+<style>
+  .finch-en-table {
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.45;
+    width: 100%;
+    min-width: 700px;
+    table-layout: auto;
+    word-break: normal;
+    white-space: nowrap;
+  }
+  .finch-en-table th,
+  .finch-en-table td {
+    border: 1px solid #d0d7de;
+    padding: 8px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .finch-en-table thead tr {
+    background-color: #f0f3f6;
+  }
+  .finch-en-table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+  }
+  .finch-en-table tbody tr:hover {
+    background-color: #e8ecf0;
+  }
+  .finch-en-table th:first-child,
+  .finch-en-table td:first-child {
+    font-weight: 650;
+    white-space: normal;
+    min-width: 170px;
+  }
+  .finch-en-table td {
+    white-space: nowrap;
+  }
+  .finch-en-table td:first-child {
+    white-space: normal;
+  }
+  @media (max-width: 820px) {
+    .finch-en-table td {
+      white-space: normal;
+    }
+  }
+</style>
+
+<table class="finch-en-table">
+  <thead>
+    <tr>
+      <th>Feature / Attribute</th>
+      <th><strong>FinchPad</strong></th>
+      <th>Windows Notepad</th>
+      <th>macOS TextEdit</th>
+      <th>Linux gedit</th>
+      <th>Notepad++</th>
+      <th>Sublime Text</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Cross-platform Support</strong></td>
+      <td>✅ <strong>Win / macOS / Linux</strong></td>
+      <td>❌ Windows only</td>
+      <td>❌ macOS only</td>
+      <td>❌ Linux primarily</td>
+      <td>❌ Windows only</td>
+      <td>✅ Win / macOS / Linux</td>
+    </tr>
+    <tr>
+      <td><strong>Ultra-lightweight (Installer / RAM)</strong></td>
+      <td>✅ <strong>~5MB / ~10MB</strong></td>
+      <td>✅ Tiny / Low</td>
+      <td>✅ Small / Low</td>
+      <td>✅ Small / Low</td>
+      <td>⚠️ Small / ~30-60MB</td>
+      <td>✅ ~80-150MB</td>
+    </tr>
+    <tr>
+      <td><strong>Cold Start Speed</strong></td>
+      <td>✅ <strong>Extremely fast (Native)</strong></td>
+      <td>✅ Instant</td>
+      <td>✅ Extremely fast</td>
+      <td>✅ Fast</td>
+      <td>✅ &lt;0.5s</td>
+      <td>✅ Fast (&lt;1s)</td>
+    </tr>
+    <tr>
+      <td><strong>Modern Tabs</strong></td>
+      <td>✅ <strong>Browser-style drag &amp; middle-click close</strong></td>
+      <td>⚠️ Basic tabs</td>
+      <td>❌ Single window only</td>
+      <td>⚠️ Basic tabs</td>
+      <td>✅ Mature tabs</td>
+      <td>✅ Mature tabs</td>
+    </tr>
+    <tr>
+      <td><strong>Crash/Restart Session Recovery</strong></td>
+      <td>✅ <strong>AES-256 encrypted cache, never lose work</strong></td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>⚠️ Basic, unencrypted</td>
+      <td>⚠️ Hot exit recovery</td>
+    </tr>
+    <tr>
+      <td><strong>External Modification Detection</strong></td>
+      <td>✅ <strong>Popup on tab activation, prevents overwriting</strong></td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>⚠️ Manual reload needed</td>
+      <td>⚠️ Weak prompts</td>
+    </tr>
+    <tr>
+      <td><strong>Large File Lazy Loading (&gt;50MB)</strong></td>
+      <td>✅ <strong>On-demand loading, no UI freeze</strong></td>
+      <td>❌ Laggy on large files</td>
+      <td>❌ Struggles with large files</td>
+      <td>⚠️ Average</td>
+      <td>✅ Good capability</td>
+      <td>✅ Excellent</td>
+    </tr>
+    <tr>
+      <td><strong>Built-in Text Diff</strong></td>
+      <td>✅ <strong>Quickly view differences</strong></td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>⚠️ Requires plugin</td>
+      <td>⚠️ Requires plugin</td>
+    </tr>
+    <tr>
+      <td><strong>Tab Inline Rename (F2)</strong></td>
+      <td>✅ <strong>Rename like a file explorer</strong></td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+    </tr>
+    <tr>
+      <td><strong>Borderless Modern UI</strong></td>
+      <td>✅ <strong>Cross-platform consistent custom title bar</strong></td>
+      <td>❌ System native</td>
+      <td>❌ System native</td>
+      <td>❌ System native</td>
+      <td>❌ Traditional Win32</td>
+      <td>✅ Native elegance</td>
+    </tr>
+    <tr>
+      <td><strong>Price / License</strong></td>
+      <td>✅ <strong>Free &amp; Open Source (MIT)</strong></td>
+      <td>✅ Built-in</td>
+      <td>✅ Built-in</td>
+      <td>✅ Free &amp; Open Source</td>
+      <td>✅ Free &amp; Open Source</td>
+      <td>❌ Paid ($99)</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Screenshots
 
@@ -60,6 +207,11 @@ It is more powerful than the built-in Notepad, yet lighter than professional edi
 <p align="center">
   <img src="assets/screenshot-large-file.png" width="90%" alt="Large File Lazy Loading">
   <br><sub>Large File Lazy Loading</sub>
+</p>
+
+<p align="center">
+  <img src="assets/FinchPad VS Notepad++.png" width="90%" alt="大文件懒加载">
+  <br><sub>FinchPad VS Notepad++</sub>
 </p>
 
 ## Tech Stack
@@ -88,6 +240,17 @@ npm run tauri build
 ```
 
 The installer can be found in `src-tauri/target/release/bundle/`.
+
+## Privacy Policy
+
+FinchPad is designed with a **privacy-first, purely local** philosophy:
+
+1. **100% Local Data**: All your text, edits, and cached files are stored locally on your device (encrypted with AES-256-GCM). We **never collect or upload** your file contents, usage habits, or device information.
+2. **No Telemetry or Tracking**: The application contains no background telemetry, analytics, or user behavior tracking code.
+3. **Network Activities**:
+   - An anonymous request is sent to the GitHub API *only* when checking for software updates.
+   - When using Markdown/HTML preview, the WebView may load external network resources (e.g., images or links) if your document references them.
+   - Aside from the above, FinchPad never initiates network connections.
 
 ## Contributing
 
