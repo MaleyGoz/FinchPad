@@ -133,6 +133,52 @@
         }
     }
 
+    // ★ 新增：专门处理各种极其复杂的本地路径情况
+    function resolveFilePath(src: string, currentFilePath: string): string {
+        // 1. 统一把所有的反斜杠 \ 换成正斜杠 /，方便后续计算
+        const normalizedSrc = src.replace(/\\/g, "/");
+
+        // 2. 如果是网络图片、Base64、或者已经是 Tauri 转换后的协议，直接放行
+        if (/^(https?|data|asset|blob|mailto):/i.test(normalizedSrc)) {
+            return normalizedSrc;
+        }
+
+        // 3. 如果是绝对路径（Mac/Linux 的 /xxx 或 Windows 的 C:/xxx），直接返回
+        if (
+            normalizedSrc.startsWith("/") ||
+            /^[a-zA-Z]:\//.test(normalizedSrc)
+        ) {
+            return normalizedSrc;
+        }
+
+        // 4. 处理相对路径
+        const normalizedDir = currentFilePath.replace(/\\/g, "/");
+        const lastSlashIdx = normalizedDir.lastIndexOf("/");
+        const baseDir =
+            lastSlashIdx >= 0 ? normalizedDir.substring(0, lastSlashIdx) : "";
+
+        // 将当前目录和相对路径拼接
+        let combined = `${baseDir}/${normalizedSrc}`;
+
+        // 5. 手动消除 "." 和 ".." （类似 Node.js 的 path.normalize）
+        const parts = combined.split("/");
+        const stack: string[] = [];
+        for (const part of parts) {
+            if (!part || part === ".") continue;
+            if (part === "..") {
+                if (stack.length > 0 && stack[stack.length - 1] !== "..") {
+                    stack.pop();
+                } else {
+                    stack.push("..");
+                }
+            } else {
+                stack.push(part);
+            }
+        }
+
+        return stack.join("/");
+    }
+
     function renderPreview(text: string) {
         clearTimeout(previewDebounce);
         previewDebounce = setTimeout(() => {
@@ -143,38 +189,39 @@
                 const currentFilePath =
                     snapshot.tab_paths[snapshot.active_index];
                 if (currentFilePath) {
-                    // 获取当前文件所在的目录 (例如 "C:\docs\notes")
-                    const dir =
-                        currentFilePath.substring(
-                            0,
-                            currentFilePath.lastIndexOf("\\"),
-                        ) ||
-                        currentFilePath.substring(
-                            0,
-                            currentFilePath.lastIndexOf("/"),
+                    // ★ 采用更健壮的正则匹配：不管 src 是在前面还是后面，都能精准提取
+                    html = html.replace(/<img([^>]*)>/gi, (match) => {
+                        const srcMatch = match.match(/src=["']([^"']+)["']/i);
+                        if (!srcMatch) return match;
+
+                        const originalSrc = srcMatch[1];
+                        const absolutePath = resolveFilePath(
+                            originalSrc,
+                            currentFilePath,
                         );
 
-                    // 正则匹配所有 <img> 标签的 src
-                    html = html.replace(
-                        /<img([^>]+)src="([^"]+)"([^>]*)>/g,
-                        (match, p1, src, p3) => {
-                            // 跳过网络图片和绝对路径
-                            if (
-                                src.startsWith("http") ||
-                                src.startsWith("data:") ||
-                                src.startsWith("/") ||
-                                src.match(/^[a-zA-Z]:\\/)
-                            ) {
-                                return match;
-                            }
+                        // 如果是网络图片不需要转换，直接返回原样
+                        if (
+                            /^(https?|data|asset|blob|mailto):/i.test(
+                                absolutePath,
+                            )
+                        ) {
+                            return match;
+                        }
 
-                            // 拼接本地路径并转换协议
-                            const sep = dir.includes("\\") ? "\\" : "/";
-                            const absolutePath = `${dir}${sep}${src}`;
+                        try {
+                            // 转换为 Tauri 的本地安全路径
                             const assetUrl = convertFileSrc(absolutePath);
-                            return `<img${p1}src="${assetUrl}"${p3}>`;
-                        },
-                    );
+                            // 只替换 src="..." 这部分，保留 img 的其他属性（比如 width, alt）
+                            return match.replace(
+                                srcMatch[0],
+                                `src="${assetUrl}"`,
+                            );
+                        } catch (e) {
+                            console.error("图片路径转换失败:", absolutePath, e);
+                            return match;
+                        }
+                    });
                 }
                 previewHtml = html;
             } else if (snapshot.language_id === "html") {
