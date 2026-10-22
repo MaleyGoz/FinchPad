@@ -133,50 +133,58 @@
         }
     }
 
-    // ★ 新增：专门处理各种极其复杂的本地路径情况
+    // ★ 终极版：专门处理各种极其复杂的本地路径情况（完美兼容 Windows/Mac/Linux）
     function resolveFilePath(src: string, currentFilePath: string): string {
-        // 1. 统一把所有的反斜杠 \ 换成正斜杠 /，方便后续计算
+        // 1. 统一把所有反斜杠替换为正斜杠，方便后续统一计算
         const normalizedSrc = src.replace(/\\/g, "/");
+        const normalizedDir = currentFilePath.replace(/\\/g, "/");
 
         // 2. 如果是网络图片、Base64、或者已经是 Tauri 转换后的协议，直接放行
         if (/^(https?|data|asset|blob|mailto):/i.test(normalizedSrc)) {
             return normalizedSrc;
         }
 
-        // 3. 如果是绝对路径（Mac/Linux 的 /xxx 或 Windows 的 C:/xxx），直接返回
-        if (
-            normalizedSrc.startsWith("/") ||
-            /^[a-zA-Z]:\//.test(normalizedSrc)
-        ) {
-            return normalizedSrc;
-        }
+        // 3. 判断是否是绝对路径
+        const isWinAbsolute = /^[a-zA-Z]:\//.test(normalizedSrc);
+        const isUnixAbsolute = normalizedSrc.startsWith("/");
 
-        // 4. 处理相对路径
-        const normalizedDir = currentFilePath.replace(/\\/g, "/");
-        const lastSlashIdx = normalizedDir.lastIndexOf("/");
-        const baseDir =
-            lastSlashIdx >= 0 ? normalizedDir.substring(0, lastSlashIdx) : "";
+        let finalPath = normalizedSrc;
 
-        // 将当前目录和相对路径拼接
-        let combined = `${baseDir}/${normalizedSrc}`;
+        if (!isWinAbsolute && !isUnixAbsolute) {
+            // 4. 处理相对路径：获取当前文件所在目录
+            const lastSlashIdx = normalizedDir.lastIndexOf("/");
+            const baseDir =
+                lastSlashIdx >= 0
+                    ? normalizedDir.substring(0, lastSlashIdx)
+                    : "";
 
-        // 5. 手动消除 "." 和 ".." （类似 Node.js 的 path.normalize）
-        const parts = combined.split("/");
-        const stack: string[] = [];
-        for (const part of parts) {
-            if (!part || part === ".") continue;
-            if (part === "..") {
-                if (stack.length > 0 && stack[stack.length - 1] !== "..") {
-                    stack.pop();
+            // 拼接目录和相对路径
+            let combined = `${baseDir}/${normalizedSrc}`;
+
+            // 5. 手动消除 "." 和 ".." （类似 Node.js 的 path.normalize）
+            const parts = combined.split("/");
+            const stack: string[] = [];
+            for (const part of parts) {
+                if (!part || part === ".") continue;
+                if (part === "..") {
+                    if (stack.length > 0 && stack[stack.length - 1] !== "..") {
+                        stack.pop();
+                    } else {
+                        stack.push("..");
+                    }
                 } else {
-                    stack.push("..");
+                    stack.push(part);
                 }
-            } else {
-                stack.push(part);
             }
+            finalPath = stack.join("/");
         }
 
-        return stack.join("/");
+        // 6. ★ 核心修复：如果是 Windows 盘符路径，必须把正斜杠转回反斜杠，否则 Tauri 无法识别
+        if (/^[a-zA-Z]:\//.test(finalPath)) {
+            finalPath = finalPath.replace(/\//g, "\\");
+        }
+
+        return finalPath;
     }
 
     function renderPreview(text: string) {
@@ -185,13 +193,15 @@
             if (snapshot.language_id === "markdown") {
                 let html = marked.parse(text) as string;
 
-                // ★ 处理本地图片相对路径
                 const currentFilePath =
                     snapshot.tab_paths[snapshot.active_index];
                 if (currentFilePath) {
-                    // ★ 采用更健壮的正则匹配：不管 src 是在前面还是后面，都能精准提取
-                    html = html.replace(/<img([^>]*)>/gi, (match) => {
-                        const srcMatch = match.match(/src=["']([^"']+)["']/i);
+                    // ★ 采用更健壮的正则匹配：提取所有的 img 标签
+                    html = html.replace(/<img\s+[^>]*>/gi, (match) => {
+                        // 精准提取 src 属性
+                        const srcMatch = match.match(
+                            /src\s*=\s*["']([^"']+)["']/i,
+                        );
                         if (!srcMatch) return match;
 
                         const originalSrc = srcMatch[1];
@@ -200,7 +210,7 @@
                             currentFilePath,
                         );
 
-                        // 如果是网络图片不需要转换，直接返回原样
+                        // 如果是网络图片，跳过转换
                         if (
                             /^(https?|data|asset|blob|mailto):/i.test(
                                 absolutePath,
@@ -212,7 +222,7 @@
                         try {
                             // 转换为 Tauri 的本地安全路径
                             const assetUrl = convertFileSrc(absolutePath);
-                            // 只替换 src="..." 这部分，保留 img 的其他属性（比如 width, alt）
+                            // 只替换 src="..." 这一小部分，完美保留 width, height, alt 等其他属性
                             return match.replace(
                                 srcMatch[0],
                                 `src="${assetUrl}"`,
