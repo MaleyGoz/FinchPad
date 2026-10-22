@@ -22,6 +22,11 @@
     ) => void = () => {};
     export let isWindowFocused: boolean = true;
 
+    // 新增预览功能
+    export let canPreview: boolean = false;
+    export let isPreviewOpen: boolean = false;
+    export let onTogglePreview: () => void = () => {};
+
     // 编译时注入的环境变量
     const platform = import.meta.env.TAURI_ENV_PLATFORM;
     // 判断是否为 Mac 平台
@@ -590,6 +595,31 @@
             onBarContextMenu(e.clientX, e.clientY)}
     ></div>
 
+    <!-- ★ 新增：预览按钮 (仅在 md/html 时显示) -->
+    {#if canPreview}
+        <button
+            class="settings-btn"
+            class:active-preview={isPreviewOpen}
+            on:click={onTogglePreview}
+            aria-label="预览"
+        >
+            <!-- 眼睛图标 -->
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </button>
+    {/if}
+
     <button
         class="settings-btn"
         on:click={(e) => {
@@ -934,6 +964,11 @@
         justify-content: center;
     }
     .settings-btn:hover {
+        background: var(--overlay-hover-background);
+    }
+
+    .settings-btn.active-preview {
+        color: var(--accent);
         background: var(--overlay-hover-background);
     }
 

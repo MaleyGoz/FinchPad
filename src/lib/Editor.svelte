@@ -19,6 +19,7 @@
             originalError.apply(console, args);
         };
     }
+    export let largeFile: boolean = false;
     export let value: string = "";
     export let language: string = "plaintext";
     export let isPendingLoad: boolean = false;

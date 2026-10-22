@@ -3,6 +3,7 @@
     import TabBar from "$lib/TabBar.svelte";
     import Editor from "$lib/Editor.svelte";
     import StatusBar from "$lib/StatusBar.svelte";
+    import { convertFileSrc } from "@tauri-apps/api/core";
     import { api, type Snapshot } from "$lib/api";
     import {
         currentTheme,
@@ -29,6 +30,7 @@
     import { getVersion } from "@tauri-apps/api/app";
     import AppOverlays from "$lib/AppOverlays.svelte";
     import { fetch } from "@tauri-apps/plugin-http";
+    import { marked } from "marked";
 
     let snapshot: Snapshot = {
         tab_titles: [],
@@ -74,6 +76,117 @@
     let renamingIndex = -1;
     let isWindowFocused = true;
     let isSaving = false; // 防止保存过程中的自动检测覆盖状态
+
+    let isPreviewOpen = false; // 是否开启预览
+    let previewHtml = ""; // 渲染后的 HTML
+    let previewDebounce: ReturnType<typeof setTimeout>;
+    let previewWidth = 50; // 默认右侧占 50%
+    let isDraggingSplit = false;
+    let handleY = 0; // 记录鼠标在分割线上的 Y 坐标
+    let isHoveringHandle = false; // 鼠标是否悬停在分割线上
+    let splitStartX = 0;
+    let splitStartWidth = 50;
+
+    function startDrag(e: MouseEvent) {
+        isDraggingSplit = true;
+        splitStartX = e.clientX;
+        splitStartWidth = previewWidth;
+        window.addEventListener("mousemove", onDrag);
+        window.addEventListener("mouseup", stopDrag);
+
+        // ★ 防止鼠标划入 iframe 导致丢失 mouseup 事件
+        document.body.style.userSelect = "none";
+    }
+
+    function onDrag(e: MouseEvent) {
+        if (!isDraggingSplit) return;
+        const deltaX = splitStartX - e.clientX;
+        const containerWidth = window.innerWidth;
+
+        let newWidth = splitStartWidth + (deltaX / containerWidth) * 100;
+        previewWidth = Math.max(20, Math.min(80, newWidth));
+    }
+
+    function stopDrag() {
+        isDraggingSplit = false;
+        window.removeEventListener("mousemove", onDrag);
+        window.removeEventListener("mouseup", stopDrag);
+
+        // ★ 恢复文本选择
+        document.body.style.userSelect = "";
+    }
+
+    // 判断当前标签是否支持预览
+    $: canPreview =
+        snapshot.language_id === "markdown" || snapshot.language_id === "html";
+
+    // 切换标签时，如果新标签不支持预览，强制关闭
+    // $: if (!canPreview) {
+    //     isPreviewOpen = false;
+    // }
+
+    function togglePreview() {
+        if (!canPreview) return;
+        isPreviewOpen = !isPreviewOpen;
+        if (isPreviewOpen) {
+            renderPreview(snapshot.active_text);
+        }
+    }
+
+    function renderPreview(text: string) {
+        clearTimeout(previewDebounce);
+        previewDebounce = setTimeout(() => {
+            if (snapshot.language_id === "markdown") {
+                let html = marked.parse(text) as string;
+
+                // ★ 处理本地图片相对路径
+                const currentFilePath =
+                    snapshot.tab_paths[snapshot.active_index];
+                if (currentFilePath) {
+                    // 获取当前文件所在的目录 (例如 "C:\docs\notes")
+                    const dir =
+                        currentFilePath.substring(
+                            0,
+                            currentFilePath.lastIndexOf("\\"),
+                        ) ||
+                        currentFilePath.substring(
+                            0,
+                            currentFilePath.lastIndexOf("/"),
+                        );
+
+                    // 正则匹配所有 <img> 标签的 src
+                    html = html.replace(
+                        /<img([^>]+)src="([^"]+)"([^>]*)>/g,
+                        (match, p1, src, p3) => {
+                            // 跳过网络图片和绝对路径
+                            if (
+                                src.startsWith("http") ||
+                                src.startsWith("data:") ||
+                                src.startsWith("/") ||
+                                src.match(/^[a-zA-Z]:\\/)
+                            ) {
+                                return match;
+                            }
+
+                            // 拼接本地路径并转换协议
+                            const sep = dir.includes("\\") ? "\\" : "/";
+                            const absolutePath = `${dir}${sep}${src}`;
+                            const assetUrl = convertFileSrc(absolutePath);
+                            return `<img${p1}src="${assetUrl}"${p3}>`;
+                        },
+                    );
+                }
+                previewHtml = html;
+            } else if (snapshot.language_id === "html") {
+                previewHtml = text;
+            }
+        }, 300);
+    }
+
+    // 监听文本变化，实时更新预览
+    $: if (isPreviewOpen && snapshot.active_text !== undefined) {
+        renderPreview(snapshot.active_text);
+    }
 
     // 编辑器组件引用（用于调用编辑区方法）
     let editorRef: Editor;
@@ -2080,26 +2193,97 @@
         onRenameCommit={handleRenameCommit}
         onRenameCancel={handleRenameCancel}
         {isWindowFocused}
+        {canPreview}
+        {isPreviewOpen}
+        onTogglePreview={togglePreview}
     />
 
     <div class="editor-area">
-        <Editor
-            bind:this={editorRef}
-            value={snapshot.active_text}
-            language={snapshot.language_id}
-            largeFile={snapshot.large_file}
-            isPendingLoad={snapshot.is_pending_load}
-            fileSize={snapshot.file_size}
-            {zoom}
-            wordWrap={wordWrap && !snapshot.large_file}
-            {showLineNumbers}
-            {editorBg}
-            onChange={handleTextChange}
-            onStats={handleStats}
-            onLoadRequest={handleLoadPending}
-            onZoomDelta={applyZoomDelta}
-            onEditorContextMenu={handleEditorContextMenu}
-        />
+        <!-- 左侧：编辑器 -->
+        <div
+            class="editor-pane"
+            style="width: {isPreviewOpen && canPreview
+                ? 100 - previewWidth
+                : 100}%;"
+        >
+            <Editor
+                bind:this={editorRef}
+                value={snapshot.active_text}
+                language={snapshot.language_id}
+                largeFile={snapshot.large_file}
+                isPendingLoad={snapshot.is_pending_load}
+                fileSize={snapshot.file_size}
+                {zoom}
+                wordWrap={wordWrap && !snapshot.large_file}
+                {showLineNumbers}
+                {editorBg}
+                onChange={handleTextChange}
+                onStats={handleStats}
+                onLoadRequest={handleLoadPending}
+                onZoomDelta={applyZoomDelta}
+                onEditorContextMenu={handleEditorContextMenu}
+            />
+        </div>
+
+        <!-- 右侧：预览区 -->
+        {#if isPreviewOpen && canPreview}
+            <!-- 拖拽手柄：隐藏系统指针，用自定义图标跟随鼠标 -->
+            <div
+                class="resize-handle"
+                on:mousedown={startDrag}
+                on:mousemove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    handleY = e.clientY - rect.top;
+                }}
+                on:mouseenter={() => (isHoveringHandle = true)}
+                on:mouseleave={() => (isHoveringHandle = false)}
+                role="separator"
+            >
+                <!-- 贯穿上下的细线 -->
+                <div class="handle-line"></div>
+
+                <!-- 跟随鼠标的胶囊图标 -->
+                {#if isHoveringHandle || isDraggingSplit}
+                    <div class="handle-icon" style="top: {handleY}px;">
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <polyline points="7 8 3 12 7 16"></polyline>
+                            <polyline points="17 8 21 12 17 16"></polyline>
+                        </svg>
+                    </div>
+                {/if}
+            </div>
+
+            <!-- ★ 修改：给预览区加上了动态宽度和白底 -->
+            <div
+                class="preview-pane"
+                style="width: {previewWidth}%; background: #ffffff;"
+            >
+                {#if snapshot.language_id === "markdown"}
+                    <div class="markdown-body">
+                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        {@html previewHtml}
+                    </div>
+                {:else if snapshot.language_id === "html"}
+                    <!-- ★ 新增：拖拽时显示透明遮罩，防止鼠标事件被 iframe 吞掉 -->
+                    <div class="iframe-wrapper">
+                        <iframe title="HTML Preview" srcdoc={previewHtml}
+                        ></iframe>
+                        {#if isDraggingSplit}
+                            <div class="iframe-overlay"></div>
+                        {/if}
+                    </div>
+                {/if}
+            </div>
+        {/if}
     </div>
 
     <div style="margin-top: -1px; position: relative; z-index: 2;">
@@ -2192,10 +2376,200 @@
         display: flex;
         flex-direction: column;
     }
+
+    /* ==========预览区域样式开始========= */
     .editor-area {
         flex: 1;
         overflow: hidden;
+        display: flex;
+        flex-direction: row;
     }
+
+    /* 左侧：编辑器面板 */
+    .editor-pane {
+        height: 100%;
+        min-width: 0;
+        overflow: hidden; /* ★ 核心修复：切断 Monaco 文字溢出，绝对不许飞到右边 */
+        position: relative;
+        z-index: 1; /* 建立层级 */
+    }
+
+    /* 右侧：预览面板 */
+    .preview-pane {
+        height: 100%;
+        overflow: auto;
+        min-width: 0;
+        background: #ffffff !important; /* ★ 强制纯白不透明 */
+        padding: 20px;
+        position: relative;
+        z-index: 2; /* ★ 层级必须比左侧高 */
+        /* ★ 移除 border-left，避免和拖拽线叠成两条 */
+    }
+
+    /* ========== 自定义拖拽线 ========== */
+    .resize-handle {
+        width: 4px;
+        background: var(--overlay-divider); /* ★ 默认是实心分割线色 */
+        cursor: none;
+        position: relative;
+        z-index: 9999;
+        flex-shrink: 0;
+    }
+
+    /* 鼠标感应区 */
+    .resize-handle::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -10px;
+        right: -10px;
+        cursor: none;
+    }
+
+    .resize-handle:hover,
+    .resize-handle:active {
+        /* 换成你主题里的前景色，并带一点透明度，或者直接用一个深灰色 */
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 50%,
+            transparent
+        );
+        /* 去掉发光效果 */
+        box-shadow: none;
+    }
+
+    /* 跟随鼠标的胶囊图标 */
+    .handle-icon {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        width: 24px;
+        height: 32px;
+        background: var(--overlay-background);
+        border: 1px solid var(--overlay-border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--overlay-foreground-muted);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        pointer-events: none;
+        transition:
+            color 0.15s,
+            border-color 0.15s;
+    }
+
+    .resize-handle:hover .handle-icon,
+    .resize-handle:active .handle-icon {
+        color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    /* 2. 解决 iframe 拖拽问题的配套 CSS */
+    .iframe-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    .iframe-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+    .iframe-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+        cursor: col-resize;
+        background: transparent;
+    }
+
+    /* iframe 的样式保持不变，白底 */
+    .preview-pane iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #ffffff;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 3. Markdown 阅读宽度限制与居中 */
+    .markdown-body {
+        max-width: 800px; /* ★ 限制最大宽度 */
+        margin: 0 auto; /* ★ 居中显示 */
+        /* 原有样式保留 */
+        font-family:
+            system-ui,
+            -apple-system,
+            sans-serif;
+        color: #333333;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    /* 修复 Markdown 表格样式 */
+    .markdown-body :global(table) {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+        color: #24292e;
+    }
+
+    .markdown-body :global(th),
+    .markdown-body :global(td) {
+        padding: 6px 13px;
+        border: 1px solid #dfe2e5; /* ★ 经典的 GitHub 浅灰边框 */
+        text-align: center; /* ★ 强制内容居中 */
+    }
+
+    .markdown-body :global(th) {
+        font-weight: 600;
+        background-color: #f6f8fa; /* 表头稍微加一点底色区分 */
+    }
+
+    .markdown-body :global(tr:nth-child(2n)) {
+        background-color: #f6f8fa; /* 斑马线效果 */
+    }
+
+    /* 修复一下 Markdown 里的元素颜色，防止使用暗色主题的变量导致白底看不见 */
+    .markdown-body :global(h1),
+    .markdown-body :global(h2) {
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3em;
+        color: #111111;
+    }
+    .markdown-body :global(h3),
+    .markdown-body :global(h4) {
+        color: #111111;
+    }
+    .markdown-body :global(code) {
+        background: #f6f8fa; /* GitHub 风格的浅灰代码块 */
+        color: #24292e;
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+    .markdown-body :global(pre) {
+        background: #f6f8fa;
+        color: #24292e;
+        padding: 16px;
+        overflow: auto;
+        border-radius: 6px;
+    }
+    .markdown-body :global(pre code) {
+        background: transparent;
+        padding: 0;
+    }
+    .markdown-body :global(blockquote) {
+        border-left: 4px solid #dfe2e5;
+        margin: 0;
+        padding-left: 16px;
+        color: #6a737d;
+    }
+    /* ==========预览区域样式结束========= */
 
     .modal-overlay {
         position: fixed;
