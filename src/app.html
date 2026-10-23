@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tauri + SvelteKit + Typescript App</title>
     %sveltekit.head%
+    <style>
+    /* 强制页面底色为白色（或者你默认主题的底色），防止 WebView 闪黑/闪白 */
+    html, body {
+      background-color: #FFFFFF; 
+      margin: 0;
+      padding: 0;
+    }
+  </style>
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>

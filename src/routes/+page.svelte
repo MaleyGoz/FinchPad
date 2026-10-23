@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import TabBar from "$lib/TabBar.svelte";
     import Editor from "$lib/Editor.svelte";
     import StatusBar from "$lib/StatusBar.svelte";
@@ -2019,6 +2019,34 @@
         (async () => {
             try {
                 const restored = await api.restoreSession();
+
+                // 1. 恢复用户语言选择偏好
+                if (restored && restored.locale_choice) {
+                    setLocaleChoice(restored.locale_choice as LocaleChoice);
+                }
+
+                // 2. ★ 核心修复：不依赖可能延迟的 resolvedLocale 变量，直接根据底层语言硬核判断
+                let actualLocale = "en-US";
+                let actualTemplate = "Untitled {index}";
+                const currentChoice = get(localeChoice);
+
+                if (
+                    currentChoice === "zh-CN" ||
+                    (currentChoice === "auto" &&
+                        navigator.language.startsWith("zh"))
+                ) {
+                    actualLocale = "zh-CN";
+                    actualTemplate = "未命名 {index}";
+                }
+
+                // 强制把最准确的语言模板塞给后端
+                await api.setLocale(
+                    actualLocale,
+                    actualTemplate,
+                    currentChoice,
+                );
+
+                // 3. 恢复应用状态
                 if (restored) {
                     snapshot = restored;
                     zoom = restored.zoom;
@@ -2026,36 +2054,10 @@
                     showLineNumbers = restored.show_line_numbers;
                     editorBg = restored.editor_bg;
                     currentTheme.set(restored.editor_bg);
-                    // 恢复用户语言选择
-                    if (restored.locale_choice) {
-                        setLocaleChoice(restored.locale_choice as LocaleChoice);
-                        // 同步后端 locale 和模板（此时 localeChoice 已是恢复后的值）
-                        const actualLocale = get(resolvedLocale);
-                        const actualTemplate = t(
-                            "tab.unnamed",
-                            undefined,
-                            actualLocale,
-                        );
-                        await api.setLocale(
-                            actualLocale,
-                            actualTemplate,
-                            get(localeChoice),
-                        );
-                    }
-                } else {
-                    await refresh();
-                    const actualLocale = get(resolvedLocale);
-                    const actualTemplate = t(
-                        "tab.unnamed",
-                        undefined,
-                        actualLocale,
-                    );
-                    await api.setLocale(
-                        actualLocale,
-                        actualTemplate,
-                        get(localeChoice),
-                    );
                 }
+
+                // 4. ★ 核心修复：无论是否恢复了数据，统一刷新一次，确保拿到的标签名是最新的
+                await refresh();
 
                 // 处理启动文件（双击 .txt 启动时的文件参数）
                 const startupFiles = await api.takeStartupFiles();
@@ -2071,6 +2073,18 @@
                 }
             } finally {
                 try {
+                    // 1. 确保 Svelte 的 DOM 更新完毕
+                    await tick();
+
+                    // 2. 确保浏览器完成下一次屏幕重绘（把像素画到屏幕上）
+                    await new Promise((resolve) => {
+                        requestAnimationFrame(() => {
+                            // 再套一层 setTimeout 0，确保微任务队列清空，极其稳妥
+                            setTimeout(resolve, 0);
+                        });
+                    });
+
+                    // 3. 此时画面已经完全就绪，再显示窗口
                     await api.showWindow();
                 } catch (e) {
                     console.error("显示窗口失败：", e);

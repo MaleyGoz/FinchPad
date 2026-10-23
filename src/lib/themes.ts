@@ -263,10 +263,10 @@ if (isMac) {
   THEMES.white.tab_bar_background_inactive = "#F2F1F0";
   THEMES.white.tab_background_active = "#FFFFFF";
 
-  // 灰色主题：采用 Ubuntu 深色模式下的深冷灰
-  THEMES.gray.tab_bar_background = "#3D3D3D";
-  THEMES.gray.tab_bar_background_inactive = "#4A4A4A";
-  THEMES.gray.tab_background_active = "#5E5C64";
+  // 灰色主题：改回浅灰色，匹配编辑区
+  THEMES.gray.tab_bar_background = "#B0B0B0";
+  THEMES.gray.tab_bar_background_inactive = "#C0C0C0";
+  THEMES.gray.tab_background_active = "#D9D9D9";
 } else {
   // 🪟 Windows 平台保持原本的浅蓝色（不需要修改，已经在上面定义好了）
   // 这里留空即可，因为原本 themes.ts 里的定义就是 Windows 的。
