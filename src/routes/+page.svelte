@@ -2073,18 +2073,11 @@
                 }
             } finally {
                 try {
-                    // 1. 确保 Svelte 的 DOM 更新完毕
+                    // 1. 确保 Svelte DOM 更新
                     await tick();
-
-                    // 2. 确保浏览器完成下一次屏幕重绘（把像素画到屏幕上）
-                    await new Promise((resolve) => {
-                        requestAnimationFrame(() => {
-                            // 再套一层 setTimeout 0，确保微任务队列清空，极其稳妥
-                            setTimeout(resolve, 0);
-                        });
-                    });
-
-                    // 3. 此时画面已经完全就绪，再显示窗口
+                    // 2. 强制等待 100ms，让 Mac 的 WebView 完成真实的屏幕绘制（Compositing）
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    // 3. 然后才显示窗口
                     await api.showWindow();
                 } catch (e) {
                     console.error("显示窗口失败：", e);

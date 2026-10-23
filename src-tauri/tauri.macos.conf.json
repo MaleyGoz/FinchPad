@@ -2,13 +2,22 @@
     "app": {
         "windows": [
             {
+                "title": "FinchPad",
+                "width": 800,
+                "height": 600,
+                "dragDropEnabled": true,
+                "minWidth": 500,
+                "minHeight": 400,
+                "devtools": true,
+                "visible": false,
                 "decorations": true,
                 "titleBarStyle": "Overlay",
                 "hiddenTitle": true,
                 "trafficLightPosition": {
                     "x": 18.0,
                     "y": 22.0
-                }
+                },
+                "backgroundColor": "#FFFFFF"
             }
         ]
     }
