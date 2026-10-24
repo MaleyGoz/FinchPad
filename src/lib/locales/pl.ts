@@ -61,6 +61,13 @@ export const plPL: Record<string, string> = {
   "editor_menu.delete": "Usuń",
   "editor_menu.select_all": "Zaznacz wszystko",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Ostatnie pliki",
+  "sidebar.directory": "Bieżący katalog",
+  "sidebar.file_not_found": "Plik nie znaleziony lub przeniesiony: {path}",
+  "sidebar.empty": "Brak wpisów",
+  "sidebar.up": "W górę",
+
   // ===== Pasek stanu =====
   "status.unsaved": "Nie zapisano",
   "status.external_deleted": "⚠ Usunięto z zewnątrz",
@@ -69,8 +76,8 @@ export const plPL: Record<string, string> = {
   "status.line_and_chars": "{lines} wierszy · {chars} znaków",
   "status.selected_chars": "Zaznaczono {chars} znaków",
   "status.selected_lines_and_chars": "Zaznaczono {lines} wierszy · {chars} znaków",
-  "status.word_wrap_on": "Zawijanie: Włączone",
-  "status.word_wrap_off": "Zawijanie: Wyłączone",
+  "status.short_line_numbers": "Wiersze",
+  "status.short_word_wrap": "Zawijanie",
   "status.encoding_tooltip": "Kodowanie: {encoding}",
   "status.line_ending_lf": "Koniec wiersza Unix (LF)",
   "status.line_ending_crlf": "Koniec wiersza Windows (CRLF)",

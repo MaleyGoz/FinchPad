@@ -61,6 +61,13 @@ export const ru: Record<string, string> = {
   "editor_menu.delete": "Удалить",
   "editor_menu.select_all": "Выделить всё",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Недавние файлы",
+  "sidebar.directory": "Текущая папка",
+  "sidebar.file_not_found": "Файл не найден или перемещён: {path}",
+  "sidebar.empty": "Нет записей",
+  "sidebar.up": "На уровень выше",
+
   // ===== Строка состояния =====
   "status.unsaved": "Не сохранено",
   "status.external_deleted": "⚠ Удалён извне",
@@ -69,8 +76,8 @@ export const ru: Record<string, string> = {
   "status.line_and_chars": "{lines} строк · {chars} символов",
   "status.selected_chars": "Выбрано {chars} символов",
   "status.selected_lines_and_chars": "Выбрано {lines} строк · {chars} символов",
-  "status.word_wrap_on": "Перенос: Вкл",
-  "status.word_wrap_off": "Перенос: Выкл",
+  "status.short_line_numbers": "Строки",
+  "status.short_word_wrap": "Перенос",
   "status.encoding_tooltip": "Кодировка: {encoding}",
   "status.line_ending_lf": "Концы строк Unix (LF)",
   "status.line_ending_crlf": "Концы строк Windows (CRLF)",

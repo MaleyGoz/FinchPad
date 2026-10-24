@@ -97,6 +97,7 @@ pub struct Session {
     pub tabs: Vec<TabSession>,
     pub active_index: usize,
     pub window: WindowSession,
+    pub recent_files: Vec<String>,
 }
 
 impl Session {
@@ -106,6 +107,7 @@ impl Session {
             tabs: Vec::new(),
             active_index: 0,
             window: WindowSession::default(),
+            recent_files: Vec::new(), // ★ 新增
         }
     }
 }

@@ -351,6 +351,14 @@ pub fn open_files(
         ws.set_last_used_path(Some(dir));
     }
 
+    // 记录到最近文件
+    for (path_str, _) in files.iter() {
+        let path = std::path::PathBuf::from(path_str);
+        if path.exists() {
+            ws.add_recent_file(path_str.clone());
+        }
+    }
+
     state.mark_session_dirty();
     Ok(snapshot_from_workspace(&ws))
 }
@@ -792,6 +800,8 @@ fn build_session_from_ws(ws: &crate::model::Workspace) -> crate::io::session::Se
     session.window.show_line_numbers = ws.show_line_numbers();
     session.window.editor_bg = ws.editor_bg().to_string();
     session.window.locale_choice = ws.locale_choice().to_string();
+    // ★ 新增：把最近文件存入 session
+    session.recent_files = ws.recent_files().to_vec();
 
     session
 }
@@ -840,6 +850,9 @@ pub fn restore_session(
         let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
         ws.restore(tabs, new_active);
         ws.set_zoom(session.window.zoom);
+        // ★ 新增：恢复最近文件
+        ws.set_recent_files(session.recent_files.clone());
+
         ws.set_word_wrap(session.window.word_wrap);
         ws.set_show_line_numbers(session.window.show_line_numbers);
         ws.set_editor_bg(session.window.editor_bg.clone());
@@ -1331,3 +1344,55 @@ pub fn apply_disk_version(
 
     Ok(())
 }
+
+// ===========侧边栏功能相关开始================
+#[derive(serde::Serialize)]
+pub struct FileEntry {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+}
+/// 读取指定目录下的文件和文件夹，简单化处理，不判断隐藏属性
+#[tauri::command]
+pub fn read_dir(path: String) -> Result<Vec<FileEntry>, String> {
+    let dir_path = std::path::Path::new(&path);
+    if !dir_path.is_dir() {
+        return Err("Not a directory".to_string());
+    }
+
+    let mut entries = Vec::new();
+    if let Ok(read_dir) = std::fs::read_dir(dir_path) {
+        for entry in read_dir.flatten() {
+            if let Ok(metadata) = entry.metadata() {
+                let file_name = entry.file_name().to_string_lossy().to_string();
+                let file_path = entry.path().to_string_lossy().to_string();
+                entries.push(FileEntry {
+                    name: file_name,
+                    path: file_path,
+                    is_dir: metadata.is_dir(),
+                });
+            }
+        }
+    }
+
+    // 排序：文件夹优先，然后按名字排序（忽略大小写）
+    entries.sort_by(|a, b| {
+        if a.is_dir == b.is_dir {
+            a.name.to_lowercase().cmp(&b.name.to_lowercase())
+        } else if a.is_dir {
+            std::cmp::Ordering::Less
+        } else {
+            std::cmp::Ordering::Greater
+        }
+    });
+
+    Ok(entries)
+}
+
+/// 获取最近文件列表
+#[tauri::command]
+pub fn get_recent_files(state: tauri::State<AppState>) -> Result<Vec<String>, String> {
+    let ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    Ok(ws.recent_files().to_vec())
+}
+// ===========侧边栏功能相关结束================

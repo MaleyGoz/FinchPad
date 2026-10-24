@@ -61,6 +61,13 @@ export const viVN: Record<string, string> = {
   "editor_menu.delete": "Xóa",
   "editor_menu.select_all": "Chọn tất cả",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Tệp gần đây",
+  "sidebar.directory": "Thư mục hiện tại",
+  "sidebar.file_not_found": "Không tìm thấy tệp hoặc đã bị di chuyển: {path}",
+  "sidebar.empty": "Không có bản ghi nào",
+  "sidebar.up": "Lên một cấp",
+
   // ===== Thanh trạng thái =====
   "status.unsaved": "Chưa lưu",
   "status.external_deleted": "⚠ Đã bị xóa từ bên ngoài",
@@ -69,8 +76,8 @@ export const viVN: Record<string, string> = {
   "status.line_and_chars": "{lines} dòng · {chars} ký tự",
   "status.selected_chars": "Đã chọn {chars} ký tự",
   "status.selected_lines_and_chars": "Đã chọn {lines} dòng · {chars} ký tự",
-  "status.word_wrap_on": "Ngắt dòng: Bật",
-  "status.word_wrap_off": "Ngắt dòng: Tắt",
+  "status.short_line_numbers": "Số dòng",
+  "status.short_word_wrap": "Ngắt dòng",
   "status.encoding_tooltip": "Bảng mã: {encoding}",
   "status.line_ending_lf": "Ký tự xuống dòng Unix (LF)",
   "status.line_ending_crlf": "Ký tự xuống dòng Windows (CRLF)",

@@ -61,6 +61,13 @@ export const hiIN: Record<string, string> = {
   "editor_menu.delete": "हटाएं",
   "editor_menu.select_all": "सभी का चयन करें",
 
+  // ===== SideBar =====
+  "sidebar.recent": "हाल की फ़ाइलें",
+  "sidebar.directory": "वर्तमान निर्देशिका",
+  "sidebar.file_not_found": "फ़ाइल नहीं मिली या स्थानांतरित कर दी गई: {path}",
+  "sidebar.empty": "कोई रिकॉर्ड नहीं",
+  "sidebar.up": "ऊपर जाएं",
+
   // ===== स्टेटस बार =====
   "status.unsaved": "सहेजा नहीं गया",
   "status.external_deleted": "⚠ बाहर से हटाया गया",
@@ -69,8 +76,8 @@ export const hiIN: Record<string, string> = {
   "status.line_and_chars": "{lines} पंक्तियां · {chars} अक्षर",
   "status.selected_chars": "{chars} अक्षर चुने गए",
   "status.selected_lines_and_chars": "{lines} पंक्तियां · {chars} अक्षर चुने गए",
-  "status.word_wrap_on": "रैपिंग: चालू",
-  "status.word_wrap_off": "रैपिंग: बंद",
+  "status.short_line_numbers": "पंक्तियां",
+  "status.short_word_wrap": "रैपिंग",
   "status.encoding_tooltip": "एन्कोडिंग: {encoding}",
   "status.line_ending_lf": "Unix लाइन एंडिंग (LF)",
   "status.line_ending_crlf": "Windows लाइन एंडिंग (CRLF)",

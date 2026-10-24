@@ -33,6 +33,8 @@ pub struct Workspace {
     locale_choice: String,
     /// ★ 新增：最近一次成功打开/另存为时所在的目录
     last_used_path: Option<PathBuf>,
+    /// 最近打开的文件路径
+    recent_files: Vec<String>,
 }
 
 impl Workspace {
@@ -80,6 +82,7 @@ impl Workspace {
             unnamed_template: "未命名{index}".to_string(),
             locale_choice: "auto".to_string(),
             last_used_path: None,
+            recent_files: Vec::new(),
         };
         let first = ws.make_blank_tab();
         ws.tabs.push(first);
@@ -265,6 +268,20 @@ impl Workspace {
 
     pub fn set_editor_bg(&mut self, value: String) {
         self.editor_bg = value;
+    }
+
+    pub fn recent_files(&self) -> &[String] {
+        &self.recent_files
+    }
+
+    pub fn add_recent_file(&mut self, path: String) {
+        self.recent_files.retain(|p| p != &path); // 去重
+        self.recent_files.insert(0, path); // 插到最前面
+        self.recent_files.truncate(20); // 限制 20 个
+    }
+
+    pub fn set_recent_files(&mut self, files: Vec<String>) {
+        self.recent_files = files;
     }
 
     pub fn tab(&self, index: usize) -> Option<&Tab> {

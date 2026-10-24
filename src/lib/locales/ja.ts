@@ -62,6 +62,13 @@ export const ja: Record<string, string> = {
   "editor_menu.delete": "削除",
   "editor_menu.select_all": "すべて選択",
 
+  // ===== SideBar =====
+  "sidebar.recent": "最近のファイル",
+  "sidebar.directory": "現在のディレクトリ",
+  "sidebar.file_not_found": "ファイルが見つからないか、移動されました: {path}",
+  "sidebar.empty": "履歴なし",
+  "sidebar.up": "上の階層へ",
+
   // ===== ステータスバー =====
   "status.unsaved": "未保存",
   "status.external_deleted": "⚠ 外部から削除されました",
@@ -70,8 +77,8 @@ export const ja: Record<string, string> = {
   "status.line_and_chars": "{lines} 行 · {chars} 文字",
   "status.selected_chars": "{chars} 文字選択中",
   "status.selected_lines_and_chars": "{lines} 行 · {chars} 文字選択中",
-  "status.word_wrap_on": "折り返し: オン",
-  "status.word_wrap_off": "折り返し: オフ",
+  "status.short_line_numbers": "行番号",
+  "status.short_word_wrap": "折り返し",
   "status.encoding_tooltip": "エンコーディング: {encoding}",
   "status.line_ending_lf": "Unix 改行 (LF)",
   "status.line_ending_crlf": "Windows 改行 (CRLF)",

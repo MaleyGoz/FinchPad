@@ -96,7 +96,7 @@
         >
             <div class="modal-title">{modal.title}</div>
             {#each modal.rows as row}
-                <div class="modal-row">
+                <div class="modal-row" class:narrow-btns={row.length === 2}>
                     {#each row as btn}
                         <button
                             class="modal-btn"
@@ -769,6 +769,15 @@
         padding-left: 24px;
         padding-right: 24px;
         margin: 0 auto;
+    }
+    /* ★ 针对只有两个按钮的弹窗（如检查更新），限制宽度并居中 */
+    .modal-row.narrow-btns {
+        justify-content: center;
+    }
+    .modal-row.narrow-btns .modal-btn {
+        flex: none; /* 不再强制平分 */
+        min-width: 100px; /* 保证最小宽度 */
+        padding: 6px 24px; /* 左右留足内边距，看起来更精致 */
     }
     .modal-btn:hover {
         filter: brightness(0.95);

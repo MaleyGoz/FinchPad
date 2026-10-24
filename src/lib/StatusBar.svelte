@@ -11,9 +11,16 @@
     export let diskState: string = "normal";
     export let zoom: number = 100;
     export let wordWrap: boolean = true;
+    export let showLineNumbers: boolean = true;
+    export let onToggleLineNumbers: () => void = () => {};
     export let wordWrapDisabled: boolean = false;
     export let onToggleWordWrap: () => void = () => {};
     export let onZoomChange: (value: number) => void = () => {};
+    export let sidebarMode: "recent" | "directory" | null = null;
+    export let onToggleSidebar: (
+        mode: "recent" | "directory",
+    ) => void = () => {};
+    export let canUseDirectory = false;
 
     const ZOOM_PRESETS = [50, 75, 100, 125, 150, 200, 300, 400];
 
@@ -21,6 +28,12 @@
 
     function toggleZoomMenu() {
         zoomMenuOpen = !zoomMenuOpen;
+    }
+
+    function handleZoomRightClick(e: MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleZoomMenu();
     }
 
     function selectZoom(v: number) {
@@ -53,9 +66,33 @@
     }
 </script>
 
-<svelte:window on:click={handleWindowClick} />
+<svelte:window onclick={handleWindowClick} />
 
 <div class="status-bar" data-locale={$resolvedLocale}>
+    <!-- ★ 新增：侧边栏切换按钮 -->
+    <div class="sidebar-btn-group">
+        <!-- 最近文件 -->
+        <button
+            class="sidebar-btn"
+            class:active={sidebarMode === "recent"}
+            onclick={() => onToggleSidebar("recent")}
+        >
+            {t("sidebar.recent", undefined, $resolvedLocale)}
+        </button>
+        <!-- 当前目录 -->
+        <button
+            class="sidebar-btn"
+            class:active={sidebarMode === "directory"}
+            onclick={() => onToggleSidebar("directory")}
+            disabled={!canUseDirectory}
+        >
+            {t("sidebar.directory", undefined, $resolvedLocale)}
+        </button>
+    </div>
+
+    <span class="sep">|</span>
+
+    <!-- 脏标签 -->
     {#if isDirty}
         <span class="badge dirty">
             <span class="dot">●</span>{t(
@@ -67,6 +104,7 @@
         <span class="sep">|</span>
     {/if}
 
+    <!-- 磁盘状态 -->
     {#if diskState === "deleted"}
         <span class="badge warn"
             >{t("status.external_deleted", undefined, $resolvedLocale)}</span
@@ -88,6 +126,7 @@
         <span class="sep">|</span>
     {/if}
 
+    <!-- 字符统计 -->
     <span class="main-info"
         >{t(
             "status.line_and_chars",
@@ -95,6 +134,7 @@
             $resolvedLocale,
         )}</span
     >
+    <!-- 选中字符统计 -->
     {#if selectedCount > 0}
         <span class="sep shrink-sep">|</span>
         <span class="selected main-info">
@@ -116,27 +156,39 @@
 
     <span class="spacer"></span>
 
-    <button
-        class="status-btn"
-        class:off={!wordWrap || wordWrapDisabled}
-        on:click={onToggleWordWrap}
-        disabled={wordWrapDisabled}
-        >{wordWrap && !wordWrapDisabled
-            ? t("status.word_wrap_on", undefined, $resolvedLocale)
-            : t("status.word_wrap_off", undefined, $resolvedLocale)}</button
-    >
+    <!-- 显示行号 -->
+    <button class="status-btn" onclick={onToggleLineNumbers}>
+        {t(
+            "status.short_line_numbers",
+            undefined,
+            $resolvedLocale,
+        )}{showLineNumbers ? "☑" : "☐"}
+    </button>
 
     <span class="sep">|</span>
 
+    <!-- 自动换行 -->
+    <button
+        class="status-btn"
+        onclick={onToggleWordWrap}
+        disabled={wordWrapDisabled}
+    >
+        {t("status.short_word_wrap", undefined, $resolvedLocale)}
+        {wordWrap && !wordWrapDisabled ? "☑" : "☐"}
+    </button>
+
+    <span class="sep">|</span>
+
+    <!-- 缩放比列 -->
     <div class="zoom-wrapper">
         <span
             class="status-btn zoom-trigger"
             role="button"
             tabindex="0"
-            on:click={toggleZoomMenu}
-            on:contextmenu|preventDefault|stopPropagation={toggleZoomMenu}
-            >{zoom}%</span
-        >
+            onclick={toggleZoomMenu}
+            oncontextmenu={handleZoomRightClick}
+            >{zoom}%
+        </span>
 
         {#if zoomMenuOpen}
             <div class="zoom-menu">
@@ -144,7 +196,7 @@
                     <button
                         class="zoom-item"
                         class:active={preset === zoom}
-                        on:click={() => selectZoom(preset)}
+                        onclick={() => selectZoom(preset)}
                     >
                         <!-- 给文字加上 class -->
                         <span class="zoom-text">{preset}%</span>
@@ -196,7 +248,8 @@
         border-top: 1px solid var(--overlay-divider);
         display: flex;
         align-items: center;
-        padding: 0 12px;
+        padding-left: 12px;
+        padding-right: 22px;
         font-size: 12px;
         color: var(--status-bar-foreground);
         user-select: none;
@@ -249,6 +302,8 @@
         font-family: inherit;
         flex-shrink: 0;
         white-space: nowrap;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        letter-spacing: 1px; /* 稍微拉开一点字距，显得更清晰 */
     }
     .status-btn.off {
         color: var(--status-bar-foreground-muted);
@@ -353,5 +408,39 @@
         left: auto;
         right: 0;
         transform: none;
+    }
+
+    .sidebar-btn {
+        background: none;
+        border: none;
+        padding: 2px 4px;
+        margin: 0;
+        font-size: 12px;
+        font-family: inherit;
+        /* ★ 修复：普通状态下使用与状态栏一致的颜色 */
+        color: var(--status-bar-foreground);
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s;
+    }
+    .sidebar-btn:hover:not(:disabled) {
+        /* ★ 修复：鼠标悬停时给一个非常轻柔的背景和主题色，显得有质感 */
+        background: var(--overlay-divider);
+        color: var(--accent);
+    }
+    .sidebar-btn.active {
+        /* 展开时保留原来的高亮，不修改 */
+        background: var(--overlay-hover-background);
+        color: var(--accent);
+    }
+    .sidebar-btn:disabled {
+        color: var(--overlay-foreground-muted);
+        cursor: default;
+    }
+    /* 侧边栏按钮组 */
+    .sidebar-btn-group {
+        display: flex;
+        gap: 0; /* 内部按钮紧挨着，消除父级 8px 的 gap 影响 */
+        margin-right: 2px; /* 和右边的分隔线稍微拉开一点距离 */
     }
 </style>

@@ -61,6 +61,13 @@ export const it: Record<string, string> = {
   "editor_menu.delete": "Elimina",
   "editor_menu.select_all": "Seleziona tutto",
 
+  // ===== SideBar =====
+  "sidebar.recent": "File recenti",
+  "sidebar.directory": "Directory corrente",
+  "sidebar.file_not_found": "File non trovato o spostato: {path}",
+  "sidebar.empty": "Nessun record",
+  "sidebar.up": "Cartella superiore",
+
   // ===== Barra di Stato =====
   "status.unsaved": "Non salvato",
   "status.external_deleted": "⚠ Eliminato esternamente",
@@ -69,8 +76,8 @@ export const it: Record<string, string> = {
   "status.line_and_chars": "{lines} righe · {chars} caratteri",
   "status.selected_chars": "{chars} caratteri selezionati",
   "status.selected_lines_and_chars": "{lines} righe · {chars} caratteri selezionati",
-  "status.word_wrap_on": "A capo: Attivo",
-  "status.word_wrap_off": "A capo: Disattivo",
+  "status.short_line_numbers": "Righe",
+  "status.short_word_wrap": "A capo",
   "status.encoding_tooltip": "Codifica: {encoding}",
   "status.line_ending_lf": "Termine riga Unix (LF)",
   "status.line_ending_crlf": "Termine riga Windows (CRLF)",

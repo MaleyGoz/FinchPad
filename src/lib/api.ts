@@ -50,6 +50,12 @@ export type DiffPayload = {
   conflict_idx: number;
 };
 
+export type FileEntry = {
+  name: string;
+  path: string;
+  is_dir: boolean;
+};
+
 export const api = {
   getWorkspaceState: () => invoke<Snapshot>("get_workspace_state"),
   newTab: () => invoke("new_tab"),
@@ -98,4 +104,6 @@ export const api = {
   getDiffPayload: () => invoke<DiffPayload | null>("get_diff_payload"),
   closeDiffWindow: () => invoke("close_diff_window"),
   applyDiskVersion: (idx: number) => invoke("apply_disk_version", { idx }),
+    readDir: (path: string) => invoke<FileEntry[]>("read_dir", { path }),
+  getRecentFiles: () => invoke<string[]>("get_recent_files"),
 };

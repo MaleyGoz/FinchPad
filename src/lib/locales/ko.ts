@@ -61,6 +61,13 @@ export const ko: Record<string, string> = {
   "editor_menu.delete": "삭제",
   "editor_menu.select_all": "모두 선택",
 
+  // ===== SideBar =====
+  "sidebar.recent": "최근 파일",
+  "sidebar.directory": "현재 디렉토리",
+  "sidebar.file_not_found": "파일을 찾을 수 없거나 이동되었습니다: {path}",
+  "sidebar.empty": "기록 없음",
+  "sidebar.up": "상위 폴더로",
+
   // ===== 상태 표시줄 =====
   "status.unsaved": "저장되지 않음",
   "status.external_deleted": "⚠ 외부에서 삭제됨",
@@ -69,8 +76,8 @@ export const ko: Record<string, string> = {
   "status.line_and_chars": "{lines}줄 · {chars}글자",
   "status.selected_chars": "{chars}글자 선택됨",
   "status.selected_lines_and_chars": "{lines}줄 · {chars}글자 선택됨",
-  "status.word_wrap_on": "줄 바꿈: 켜짐",
-  "status.word_wrap_off": "줄 바꿈: 꺼짐",
+  "status.short_line_numbers": "줄 번호",
+  "status.short_word_wrap": "줄 바꿈",
   "status.encoding_tooltip": "인코딩: {encoding}",
   "status.line_ending_lf": "Unix 줄 끝 (LF)",
   "status.line_ending_crlf": "Windows 줄 끝 (CRLF)",

@@ -61,6 +61,13 @@ export const thTH: Record<string, string> = {
   "editor_menu.delete": "ลบ",
   "editor_menu.select_all": "เลือกทั้งหมด",
 
+  // ===== SideBar =====
+  "sidebar.recent": "ไฟล์ล่าสุด",
+  "sidebar.directory": "โฟลเดอร์ปัจจุบัน",
+  "sidebar.file_not_found": "ไม่พบไฟล์หรือไฟล์ถูกย้าย: {path}",
+  "sidebar.empty": "ไม่มีบันทึก",
+  "sidebar.up": "ระดับบน",
+
   // ===== แถบสถานะ =====
   "status.unsaved": "ยังไม่ได้บันทึก",
   "status.external_deleted": "⚠ ถูกลบจากภายนอก",
@@ -69,8 +76,8 @@ export const thTH: Record<string, string> = {
   "status.line_and_chars": "{lines} บรรทัด · {chars} ตัวอักษร",
   "status.selected_chars": "เลือก {chars} ตัวอักษร",
   "status.selected_lines_and_chars": "เลือก {lines} บรรทัด · {chars} ตัวอักษร",
-  "status.word_wrap_on": "ตัดบรรทัด: เปิด",
-  "status.word_wrap_off": "ตัดบรรทัด: ปิด",
+  "status.short_line_numbers": "บรรทัด",
+  "status.short_word_wrap": "ตัดบรรทัด",
   "status.encoding_tooltip": "การเข้ารหัส: {encoding}",
   "status.line_ending_lf": "ขึ้นบรรทัดใหม่แบบ Unix (LF)",
   "status.line_ending_crlf": "ขึ้นบรรทัดใหม่แบบ Windows (CRLF)",

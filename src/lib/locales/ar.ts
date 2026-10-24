@@ -62,6 +62,13 @@ export const ar: Record<string, string> = {
   "editor_menu.delete": "حذف",
   "editor_menu.select_all": "تحديد الكل",
 
+  // ===== SideBar =====
+  "sidebar.recent": "الملفات الأخيرة",
+  "sidebar.directory": "المجلد الحالي",
+  "sidebar.file_not_found": "الملف غير موجود أو تم نقله: {path}",
+  "sidebar.empty": "لا توجد سجلات",
+  "sidebar.up": "المجلد الأعلى",
+
   // ===== شريط الحالة =====
   "status.unsaved": "غير محفوظ",
   "status.external_deleted": "⚠ تم حذفه خارجيًا",
@@ -70,8 +77,8 @@ export const ar: Record<string, string> = {
   "status.line_and_chars": "{lines} سطرًا · {chars} حرفًا",
   "status.selected_chars": "تم تحديد {chars} حرفًا",
   "status.selected_lines_and_chars": "تم تحديد {lines} سطرًا · {chars} حرفًا",
-  "status.word_wrap_on": "التفاف: مفعل",
-  "status.word_wrap_off": "التفاف: معطل",
+  "status.short_line_numbers": "أرقام الأسطر",
+  "status.short_word_wrap": "التفاف النص",
   "status.encoding_tooltip": "الترميز: {encoding}",
   "status.line_ending_lf": "نهاية سطر Unix (LF)",
   "status.line_ending_crlf": "نهاية سطر Windows (CRLF)",

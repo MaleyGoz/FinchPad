@@ -61,6 +61,13 @@ export const de: Record<string, string> = {
   "editor_menu.delete": "Löschen",
   "editor_menu.select_all": "Alles auswählen",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Zuletzt verwendet",
+  "sidebar.directory": "Aktuelles Verzeichnis",
+  "sidebar.file_not_found": "Datei nicht gefunden oder verschoben: {path}",
+  "sidebar.empty": "Keine Einträge",
+  "sidebar.up": "Übergeordneter Ordner",
+
   // ===== Statusleiste =====
   "status.unsaved": "Nicht gespeichert",
   "status.external_deleted": "⚠ Extern gelöscht",
@@ -69,8 +76,8 @@ export const de: Record<string, string> = {
   "status.line_and_chars": "{lines} Zeilen · {chars} Zeichen",
   "status.selected_chars": "{chars} Zeichen ausgewählt",
   "status.selected_lines_and_chars": "{lines} Zeilen · {chars} Zeichen ausgewählt",
-  "status.word_wrap_on": "Umbruch: Ein",
-  "status.word_wrap_off": "Umbruch: Aus",
+  "status.short_line_numbers": "Zeilen",
+  "status.short_word_wrap": "Umbruch",
   "status.encoding_tooltip": "Kodierung: {encoding}",
   "status.line_ending_lf": "Unix-Zeilenende (LF)",
   "status.line_ending_crlf": "Windows-Zeilenende (CRLF)",

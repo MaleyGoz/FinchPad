@@ -1,9 +1,9 @@
 <script lang="ts">
+    //  ======== import块 ========
     import { onMount, tick } from "svelte";
     import TabBar from "$lib/TabBar.svelte";
     import Editor from "$lib/Editor.svelte";
     import StatusBar from "$lib/StatusBar.svelte";
-    import { convertFileSrc } from "@tauri-apps/api/core";
     import { api, type Snapshot } from "$lib/api";
     import {
         currentTheme,
@@ -30,7 +30,56 @@
     import { getVersion } from "@tauri-apps/api/app";
     import AppOverlays from "$lib/AppOverlays.svelte";
     import { fetch } from "@tauri-apps/plugin-http";
-    import { marked } from "marked";
+    import SideBar from "$lib/SideBar.svelte";
+    import PreviewPane from "$lib/PreviewPane.svelte";
+    import { handleGlobalShortcut } from "$lib/shortcutHandler";
+    import {
+        isNewerVersion,
+        clampMenuPos,
+        checkForUpdatesApi,
+        openReleasePage,
+    } from "$lib/utils";
+
+    // ======== 全局type块 ========
+    // 编辑区右键菜单
+    type EditorContextMenuState = {
+        visible: boolean;
+        left: number | null;
+        right: number | null;
+        top: number;
+        hasSelection: boolean;
+        canUndo: boolean;
+        canRedo: boolean;
+    };
+    // 设置菜单
+    type SettingsMenuState = {
+        visible: boolean;
+        anchorRight: number;
+        anchorBottom: number;
+    };
+    type BarContextMenuState = {
+        visible: boolean;
+        left: number | null;
+        right: number | null;
+        top: number;
+    };
+    //保存关闭相关
+    type ModalButton = {
+        label: string;
+        style?: "primary" | "secondary";
+        size?: "large" | "small";
+        action: () => void | Promise<void>;
+    };
+    type ModalState = {
+        visible: boolean;
+        title: string;
+        rows: ModalButton[][];
+        onAbort?: () => void;
+    };
+
+    // ======== 全局变量块 ========
+
+    // ======== 响应式变量块 ========
 
     let snapshot: Snapshot = {
         tab_titles: [],
@@ -60,6 +109,29 @@
         last_used_path: "",
     };
 
+    // 侧边栏相关
+    let sidebarMode: "recent" | "directory" | null = null;
+    let canUseDirectory = false;
+    // 当标签切换时，判断是否可用当前目录
+    $: canUseDirectory = !!snapshot.tab_paths[snapshot.active_index];
+    function toggleSidebar(mode: "recent" | "directory") {
+        if (sidebarMode === mode) {
+            sidebarMode = null;
+        } else {
+            sidebarMode = mode;
+        }
+    }
+    // ★ 侧边栏打开文件的统一入口
+    async function handleSidebarOpenFile(path: string) {
+        try {
+            await flushPendingEdit();
+            snapshot = await api.openFiles([path]);
+        } catch (e) {
+            console.error("打开文件失败:", e);
+            alert(t("sidebar.file_not_found", { path }, get(resolvedLocale)));
+        }
+    }
+
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     /** 防抖队列里还没同步给 Rust 的最新文本；null 表示没有待同步编辑 */
     let pendingText: string | null = null;
@@ -78,186 +150,21 @@
     let isSaving = false; // 防止保存过程中的自动检测覆盖状态
 
     let isPreviewOpen = false; // 是否开启预览
-    let previewHtml = ""; // 渲染后的 HTML
-    let previewDebounce: ReturnType<typeof setTimeout>;
     let previewWidth = 50; // 默认右侧占 50%
-    let isDraggingSplit = false;
-    let handleY = 0; // 记录鼠标在分割线上的 Y 坐标
-    let isHoveringHandle = false; // 鼠标是否悬停在分割线上
-    let splitStartX = 0;
-    let splitStartWidth = 50;
-
-    function startDrag(e: MouseEvent) {
-        isDraggingSplit = true;
-        splitStartX = e.clientX;
-        splitStartWidth = previewWidth;
-        window.addEventListener("mousemove", onDrag);
-        window.addEventListener("mouseup", stopDrag);
-
-        // ★ 防止鼠标划入 iframe 导致丢失 mouseup 事件
-        document.body.style.userSelect = "none";
-    }
-
-    function onDrag(e: MouseEvent) {
-        if (!isDraggingSplit) return;
-        const deltaX = splitStartX - e.clientX;
-        const containerWidth = window.innerWidth;
-
-        let newWidth = splitStartWidth + (deltaX / containerWidth) * 100;
-        previewWidth = Math.max(20, Math.min(80, newWidth));
-    }
-
-    function stopDrag() {
-        isDraggingSplit = false;
-        window.removeEventListener("mousemove", onDrag);
-        window.removeEventListener("mouseup", stopDrag);
-
-        // ★ 恢复文本选择
-        document.body.style.userSelect = "";
-    }
 
     // 判断当前标签是否支持预览
     $: canPreview =
         snapshot.language_id === "markdown" || snapshot.language_id === "html";
 
-    // 切换标签时，如果新标签不支持预览，强制关闭
-    // $: if (!canPreview) {
-    //     isPreviewOpen = false;
-    // }
-
     function togglePreview() {
         if (!canPreview) return;
         isPreviewOpen = !isPreviewOpen;
-        if (isPreviewOpen) {
-            renderPreview(snapshot.active_text);
-        }
-    }
-
-    // ★ 终极版：专门处理各种极其复杂的本地路径情况（完美兼容 Windows/Mac/Linux）
-    function resolveFilePath(src: string, currentFilePath: string): string {
-        // 1. 统一把所有反斜杠替换为正斜杠，方便后续统一计算
-        const normalizedSrc = src.replace(/\\/g, "/");
-        const normalizedDir = currentFilePath.replace(/\\/g, "/");
-
-        // 2. 如果是网络图片、Base64、或者已经是 Tauri 转换后的协议，直接放行
-        if (/^(https?|data|asset|blob|mailto):/i.test(normalizedSrc)) {
-            return normalizedSrc;
-        }
-
-        // 3. 判断是否是绝对路径
-        const isWinAbsolute = /^[a-zA-Z]:\//.test(normalizedSrc);
-        const isUnixAbsolute = normalizedSrc.startsWith("/");
-
-        let finalPath = normalizedSrc;
-
-        if (!isWinAbsolute && !isUnixAbsolute) {
-            // 4. 处理相对路径：获取当前文件所在目录
-            const lastSlashIdx = normalizedDir.lastIndexOf("/");
-            const baseDir =
-                lastSlashIdx >= 0
-                    ? normalizedDir.substring(0, lastSlashIdx)
-                    : "";
-
-            // 拼接目录和相对路径
-            let combined = `${baseDir}/${normalizedSrc}`;
-
-            // 5. 手动消除 "." 和 ".." （类似 Node.js 的 path.normalize）
-            const parts = combined.split("/");
-            const stack: string[] = [];
-            for (const part of parts) {
-                if (!part || part === ".") continue;
-                if (part === "..") {
-                    if (stack.length > 0 && stack[stack.length - 1] !== "..") {
-                        stack.pop();
-                    } else {
-                        stack.push("..");
-                    }
-                } else {
-                    stack.push(part);
-                }
-            }
-            finalPath = stack.join("/");
-        }
-
-        // 6. ★ 核心修复：如果是 Windows 盘符路径，必须把正斜杠转回反斜杠，否则 Tauri 无法识别
-        if (/^[a-zA-Z]:\//.test(finalPath)) {
-            finalPath = finalPath.replace(/\//g, "\\");
-        }
-
-        return finalPath;
-    }
-
-    function renderPreview(text: string) {
-        clearTimeout(previewDebounce);
-        previewDebounce = setTimeout(() => {
-            if (snapshot.language_id === "markdown") {
-                let html = marked.parse(text) as string;
-
-                const currentFilePath =
-                    snapshot.tab_paths[snapshot.active_index];
-                if (currentFilePath) {
-                    // ★ 采用更健壮的正则匹配：提取所有的 img 标签
-                    html = html.replace(/<img\s+[^>]*>/gi, (match) => {
-                        // 精准提取 src 属性
-                        const srcMatch = match.match(
-                            /src\s*=\s*["']([^"']+)["']/i,
-                        );
-                        if (!srcMatch) return match;
-
-                        const originalSrc = srcMatch[1];
-                        const absolutePath = resolveFilePath(
-                            originalSrc,
-                            currentFilePath,
-                        );
-
-                        // 如果是网络图片，跳过转换
-                        if (
-                            /^(https?|data|asset|blob|mailto):/i.test(
-                                absolutePath,
-                            )
-                        ) {
-                            return match;
-                        }
-
-                        try {
-                            // 转换为 Tauri 的本地安全路径
-                            const assetUrl = convertFileSrc(absolutePath);
-                            // 只替换 src="..." 这一小部分，完美保留 width, height, alt 等其他属性
-                            return match.replace(
-                                srcMatch[0],
-                                `src="${assetUrl}"`,
-                            );
-                        } catch (e) {
-                            console.error("图片路径转换失败:", absolutePath, e);
-                            return match;
-                        }
-                    });
-                }
-                previewHtml = html;
-            } else if (snapshot.language_id === "html") {
-                previewHtml = text;
-            }
-        }, 300);
-    }
-
-    // 监听文本变化，实时更新预览
-    $: if (isPreviewOpen && snapshot.active_text !== undefined) {
-        renderPreview(snapshot.active_text);
     }
 
     // 编辑器组件引用（用于调用编辑区方法）
     let editorRef: Editor;
 
     // 编辑区右键菜单
-    type EditorContextMenuState = {
-        visible: boolean;
-        left: number | null;
-        right: number | null;
-        top: number;
-        hasSelection: boolean;
-        canUndo: boolean;
-        canRedo: boolean;
-    };
     let editorContextMenu: EditorContextMenuState = {
         visible: false,
         left: 0,
@@ -275,11 +182,6 @@
     const mod = isMac ? "Cmd" : "Ctrl";
 
     // 设置菜单
-    type SettingsMenuState = {
-        visible: boolean;
-        anchorRight: number;
-        anchorBottom: number;
-    };
     let settingsMenu: SettingsMenuState = {
         visible: false,
         anchorRight: 0,
@@ -298,108 +200,78 @@
         settingsMenu = { visible: false, anchorRight: 0, anchorBottom: 0 };
     }
 
-    // 比较版本号 (例如 v0.3.0 vs 0.4.0)
-    function isNewerVersion(current: string, latest: string): boolean {
-        // 去掉可能存在的 'v' 前缀
-        const cleanCurrent = current.replace(/^v/, "").split(".").map(Number);
-        const cleanLatest = latest.replace(/^v/, "").split(".").map(Number);
-
-        for (
-            let i = 0;
-            i < Math.max(cleanCurrent.length, cleanLatest.length);
-            i++
-        ) {
-            const c = cleanCurrent[i] || 0;
-            const l = cleanLatest[i] || 0;
-            if (l > c) return true;
-            if (l < c) return false;
-        }
-        return false;
-    }
-
-    // 检查更新主逻辑
+    // 版本检查更新
     async function checkForUpdates() {
         closeSettingsMenu();
-
-        // 弹出“正在检查”弹窗
         modal = {
             visible: true,
             title: t("dialog.update_checking", undefined, get(resolvedLocale)),
             rows: [],
         };
 
-        try {
-            // ★ 使用 Tauri 的 fetch，彻底无视 CORS，也不需要传任何 headers
-            const res = await fetch(
-                "https://api.github.com/repos/MaleyGoz/FinchPad/releases/latest",
-            );
+        // 调用工具函数去发请求
+        const result = await checkForUpdatesApi(APP_VERSION);
 
-            // 如果被 GitHub 限流，通常返回 403
-            if (!res.ok) {
-                if (res.status === 403) {
-                    throw new Error("GitHub API 访问频繁，请稍后再试");
-                }
-                throw new Error(`HTTP Error: ${res.status}`);
-            }
-
-            const data = await res.json();
-            const latestVersion = data.tag_name;
-
-            if (isNewerVersion(APP_VERSION, latestVersion)) {
-                // 发现新版本
-                modal = {
-                    visible: true,
-                    title: t(
-                        "dialog.update_found",
+        if (result.status === "found") {
+            modal = {
+                visible: true,
+                title: t(
+                    "dialog.update_found",
+                    {
+                        current: APP_VERSION,
+                        latest: result.latestVersion,
+                    },
+                    get(resolvedLocale),
+                ),
+                rows: [
+                    [
                         {
-                            current: APP_VERSION,
-                            latest: latestVersion.replace(/^v/, ""),
+                            label: t(
+                                "dialog.update_cancel",
+                                undefined,
+                                get(resolvedLocale),
+                            ),
+                            action: closeModal,
                         },
-                        get(resolvedLocale),
-                    ),
-                    rows: [
-                        [
-                            {
-                                label: t("dialog.update_cancel"),
-                                action: closeModal,
+                        {
+                            label: t(
+                                "dialog.update_confirm",
+                                undefined,
+                                get(resolvedLocale),
+                            ),
+                            style: "primary",
+                            action: async () => {
+                                closeModal();
+                                await openReleasePage();
                             },
-                            {
-                                label: t("dialog.update_confirm"),
-                                style: "primary",
-                                action: async () => {
-                                    closeModal();
-                                    await openUrl(
-                                        "https://github.com/MaleyGoz/FinchPad/releases/latest",
-                                    );
-                                },
-                            },
-                        ],
+                        },
                     ],
-                };
-            } else {
-                // 已是最新版本
-                modal = {
-                    visible: true,
-                    title: t(
-                        "dialog.update_latest",
-                        { version: APP_VERSION },
-                        get(resolvedLocale),
-                    ),
-                    rows: [
-                        [
-                            {
-                                label: t("dialog.ok"),
-                                style: "primary",
-                                action: closeModal,
-                            },
-                        ],
+                ],
+            };
+        } else if (result.status === "latest") {
+            modal = {
+                visible: true,
+                title: t(
+                    "dialog.update_latest",
+                    { version: APP_VERSION },
+                    get(resolvedLocale),
+                ),
+                rows: [
+                    [
+                        {
+                            label: t(
+                                "dialog.ok",
+                                undefined,
+                                get(resolvedLocale),
+                            ),
+                            style: "primary",
+                            action: closeModal,
+                        },
                     ],
-                };
-            }
-        } catch (err: any) {
-            console.error("检查更新失败:", err.message || err);
-
-            // 网络错误提示（把具体的错误信息也展示出来，方便排查）
+                ],
+            };
+        } else {
+            // ★ 网络失败分支：提供“前往下载”按钮
             modal = {
                 visible: true,
                 title: t(
@@ -410,9 +282,24 @@
                 rows: [
                     [
                         {
-                            label: t("dialog.ok"),
-                            style: "primary",
+                            label: t(
+                                "dialog.update_cancel",
+                                undefined,
+                                get(resolvedLocale),
+                            ),
                             action: closeModal,
+                        },
+                        {
+                            label: t(
+                                "dialog.update_confirm",
+                                undefined,
+                                get(resolvedLocale),
+                            ),
+                            style: "primary",
+                            action: async () => {
+                                closeModal();
+                                await openReleasePage();
+                            },
                         },
                     ],
                 ],
@@ -454,12 +341,6 @@
         await api.setLocale(actual, template, choice);
     }
 
-    type BarContextMenuState = {
-        visible: boolean;
-        left: number | null;
-        right: number | null;
-        top: number;
-    };
     let barContextMenu: BarContextMenuState = {
         visible: false,
         left: 0,
@@ -749,36 +630,7 @@
 
         if (snapshot.is_unnamed) {
             // 未命名 → 走另存为
-
-            // ★ 核心修复：动态提取当前文件的后缀名（如果没有后缀，默认用 txt）
-            const defaultPath = snapshot.default_save_path;
-            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
-            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
-
-            // 构建过滤器：把当前文件的后缀放在第一位，Mac 系统就会以此为准，不再强行加 .txt
-            const filters = [
-                {
-                    name: `${currentExt.toUpperCase()} Files`,
-                    extensions: [currentExt],
-                },
-                {
-                    name: t(
-                        "dialog.filter.text_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["txt"],
-                },
-                {
-                    name: t(
-                        "dialog.filter.all_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["*"],
-                },
-            ];
-
+            const { defaultPath, filters } = getSaveOptions();
             const path = await save({ defaultPath, filters });
 
             if (!path) return;
@@ -949,35 +801,8 @@
         await refresh();
 
         if (isUnnamed) {
-            // ★ 核心修复：动态提取当前文件的后缀名
-            const defaultPath = snapshot.default_save_path;
-            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
-            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
-
-            // 把当前文件后缀放到第一位，Mac 就不会瞎加 .txt 了
-            const filters = [
-                {
-                    name: `${currentExt.toUpperCase()} Files`,
-                    extensions: [currentExt],
-                },
-                {
-                    name: t(
-                        "dialog.filter.text_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["txt"],
-                },
-                {
-                    name: t(
-                        "dialog.filter.all_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["*"],
-                },
-            ];
-
+            // ★ 直接复用封装好的函数
+            const { defaultPath, filters } = getSaveOptions();
             const path = await save({ defaultPath, filters });
 
             if (!path) {
@@ -1152,36 +977,7 @@
 
         if (isUnnamed) {
             // 未命名 → 走另存为
-
-            // ★ 核心修复：动态提取当前文件的后缀名
-            const defaultPath = snapshot.default_save_path;
-            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
-            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
-
-            // 把当前文件后缀放到第一位
-            const filters = [
-                {
-                    name: `${currentExt.toUpperCase()} Files`,
-                    extensions: [currentExt],
-                },
-                {
-                    name: t(
-                        "dialog.filter.text_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["txt"],
-                },
-                {
-                    name: t(
-                        "dialog.filter.all_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["*"],
-                },
-            ];
-
+            const { defaultPath, filters } = getSaveOptions();
             const path = await save({ defaultPath, filters });
 
             if (!path) return;
@@ -1391,7 +1187,7 @@
 
         // 提取当前文件的后缀名（比如 json, py, txt）
         const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
-        const currentExt = extMatch ? extMatch[1].toLowerCase() : "";
+        const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
 
         const filters: any[] = [];
 
@@ -1430,35 +1226,8 @@
             return;
         }
 
-        // ★ 核心修复：动态提取当前文件的后缀名
-        const defaultPath = snapshot.default_save_path;
-        const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
-        const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
-
-        // 把当前文件后缀放到第一位，Mac 就不会瞎加 .txt 了
-        const filters = [
-            {
-                name: `${currentExt.toUpperCase()} Files`,
-                extensions: [currentExt],
-            },
-            {
-                name: t(
-                    "dialog.filter.text_files",
-                    undefined,
-                    get(resolvedLocale),
-                ),
-                extensions: ["txt"],
-            },
-            {
-                name: t(
-                    "dialog.filter.all_files",
-                    undefined,
-                    get(resolvedLocale),
-                ),
-                extensions: ["*"],
-            },
-        ];
-
+        // ★ 直接复用封装好的函数，逻辑 100% 等价
+        const { defaultPath, filters } = getSaveOptions();
         const path = await save({ defaultPath, filters });
 
         if (!path) {
@@ -1687,19 +1456,6 @@
         return unlisten;
     }
 
-    //保存关闭相关
-    type ModalButton = {
-        label: string;
-        style?: "primary" | "secondary";
-        size?: "large" | "small";
-        action: () => void | Promise<void>;
-    };
-    type ModalState = {
-        visible: boolean;
-        title: string;
-        rows: ModalButton[][];
-        onAbort?: () => void;
-    };
     let modal: ModalState = { visible: false, title: "", rows: [] };
 
     // ============ 对比视图 ============
@@ -1968,39 +1724,6 @@
         };
     }
 
-    /** 修正菜单位置，避免超出窗口右/下边界 */
-    function clampMenuPos(
-        x: number,
-        y: number,
-        menuWidth: number,
-        menuHeight: number,
-    ): { left: number | null; right: number | null; top: number } {
-        const winW = window.innerWidth;
-        const winH = window.innerHeight;
-        const margin = 8;
-
-        let left: number | null = x;
-        let right: number | null = null;
-
-        if (x + menuWidth + margin > winW) {
-            // 靠右 → 用 right 定位，菜单右边缘贴住鼠标
-            left = null;
-            right = winW - x;
-            // 如果鼠标也靠左（菜单宽度大于剩余空间），兜底贴左
-            if (right + menuWidth + margin > winW) {
-                left = margin;
-                right = null;
-            }
-        }
-
-        let top = y;
-        if (y + menuHeight + margin > winH) {
-            top = Math.max(margin, winH - menuHeight - margin);
-        }
-
-        return { left, right, top };
-    }
-
     function handleModalDismiss() {
         const abort = modal.onAbort;
         closeModal();
@@ -2159,204 +1882,118 @@
     });
 </script>
 
+<!-- 快捷键 -->
 <svelte:window
-    on:keydown={(e) => {
-        // ★ 弹窗打开时，屏蔽除 Escape 外的所有快捷键
-        if (isAnyModalOpen) {
-            if (e.key === "Escape") {
-                if (modal.visible) handleModalDismiss();
-                else if (aboutVisible) aboutVisible = false;
-                else if (settingsMenu.visible) closeSettingsMenu();
-                else if (editorContextMenu.visible) closeEditorContextMenu();
-                else if (contextMenu.visible) closeContextMenu();
-                else if (barContextMenu.visible) closeBarContextMenu();
-                e.preventDefault();
-            }
-            return;
-        }
-
-        // 屏蔽 F2 键，防止触发浏览器的默认聚焦行为
-        if (e.key === "F2") {
-            e.preventDefault();
-            return;
-        }
-
-        const mod = e.ctrlKey || e.metaKey;
-        if (!mod) return;
-        const key = e.key.toLowerCase();
-
-        // Ctrl+F / Ctrl+H 转交给 Monaco（避免 WebView2 弹出浏览器自带查找）
-        if (key === "f" && !e.shiftKey) {
-            e.preventDefault();
-            editorRef?.execEditorAction("find");
-            return;
-        }
-        if (key === "h" && !e.shiftKey) {
-            e.preventDefault();
-            editorRef?.execEditorAction("replace");
-            return;
-        }
-
-        // 文件操作
-        if (key === "n" && !e.shiftKey) {
-            e.preventDefault();
-            handleNew();
-        } else if (key === "o" && !e.shiftKey) {
-            e.preventDefault();
-            handleOpen();
-        } else if (key === "s" && e.shiftKey) {
-            e.preventDefault();
-            handleSaveAs();
-        } else if (key === "s") {
-            e.preventDefault();
-            handleSave();
-        } else if (key === "w" && e.shiftKey) {
-            e.preventDefault();
-            getCurrentWindow().close();
-        } else if (key === "w") {
-            e.preventDefault();
-            handleClose(snapshot.active_index);
-        }
-        // 标签切换
-        else if (key === "tab" && e.shiftKey) {
-            e.preventDefault();
-            switchToPrevTab();
-        } else if (key === "tab") {
-            e.preventDefault();
-            switchToNextTab();
-        }
-        // 缩放
-        else if (key === "=" || key === "+") {
-            e.preventDefault();
-            applyZoomDelta(+10);
-        } else if (key === "-" || key === "_") {
-            e.preventDefault();
-            applyZoomDelta(-10);
-        } else if (key === "0") {
-            e.preventDefault();
-            setZoomValue(100);
-        }
-        // Ctrl+1~9
-        else if (/^[1-9]$/.test(key)) {
-            const idx = parseInt(key, 10) - 1;
-            if (idx < snapshot.tab_titles.length) {
-                e.preventDefault();
-                handleSelect(idx);
-            }
-        }
-    }}
+    on:keydown={(e) =>
+        handleGlobalShortcut(e, {
+            isAnyModalOpen,
+            isMac,
+            modal,
+            aboutVisible,
+            settingsMenu,
+            editorContextMenu,
+            contextMenu,
+            barContextMenu,
+            handleModalDismiss,
+            closeSettingsMenu,
+            closeEditorContextMenu,
+            closeContextMenu,
+            closeBarContextMenu,
+            switchToPrevTab,
+            switchToNextTab,
+            tabTitlesLength: snapshot.tab_titles.length,
+            handleSelect,
+            editorRef,
+            handleNew,
+            handleOpen,
+            handleSaveAs,
+            handleSave,
+            closeWindow: () => getCurrentWindow().close(),
+            handleClose,
+            activeIndex: snapshot.active_index,
+            applyZoomDelta,
+            setZoomValue,
+        })}
 />
 
 <main data-locale={$resolvedLocale}>
-    <TabBar
-        titles={snapshot.tab_titles}
-        activeIndex={snapshot.active_index}
-        dirtyStates={snapshot.tab_dirty_states}
-        paths={snapshot.tab_paths}
-        onSelect={handleSelect}
-        onClose={handleClose}
-        onNew={handleNew}
-        onContextMenu={handleContextMenu}
-        onReorder={handleReorder}
-        onBarContextMenu={handleBarContextMenu}
-        onSettingsClick={handleSettingsClick}
-        {renamingIndex}
-        onRenameCommit={handleRenameCommit}
-        onRenameCancel={handleRenameCancel}
-        {isWindowFocused}
-        {canPreview}
-        {isPreviewOpen}
-        onTogglePreview={togglePreview}
-    />
-
-    <div class="editor-area">
-        <!-- 左侧：编辑器 -->
-        <div
-            class="editor-pane"
-            style="width: {isPreviewOpen && canPreview
-                ? 100 - previewWidth
-                : 100}%;"
-        >
-            <Editor
-                bind:this={editorRef}
-                value={snapshot.active_text}
-                language={snapshot.language_id}
-                largeFile={snapshot.large_file}
-                isPendingLoad={snapshot.is_pending_load}
-                fileSize={snapshot.file_size}
-                {zoom}
-                wordWrap={wordWrap && !snapshot.large_file}
-                {showLineNumbers}
-                {editorBg}
-                onChange={handleTextChange}
-                onStats={handleStats}
-                onLoadRequest={handleLoadPending}
-                onZoomDelta={applyZoomDelta}
-                onEditorContextMenu={handleEditorContextMenu}
+    <!-- 左侧全高侧边栏 + 右侧主区域 -->
+    <div class="app-body">
+        <!-- 侧边栏组件 -->
+        <SideBar
+            mode={sidebarMode}
+            activeFilePath={snapshot.tab_paths[snapshot.active_index] || ""}
+            onOpenFile={handleSidebarOpenFile}
+        />
+        <!-- 右侧主体：包含标签栏和编辑器 -->
+        <div class="main-content">
+            <!-- 标签栏 -->
+            <TabBar
+                titles={snapshot.tab_titles}
+                activeIndex={snapshot.active_index}
+                dirtyStates={snapshot.tab_dirty_states}
+                paths={snapshot.tab_paths}
+                onSelect={handleSelect}
+                onClose={handleClose}
+                onNew={handleNew}
+                onContextMenu={handleContextMenu}
+                onReorder={handleReorder}
+                onBarContextMenu={handleBarContextMenu}
+                onSettingsClick={handleSettingsClick}
+                {renamingIndex}
+                onRenameCommit={handleRenameCommit}
+                onRenameCancel={handleRenameCancel}
+                {isWindowFocused}
+                {canPreview}
+                {isPreviewOpen}
+                onTogglePreview={togglePreview}
+                {sidebarMode}
             />
+
+            <!-- 编辑区域 -->
+            <div class="editor-area">
+                <!-- 左侧：编辑器 -->
+                <div
+                    class="editor-pane"
+                    style="width: {isPreviewOpen && canPreview
+                        ? 100 - previewWidth
+                        : 100}%;"
+                >
+                    <Editor
+                        bind:this={editorRef}
+                        value={snapshot.active_text}
+                        language={snapshot.language_id}
+                        largeFile={snapshot.large_file}
+                        isPendingLoad={snapshot.is_pending_load}
+                        fileSize={snapshot.file_size}
+                        {zoom}
+                        wordWrap={wordWrap && !snapshot.large_file}
+                        {showLineNumbers}
+                        {editorBg}
+                        onChange={handleTextChange}
+                        onStats={handleStats}
+                        onLoadRequest={handleLoadPending}
+                        onZoomDelta={applyZoomDelta}
+                        onEditorContextMenu={handleEditorContextMenu}
+                    />
+                </div>
+
+                <!-- 右侧：预览区 -->
+                {#if isPreviewOpen && canPreview}
+                    <PreviewPane
+                        activeText={snapshot.active_text}
+                        languageId={snapshot.language_id}
+                        filePath={snapshot.tab_paths[snapshot.active_index] ||
+                            ""}
+                        {previewWidth}
+                        onWidthChange={(w) => (previewWidth = w)}
+                    />
+                {/if}
+            </div>
         </div>
-
-        <!-- 右侧：预览区 -->
-        {#if isPreviewOpen && canPreview}
-            <!-- 拖拽手柄：隐藏系统指针，用自定义图标跟随鼠标 -->
-            <div
-                class="resize-handle"
-                on:mousedown={startDrag}
-                on:mousemove={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    handleY = e.clientY - rect.top;
-                }}
-                on:mouseenter={() => (isHoveringHandle = true)}
-                on:mouseleave={() => (isHoveringHandle = false)}
-                role="separator"
-            >
-                <!-- 贯穿上下的细线 -->
-                <div class="handle-line"></div>
-
-                <!-- 跟随鼠标的胶囊图标 -->
-                {#if isHoveringHandle || isDraggingSplit}
-                    <div class="handle-icon" style="top: {handleY}px;">
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <polyline points="7 8 3 12 7 16"></polyline>
-                            <polyline points="17 8 21 12 17 16"></polyline>
-                        </svg>
-                    </div>
-                {/if}
-            </div>
-
-            <!-- ★ 修改：给预览区加上了动态宽度和白底 -->
-            <div
-                class="preview-pane"
-                style="width: {previewWidth}%; background: #ffffff;"
-            >
-                {#if snapshot.language_id === "markdown"}
-                    <div class="markdown-body">
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
-                        {@html previewHtml}
-                    </div>
-                {:else if snapshot.language_id === "html"}
-                    <!-- ★ 新增：拖拽时显示透明遮罩，防止鼠标事件被 iframe 吞掉 -->
-                    <div class="iframe-wrapper">
-                        <iframe title="HTML Preview" srcdoc={previewHtml}
-                        ></iframe>
-                        {#if isDraggingSplit}
-                            <div class="iframe-overlay"></div>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
-        {/if}
     </div>
 
+    <!-- 状态栏 -->
     <div style="margin-top: -1px; position: relative; z-index: 2;">
         <StatusBar
             lineCount={snapshot.line_count}
@@ -2372,6 +2009,11 @@
             wordWrapDisabled={snapshot.large_file}
             onToggleWordWrap={handleToggleWordWrap}
             onZoomChange={setZoomValue}
+            {sidebarMode}
+            onToggleSidebar={toggleSidebar}
+            {canUseDirectory}
+            {showLineNumbers}
+            onToggleLineNumbers={toggleShowLineNumbers}
         />
     </div>
 
@@ -2447,6 +2089,21 @@
         display: flex;
         flex-direction: column;
     }
+    /* ★ 新增：包裹侧边栏和右侧主体的 Flex 容器 */
+    .app-body {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+    }
+    /* ★ 修改：右侧主体，改成上下排列 */
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column; /* 关键：让 TabBar 和 editor-area 上下排布 */
+        min-width: 0; /* 防止 flex 子项被内容撑破 */
+        overflow: hidden;
+    }
 
     /* ==========预览区域样式开始========= */
     .editor-area {
@@ -2463,438 +2120,5 @@
         overflow: hidden; /* ★ 核心修复：切断 Monaco 文字溢出，绝对不许飞到右边 */
         position: relative;
         z-index: 1; /* 建立层级 */
-    }
-
-    /* 右侧：预览面板 */
-    .preview-pane {
-        height: 100%;
-        overflow: auto;
-        min-width: 0;
-        background: #ffffff !important; /* ★ 强制纯白不透明 */
-        padding: 20px;
-        position: relative;
-        z-index: 2; /* ★ 层级必须比左侧高 */
-        /* ★ 移除 border-left，避免和拖拽线叠成两条 */
-    }
-
-    /* ========== 自定义拖拽线 ========== */
-    .resize-handle {
-        width: 4px;
-        background: var(--overlay-divider); /* ★ 默认是实心分割线色 */
-        cursor: none;
-        position: relative;
-        z-index: 9999;
-        flex-shrink: 0;
-    }
-
-    /* 鼠标感应区 */
-    .resize-handle::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: -10px;
-        right: -10px;
-        cursor: none;
-    }
-
-    .resize-handle:hover,
-    .resize-handle:active {
-        /* 换成你主题里的前景色，并带一点透明度，或者直接用一个深灰色 */
-        background: color-mix(
-            in srgb,
-            var(--overlay-foreground) 50%,
-            transparent
-        );
-        /* 去掉发光效果 */
-        box-shadow: none;
-    }
-
-    /* 跟随鼠标的胶囊图标 */
-    .handle-icon {
-        position: absolute;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10000;
-        width: 24px;
-        height: 32px;
-        background: var(--overlay-background);
-        border: 1px solid var(--overlay-border);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--overlay-foreground-muted);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        pointer-events: none;
-        transition:
-            color 0.15s,
-            border-color 0.15s;
-    }
-
-    .resize-handle:hover .handle-icon,
-    .resize-handle:active .handle-icon {
-        color: var(--accent);
-        border-color: var(--accent);
-    }
-
-    /* 2. 解决 iframe 拖拽问题的配套 CSS */
-    .iframe-wrapper {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-    .iframe-wrapper iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: white;
-    }
-    .iframe-overlay {
-        position: absolute;
-        inset: 0;
-        z-index: 100;
-        cursor: col-resize;
-        background: transparent;
-    }
-
-    /* iframe 的样式保持不变，白底 */
-    .preview-pane iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: #ffffff;
-        border-radius: 4px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* 3. Markdown 阅读宽度限制与居中 */
-    .markdown-body {
-        max-width: 800px; /* ★ 限制最大宽度 */
-        margin: 0 auto; /* ★ 居中显示 */
-        /* 原有样式保留 */
-        font-family:
-            system-ui,
-            -apple-system,
-            sans-serif;
-        color: #333333;
-        line-height: 1.6;
-        font-size: 14px;
-    }
-    /* 修复 Markdown 表格样式 */
-    .markdown-body :global(table) {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1em 0;
-        color: #24292e;
-    }
-
-    .markdown-body :global(th),
-    .markdown-body :global(td) {
-        padding: 6px 13px;
-        border: 1px solid #dfe2e5; /* ★ 经典的 GitHub 浅灰边框 */
-        text-align: center; /* ★ 强制内容居中 */
-    }
-
-    .markdown-body :global(th) {
-        font-weight: 600;
-        background-color: #f6f8fa; /* 表头稍微加一点底色区分 */
-    }
-
-    .markdown-body :global(tr:nth-child(2n)) {
-        background-color: #f6f8fa; /* 斑马线效果 */
-    }
-
-    /* 修复一下 Markdown 里的元素颜色，防止使用暗色主题的变量导致白底看不见 */
-    .markdown-body :global(h1),
-    .markdown-body :global(h2) {
-        border-bottom: 1px solid #eaecef;
-        padding-bottom: 0.3em;
-        color: #111111;
-    }
-    .markdown-body :global(h3),
-    .markdown-body :global(h4) {
-        color: #111111;
-    }
-    .markdown-body :global(code) {
-        background: #f6f8fa; /* GitHub 风格的浅灰代码块 */
-        color: #24292e;
-        padding: 0.2em 0.4em;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-    .markdown-body :global(pre) {
-        background: #f6f8fa;
-        color: #24292e;
-        padding: 16px;
-        overflow: auto;
-        border-radius: 6px;
-    }
-    .markdown-body :global(pre code) {
-        background: transparent;
-        padding: 0;
-    }
-    .markdown-body :global(blockquote) {
-        border-left: 4px solid #dfe2e5;
-        margin: 0;
-        padding-left: 16px;
-        color: #6a737d;
-    }
-    /* ==========预览区域样式结束========= */
-
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-    .modal {
-        background: var(--overlay-background);
-        color: var(--overlay-foreground);
-        border-radius: 8px;
-        padding: 20px 24px;
-        min-width: 360px;
-        max-width: 480px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        font-family: sans-serif;
-    }
-    /*弹窗  */
-    .modal {
-        background: var(--overlay-background);
-        color: var(--overlay-foreground);
-        border-radius: 8px;
-        padding: 16px 20px;
-        min-width: 300px; /* ★ 从 320px 缩到 300px */
-        max-width: 400px; /* ★ 从 440px 缩到 400px，整体更紧凑 */
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        font-family: sans-serif;
-    }
-    .modal-title {
-        font-size: 13px;
-        color: var(--overlay-foreground);
-        margin-bottom: 12px;
-        word-wrap: break-word;
-        line-height: 1.5;
-        white-space: pre-line; /* ★ 让 \n 生效为换行 */
-    }
-    .modal-row {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        width: 100%; /* ★ 关键：撑满 modal 内容宽度 */
-    }
-    .modal-btn {
-        flex: 1; /* ★ 关键：同一排按钮平分整行宽度 */
-        padding: 6px 8px; /* 左右 padding 减小，因为宽度已平分 */
-        font-size: 12px;
-        background: var(--overlay-hover-background);
-        border: 1px solid var(--overlay-border);
-        color: var(--overlay-foreground);
-        border-radius: 5px;
-        cursor: pointer;
-        white-space: nowrap;
-        font-family: inherit;
-        /* 删除 min-width，让按钮自由平分 */
-        transition:
-            filter 0.1s,
-            background-color 0.1s;
-    }
-    .modal-row > .modal-btn:only-child {
-        flex: none;
-        min-width: 100px;
-        padding-left: 24px;
-        padding-right: 24px;
-        margin: 0 auto;
-    }
-    .modal-btn:hover {
-        filter: brightness(0.95);
-    }
-    .modal-btn.primary {
-        background: var(--accent);
-        color: white;
-        border-color: var(--accent);
-    }
-    .modal-btn.primary:hover {
-        filter: brightness(0.95);
-    }
-
-    /* ★ 上排大按钮：略高、字略大、字重 500 */
-    .modal-btn.large {
-        padding: 9px 8px; /* 上下 9px → 高度约 36px */
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    /* ★ 下排小按钮：略矮、字略小、正常字重 */
-    .modal-btn.small {
-        padding: 5px 8px; /* 上下 5px → 高度约 27px */
-        font-size: 12px;
-        font-weight: 400;
-    }
-
-    .context-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 900;
-    }
-    .context-menu {
-        position: fixed;
-        background: var(--overlay-background);
-        border: 1px solid var(--overlay-border);
-        border-radius: 8px;
-        padding: 4px;
-        min-width: 160px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        font-family: sans-serif;
-    }
-
-    .settings-menu {
-        min-width: 150px;
-    }
-    .settings-group-title {
-        padding: 6px 12px 4px;
-        font-size: 11px;
-        color: var(--overlay-foreground-muted);
-        user-select: none;
-    }
-    .settings-menu .context-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    }
-    .theme-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .theme-swatch {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        border-radius: 3px;
-        border: 1px solid;
-        flex-shrink: 0;
-        box-sizing: border-box;
-    }
-    .settings-menu .check {
-        color: var(--overlay-foreground);
-        font-size: 12px;
-        margin-left: 6px;
-    }
-
-    .context-item {
-        background: none;
-        border: none;
-        text-align: left;
-        padding: 6px 12px;
-        font-size: 13px;
-        cursor: pointer;
-        border-radius: 4px;
-        color: var(--overlay-foreground);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 24px;
-    }
-    .context-item:hover {
-        background: var(--overlay-hover-background);
-        color: var(--accent);
-    }
-
-    .context-item.disabled,
-    .context-item:disabled {
-        color: var(--overlay-foreground-muted);
-        cursor: default;
-        background: none;
-    }
-    .context-item.disabled:hover,
-    .context-item:disabled:hover {
-        background: none;
-        color: var(--overlay-foreground-muted);
-    }
-    .context-divider {
-        height: 1px;
-        background: var(--overlay-divider);
-        margin: 4px 0;
-    }
-    .shortcut {
-        font-size: 11px;
-        color: var(--overlay-foreground-muted);
-        margin-left: auto;
-    }
-    .context-item.disabled .shortcut {
-        color: var(--overlay-foreground-muted);
-    }
-
-    .about-card {
-        background: var(--overlay-background);
-        border: 1px solid var(--overlay-border);
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-        padding: 28px 32px;
-        min-width: 380px;
-        max-width: 480px;
-        text-align: center;
-        font-family: sans-serif;
-    }
-    .about-icon {
-        width: 64px;
-        height: 64px;
-        margin-bottom: 12px;
-        background: transparent;
-    }
-    .about-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--overlay-foreground);
-        margin-bottom: 4px;
-    }
-    .about-version {
-        font-size: 12px;
-        color: var(--overlay-foreground-muted);
-        margin-bottom: 16px;
-    }
-    .about-desc {
-        font-size: 13px;
-        color: var(--overlay-foreground);
-        line-height: 1.6;
-    }
-    .about-divider {
-        height: 1px;
-        background: var(--overlay-divider);
-        margin: 16px 0;
-    }
-    .about-info {
-        font-size: 12px;
-        color: var(--overlay-foreground-muted);
-        line-height: 1.8;
-        text-align: left;
-    }
-    .link {
-        color: var(--accent);
-        cursor: pointer;
-    }
-    .link:hover {
-        text-decoration: underline;
-    }
-    .about-btn {
-        margin-top: 20px;
-        padding: 6px 24px;
-        font-size: 13px;
-        background: var(--accent);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: inherit;
-    }
-    .about-btn:hover {
-        filter: brightness(0.9);
     }
 </style>

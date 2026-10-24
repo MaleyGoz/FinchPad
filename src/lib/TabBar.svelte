@@ -22,6 +22,8 @@
     ) => void = () => {};
     export let isWindowFocused: boolean = true;
 
+    export let sidebarMode: string | null = null;
+
     // 新增预览功能
     export let canPreview: boolean = false;
     export let isPreviewOpen: boolean = false;
@@ -451,19 +453,21 @@
     on:contextmenu|preventDefault={(e) =>
         onBarContextMenu(e.clientX, e.clientY)}
 >
-    <!-- 顶部留白：也是拖动区域 -->
-    <div class="drag-strip" data-tauri-drag-region></div>
+    <!-- 顶部留白：也是拖动区域 (仅在无侧边栏时) -->
+    {#if !sidebarMode}
+        <div class="drag-strip" data-tauri-drag-region></div>
 
-    <!-- ★ Mac 专属：左侧留白，给原生红绿灯让位 -->
-    {#if isMac}
-        <div class="mac-traffic-spacer" data-tauri-drag-region></div>
-    {/if}
+        <!-- ★ Mac 专属：左侧留白，给原生红绿灯让位 -->
+        {#if isMac}
+            <div class="mac-traffic-spacer" data-tauri-drag-region></div>
+        {/if}
 
-    <!-- Logo（仅在 Windows/Linux 显示） -->
-    {#if !isMac}
-        <div class="app-logo" data-tauri-drag-region>
-            <img src="/tab-icon.png" alt="FinchPad" />
-        </div>
+        <!-- Logo（仅在 Windows/Linux 显示） -->
+        {#if !isMac}
+            <div class="app-logo" data-tauri-drag-region>
+                <img src="/tab-icon.png" alt="FinchPad" />
+            </div>
+        {/if}
     {/if}
 
     {#each titles.slice(visibleStart, visibleEnd) as title, k}
@@ -753,6 +757,7 @@
     .tab-bar.inactive {
         background: var(--tab-bar-background-inactive);
     }
+
     .drag-strip {
         position: absolute;
         top: 0;
@@ -779,8 +784,12 @@
         display: block;
         pointer-events: none;
     }
-    .app-logo.mac-space {
-        margin-left: 75px; /* 给 Mac 的红黄绿按钮留出空间 */
+
+    /* Mac 的红绿灯占位 */
+    .mac-traffic-spacer {
+        width: 75px;
+        height: 100%;
+        flex-shrink: 0;
     }
 
     .tab {

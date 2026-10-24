@@ -61,6 +61,13 @@ export const idID: Record<string, string> = {
   "editor_menu.delete": "Hapus",
   "editor_menu.select_all": "Pilih Semua",
 
+  // ===== SideBar =====
+  "sidebar.recent": "File Terbaru",
+  "sidebar.directory": "Direktori Saat Ini",
+  "sidebar.file_not_found": "File tidak ditemukan atau telah dipindahkan: {path}",
+  "sidebar.empty": "Tidak ada catatan",
+  "sidebar.up": "Naik Satu Tingkat",
+
   // ===== Status Bar =====
   "status.unsaved": "Belum Disimpan",
   "status.external_deleted": "⚠ Dihapus dari luar",
@@ -69,8 +76,8 @@ export const idID: Record<string, string> = {
   "status.line_and_chars": "{lines} baris · {chars} karakter",
   "status.selected_chars": "{chars} karakter dipilih",
   "status.selected_lines_and_chars": "{lines} baris · {chars} karakter dipilih",
-  "status.word_wrap_on": "Wrap: Aktif",
-  "status.word_wrap_off": "Wrap: Nonaktif",
+  "status.short_line_numbers": "Baris",
+  "status.short_word_wrap": "Wrap",
   "status.encoding_tooltip": "Encoding: {encoding}",
   "status.line_ending_lf": "Akhiran baris Unix (LF)",
   "status.line_ending_crlf": "Akhiran baris Windows (CRLF)",

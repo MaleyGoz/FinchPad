@@ -61,6 +61,13 @@ export const nlNL: Record<string, string> = {
   "editor_menu.delete": "Verwijderen",
   "editor_menu.select_all": "Alles selecteren",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Recente bestanden",
+  "sidebar.directory": "Huidige map",
+  "sidebar.file_not_found": "Bestand niet gevonden of verplaatst: {path}",
+  "sidebar.empty": "Geen records",
+  "sidebar.up": "Omhoog",
+
   // ===== Statusbalk =====
   "status.unsaved": "Niet opgeslagen",
   "status.external_deleted": "⚠ Extern verwijderd",
@@ -69,8 +76,8 @@ export const nlNL: Record<string, string> = {
   "status.line_and_chars": "{lines} regels · {chars} tekens",
   "status.selected_chars": "{chars} tekens geselecteerd",
   "status.selected_lines_and_chars": "{lines} regels · {chars} tekens geselecteerd",
-  "status.word_wrap_on": "Terugloop: Aan",
-  "status.word_wrap_off": "Terugloop: Uit",
+  "status.short_line_numbers": "Regels",
+  "status.short_word_wrap": "Terugloop",
   "status.encoding_tooltip": "Codering: {encoding}",
   "status.line_ending_lf": "Unix regeleinde (LF)",
   "status.line_ending_crlf": "Windows regeleinde (CRLF)",

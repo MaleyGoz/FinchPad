@@ -61,6 +61,13 @@ export const faIR: Record<string, string> = {
   "editor_menu.delete": "حذف",
   "editor_menu.select_all": "انتخاب همه",
 
+  // ===== SideBar =====
+  "sidebar.recent": "فایل‌های اخیر",
+  "sidebar.directory": "پوشه فعلی",
+  "sidebar.file_not_found": "فایل یافت نشد یا منتقل شده است: {path}",
+  "sidebar.empty": "بدون سابقه",
+  "sidebar.up": "پوشه بالاتر",
+
   // ===== نوار وضعیت =====
   "status.unsaved": "ذخیره نشده",
   "status.external_deleted": "⚠ از بیرون حذف شد",
@@ -69,8 +76,8 @@ export const faIR: Record<string, string> = {
   "status.line_and_chars": "{lines} خط · {chars} نویسه",
   "status.selected_chars": "{chars} نویسه انتخاب شد",
   "status.selected_lines_and_chars": "{lines} خط · {chars} نویسه انتخاب شد",
-  "status.word_wrap_on": "شکستن: روشن",
-  "status.word_wrap_off": "شکستن: خاموش",
+  "status.short_line_numbers": "خطوط",
+  "status.short_word_wrap": "شکستن کلمه",
   "status.encoding_tooltip": "رمزگذاری: {encoding}",
   "status.line_ending_lf": "پایان خط یونیکس (LF)",
   "status.line_ending_crlf": "پایان خط ویندوز (CRLF)",

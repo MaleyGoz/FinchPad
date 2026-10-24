@@ -61,6 +61,13 @@ export const trTR: Record<string, string> = {
   "editor_menu.delete": "Sil",
   "editor_menu.select_all": "Tümünü Seç",
 
+  // ===== SideBar =====
+  "sidebar.recent": "Son Dosyalar",
+  "sidebar.directory": "Mevcut Dizin",
+  "sidebar.file_not_found": "Dosya bulunamadı veya taşındı: {path}",
+  "sidebar.empty": "Kayıt yok",
+  "sidebar.up": "Üst Dizine Çık",
+
   // ===== Durum Çubuğu =====
   "status.unsaved": "Kaydedilmedi",
   "status.external_deleted": "⚠ Dışarıdan silindi",
@@ -69,8 +76,8 @@ export const trTR: Record<string, string> = {
   "status.line_and_chars": "{lines} satır · {chars} karakter",
   "status.selected_chars": "{chars} karakter seçildi",
   "status.selected_lines_and_chars": "{lines} satır · {chars} karakter seçildi",
-  "status.word_wrap_on": "Kaydırma: Açık",
-  "status.word_wrap_off": "Kaydırma: Kapalı",
+  "status.short_line_numbers": "Satırlar",
+  "status.short_word_wrap": "Kaydırma",
   "status.encoding_tooltip": "Kodlama: {encoding}",
   "status.line_ending_lf": "Unix satır sonu (LF)",
   "status.line_ending_crlf": "Windows satır sonu (CRLF)",

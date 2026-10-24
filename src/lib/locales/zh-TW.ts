@@ -61,6 +61,13 @@ export const zhTW: Record<string, string> = {
   "editor_menu.delete": "刪除",
   "editor_menu.select_all": "全選",
 
+  // ===== SideBar =====
+  "sidebar.recent": "最近檔案",
+  "sidebar.directory": "目前目錄",
+  "sidebar.file_not_found": "檔案不存在或已被移動：{path}",
+  "sidebar.empty": "暫無記錄",
+  "sidebar.up": "返回上一級",
+
   // ===== 狀態欄 =====
   "status.unsaved": "未儲存",
   "status.external_deleted": "⚠ 已被外部刪除",
@@ -69,8 +76,8 @@ export const zhTW: Record<string, string> = {
   "status.line_and_chars": "共 {lines} 行 · {chars} 字元",
   "status.selected_chars": "選中 {chars} 字元",
   "status.selected_lines_and_chars": "選中 {lines} 行 · {chars} 字元",
-  "status.word_wrap_on": "自動換行：是",
-  "status.word_wrap_off": "自動換行：否",
+  "status.short_line_numbers": "行號",
+  "status.short_word_wrap": "換行",
   "status.encoding_tooltip": "文字編碼：{encoding}",
   "status.line_ending_lf": "Unix 換行符（LF）",
   "status.line_ending_crlf": "Windows 換行符（CRLF）",

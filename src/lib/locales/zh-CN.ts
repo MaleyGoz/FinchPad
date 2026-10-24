@@ -60,6 +60,13 @@ export const zhCN: Record<string, string> = {
   "editor_menu.delete": "删除",
   "editor_menu.select_all": "全选",
 
+  // ===== 侧边栏 =====
+  "sidebar.recent": "最近文件",
+  "sidebar.directory": "当前目录",
+  "sidebar.file_not_found": "文件不存在或已被移动：{path}",
+  "sidebar.empty": "暂无记录", 
+  "sidebar.up": "返回上一级", 
+
   // ===== 状态栏 =====
   "status.unsaved": "未保存",
   "status.external_deleted": "⚠ 已被外部删除",
@@ -68,8 +75,8 @@ export const zhCN: Record<string, string> = {
   "status.line_and_chars": "共 {lines} 行 · {chars} 字符",
   "status.selected_chars": "选中 {chars} 字符",
   "status.selected_lines_and_chars": "选中 {lines} 行 · {chars} 字符",
-  "status.word_wrap_on": "自动换行：是",
-  "status.word_wrap_off": "自动换行：否",
+  "status.short_line_numbers": "行号",
+  "status.short_word_wrap": "换行",
   "status.encoding_tooltip": "文本编码：{encoding}",
   "status.line_ending_lf": "Unix 换行符（LF）",
   "status.line_ending_crlf": "Windows 换行符（CRLF）",

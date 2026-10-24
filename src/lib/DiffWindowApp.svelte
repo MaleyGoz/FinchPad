@@ -143,10 +143,9 @@
     <div class="diff-titles-row">
         <!-- 悬浮的按钮区域 -->
         <div class="titles-actions">
-            <button class="text-btn" on:click={toggleWordWrap}>
-                {wordWrap
-                    ? t("status.word_wrap_on", undefined, $resolvedLocale)
-                    : t("status.word_wrap_off", undefined, $resolvedLocale)}
+            <button class="plain-text-btn" on:click={toggleWordWrap}>
+                {t("settings.word_wrap", undefined, $resolvedLocale)}
+                {wordWrap ? "☑" : "☐"}
             </button>
 
             {#if payload?.mode === "disk"}
@@ -284,5 +283,20 @@
     }
     .text-btn.primary:hover {
         filter: brightness(0.9);
+    }
+    /* ★ 新增：无边框、无背景的纯文本按钮 */
+    .plain-text-btn {
+        background: transparent;
+        border: none;
+        padding: 0 8px;
+        font-size: 12px;
+        color: var(--overlay-foreground);
+        cursor: pointer;
+        font-family: inherit;
+        border-radius: 4px;
+        transition: color 0.15s;
+    }
+    .plain-text-btn:hover {
+        color: var(--accent); /* 鼠标移上去字变蓝即可，不需要背景 */
     }
 </style>
