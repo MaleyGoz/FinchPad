@@ -13,6 +13,8 @@ use app::{
 };
 use model::Workspace;
 use std::sync::Mutex;
+use tauri::Manager;
+
 /// 从命令行参数中解析文件路径。
 /// 处理两类情况：
 ///   1. 每个参数是一个完整路径（Windows 双击时的正常情况）
