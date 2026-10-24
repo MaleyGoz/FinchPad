@@ -62,11 +62,14 @@ export const hiIN: Record<string, string> = {
   "editor_menu.select_all": "सभी का चयन करें",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "कोई हालिया फ़ाइल नहीं",
+  "sidebar.empty_dir": "खाली फ़ोल्डर",
+  "sidebar.up": "ऊपर जाएं",
+  "sidebar.dir_unreachable": "⚠️ निर्देशिका तक पहुँचने में असमर्थ:\n{path}\n\nसंभावित कारण: USB ड्राइव हटा दी गई, नेटवर्क ड्राइव माउंट नहीं है, या फ़ोल्डर का नाम बदल दिया गया है।",
+
   "sidebar.recent": "हाल की फ़ाइलें",
   "sidebar.directory": "वर्तमान निर्देशिका",
   "sidebar.file_not_found": "फ़ाइल नहीं मिली या स्थानांतरित कर दी गई: {path}",
-  "sidebar.empty": "कोई रिकॉर्ड नहीं",
-  "sidebar.up": "ऊपर जाएं",
 
   // ===== स्टेटस बार =====
   "status.unsaved": "सहेजा नहीं गया",

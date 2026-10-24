@@ -63,11 +63,13 @@ export const ar: Record<string, string> = {
   "editor_menu.select_all": "تحديد الكل",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "لا توجد ملفات حديثة",
+  "sidebar.empty_dir": "مجلد فارغ",
+  "sidebar.up": "المجلد الأعلى",
+  "sidebar.dir_unreachable": "⚠️ تعذر الوصول إلى المجلد:\n{path}\n\nالأسباب المحتملة: تم فصل محرك أقراص USB، أو لم يتم تركيب محرك أقراص الشبكة، أو تمت إعادة تسمية المجلد.",
   "sidebar.recent": "الملفات الأخيرة",
   "sidebar.directory": "المجلد الحالي",
   "sidebar.file_not_found": "الملف غير موجود أو تم نقله: {path}",
-  "sidebar.empty": "لا توجد سجلات",
-  "sidebar.up": "المجلد الأعلى",
 
   // ===== شريط الحالة =====
   "status.unsaved": "غير محفوظ",

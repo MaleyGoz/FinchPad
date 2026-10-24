@@ -62,11 +62,14 @@ export const faIR: Record<string, string> = {
   "editor_menu.select_all": "انتخاب همه",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "فایل‌های اخیر وجود ندارد",
+  "sidebar.empty_dir": "پوشه خالی است",
+  "sidebar.up": "پوشه بالاتر",
+  "sidebar.dir_unreachable": "⚠️ دسترسی به پوشه امکان‌پذیر نیست:\n{path}\n\nدلایل احتمالی: درایو USB قطع شده، درایو شبکه متصل نشده، یا نام پوشه تغییر کرده است.",
+
   "sidebar.recent": "فایل‌های اخیر",
   "sidebar.directory": "پوشه فعلی",
   "sidebar.file_not_found": "فایل یافت نشد یا منتقل شده است: {path}",
-  "sidebar.empty": "بدون سابقه",
-  "sidebar.up": "پوشه بالاتر",
 
   // ===== نوار وضعیت =====
   "status.unsaved": "ذخیره نشده",

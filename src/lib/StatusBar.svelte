@@ -23,6 +23,11 @@
     export let canUseDirectory = false;
 
     const ZOOM_PRESETS = [50, 75, 100, 125, 150, 200, 300, 400];
+    // 判断平台并生成快捷键文本
+    const isMac =
+        typeof navigator !== "undefined" &&
+        /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    const sidebarShortcut = isMac ? "Cmd+B" : "Ctrl+B";
 
     let zoomMenuOpen = false;
 
@@ -71,23 +76,34 @@
 <div class="status-bar" data-locale={$resolvedLocale}>
     <!-- ★ 新增：侧边栏切换按钮 -->
     <div class="sidebar-btn-group">
-        <!-- 最近文件 -->
-        <button
-            class="sidebar-btn"
-            class:active={sidebarMode === "recent"}
-            onclick={() => onToggleSidebar("recent")}
-        >
-            {t("sidebar.recent", undefined, $resolvedLocale)}
-        </button>
+        <!-- 最近文件 (加上了 tooltip-left 类) -->
+        <div class="tooltip-wrapper tooltip-left">
+            <button
+                class="sidebar-btn"
+                class:active={sidebarMode === "recent"}
+                onclick={() => onToggleSidebar("recent")}
+            >
+                {t("sidebar.recent", undefined, $resolvedLocale)}
+            </button>
+            <!-- 只显示快捷键 -->
+            <span class="tooltip">{sidebarShortcut}</span>
+        </div>
+
         <!-- 当前目录 -->
-        <button
-            class="sidebar-btn"
-            class:active={sidebarMode === "directory"}
-            onclick={() => onToggleSidebar("directory")}
-            disabled={!canUseDirectory}
-        >
-            {t("sidebar.directory", undefined, $resolvedLocale)}
-        </button>
+        <div class="tooltip-wrapper">
+            <button
+                class="sidebar-btn"
+                class:active={sidebarMode === "directory"}
+                onclick={() => onToggleSidebar("directory")}
+                disabled={!canUseDirectory}
+            >
+                {t("sidebar.directory", undefined, $resolvedLocale)}
+            </button>
+            {#if canUseDirectory}
+                <!-- 只显示快捷键 -->
+                <span class="tooltip">{sidebarShortcut}</span>
+            {/if}
+        </div>
     </div>
 
     <span class="sep">|</span>
@@ -409,6 +425,11 @@
         right: 0;
         transform: none;
     }
+    /* ★ 新增：最左侧的 tooltip 左对齐，避免溢出屏幕 */
+    .tooltip-wrapper.tooltip-left .tooltip {
+        left: 0;
+        transform: none;
+    }
 
     .sidebar-btn {
         background: none;
@@ -440,7 +461,7 @@
     /* 侧边栏按钮组 */
     .sidebar-btn-group {
         display: flex;
-        gap: 0; /* 内部按钮紧挨着，消除父级 8px 的 gap 影响 */
+        gap: 2px; /* 内部按钮紧挨着，消除父级 8px 的 gap 影响 */
         margin-right: 2px; /* 和右边的分隔线稍微拉开一点距离 */
     }
 </style>

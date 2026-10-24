@@ -63,11 +63,14 @@ export const ja: Record<string, string> = {
   "editor_menu.select_all": "すべて選択",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "最近のファイルはありません",
+  "sidebar.empty_dir": "空のフォルダ",
+  "sidebar.up": "上の階層へ",
+  "sidebar.dir_unreachable": "⚠️ ディレクトリにアクセスできません:\n{path}\n\n考えられる原因：USBドライブが抜かれている、ネットワークドライブがマウントされていない、またはフォルダ名が変更されている。",
+
   "sidebar.recent": "最近のファイル",
   "sidebar.directory": "現在のディレクトリ",
   "sidebar.file_not_found": "ファイルが見つからないか、移動されました: {path}",
-  "sidebar.empty": "履歴なし",
-  "sidebar.up": "上の階層へ",
 
   // ===== ステータスバー =====
   "status.unsaved": "未保存",

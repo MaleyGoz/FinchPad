@@ -62,11 +62,14 @@ export const it: Record<string, string> = {
   "editor_menu.select_all": "Seleziona tutto",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Nessun file recente",
+  "sidebar.empty_dir": "Cartella vuota",
+  "sidebar.up": "Cartella superiore",
+  "sidebar.dir_unreachable": "⚠️ Impossibile accedere alla directory:\n{path}\n\nPossibili cause: unità USB scollegata, unità di rete non montata o cartella rinominata.",
+
   "sidebar.recent": "File recenti",
   "sidebar.directory": "Directory corrente",
   "sidebar.file_not_found": "File non trovato o spostato: {path}",
-  "sidebar.empty": "Nessun record",
-  "sidebar.up": "Cartella superiore",
 
   // ===== Barra di Stato =====
   "status.unsaved": "Non salvato",

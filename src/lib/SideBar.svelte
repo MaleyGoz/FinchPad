@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { api, type FileEntry } from "$lib/api";
     import { tooltip } from "$lib/tooltip";
     import { t, resolvedLocale } from "$lib/i18n";
+    export let onClose: () => void = () => {};
 
     export let mode: "recent" | "directory" | null = null;
     export let activeFilePath: string = "";
@@ -12,6 +14,7 @@
     let currentBrowsePath = "";
     let baseDir = "";
     let dirLoading = false;
+    let dirError = false;
 
     const isMac =
         typeof navigator !== "undefined" &&
@@ -31,16 +34,27 @@
     }
 
     // 加载目录
-    async function loadDirectory(path: string) {
-        dirLoading = true;
+    async function loadDirectory(path: string, isSilent = false) {
+        // 如果是静默重试（比如窗口重新获得焦点），不显示 Loading 动画，防止界面闪烁
+        if (!isSilent) {
+            dirLoading = true;
+        }
+        dirError = false;
         try {
             currentDirFiles = await api.readDir(path);
             currentBrowsePath = path;
         } catch (e) {
             console.error("读取目录失败:", e);
-            goUp();
+            if (path === baseDir) {
+                dirError = true;
+                currentDirFiles = [];
+            } else {
+                goUp();
+            }
         } finally {
-            dirLoading = false;
+            if (!isSilent) {
+                dirLoading = false;
+            }
         }
     }
 
@@ -61,22 +75,60 @@
         loadDirectory(parentPath);
     }
 
-    // 响应式监听：当 mode 或 activeFilePath 变化时，更新侧边栏内容
-    $: if (mode === "recent") {
-        loadRecentFiles();
-    } else if (mode === "directory" && activeFilePath) {
-        const sep = getSep(activeFilePath);
-        const dir = activeFilePath.substring(
-            0,
-            activeFilePath.lastIndexOf(sep),
-        );
+    // 记录上一次的状态，用于判断是否真的发生了切换
+    let lastActivePath = "";
+    let wasOpen = false;
 
-        // 只有当目录发生变化时，才重新加载，避免频繁刷新
-        if (dir !== baseDir) {
-            baseDir = dir;
-            loadDirectory(dir);
+    // 触发时机 1 & 2：面板打开、标签切换
+    $: {
+        if (mode === "directory") {
+            if (!wasOpen) {
+                // 时机 1：侧边栏从隐藏变显示
+                wasOpen = true;
+                if (activeFilePath) {
+                    lastActivePath = activeFilePath;
+                    const sep = getSep(activeFilePath);
+                    baseDir = activeFilePath.substring(
+                        0,
+                        activeFilePath.lastIndexOf(sep),
+                    );
+                    currentBrowsePath = baseDir;
+                    loadDirectory(baseDir);
+                }
+            } else if (activeFilePath && activeFilePath !== lastActivePath) {
+                // 时机 2：切到了有路径的文件
+                lastActivePath = activeFilePath;
+                const sep = getSep(activeFilePath);
+                baseDir = activeFilePath.substring(
+                    0,
+                    activeFilePath.lastIndexOf(sep),
+                );
+                currentBrowsePath = baseDir;
+                loadDirectory(baseDir);
+            } else if (!activeFilePath) {
+                // 策略 A：切到了未命名标签，保留现有视图，但清空记录以便下次能触发
+                lastActivePath = "";
+            }
+        } else {
+            // 侧边栏关闭，重置状态
+            wasOpen = false;
+            lastActivePath = "";
         }
     }
+
+    // 触发时机 3：窗口重新获得焦点（应对 U 盘重插、网盘重连）
+    onMount(() => {
+        const handleWindowFocus = () => {
+            // 只有在报错状态下，才去静默重试一次
+            if (dirError && currentBrowsePath) {
+                console.log("窗口获得焦点，静默重试读取目录...");
+                loadDirectory(currentBrowsePath, true);
+            }
+        };
+
+        window.addEventListener("focus", handleWindowFocus);
+        return () => window.removeEventListener("focus", handleWindowFocus);
+    });
 </script>
 
 {#if mode}
@@ -92,17 +144,19 @@
                 </div>
             {/if}
 
-            <!-- 假标签的文字 -->
-            <span class="fake-tab-title">
-                {mode === "recent"
-                    ? t("sidebar.recent", undefined, $resolvedLocale)
-                    : t("sidebar.directory", undefined, $resolvedLocale)}
-            </span>
+            <!-- ★ 绝对居中的假标签文字 -->
+            <div class="fake-tab-title-wrapper" data-tauri-drag-region>
+                <span class="fake-tab-title">
+                    {mode === "recent"
+                        ? t("sidebar.recent", undefined, $resolvedLocale)
+                        : t("sidebar.directory", undefined, $resolvedLocale)}
+                </span>
+            </div>
 
-            <!-- 关闭按钮 -->
+            <!-- ★ 关闭按钮 -->
             <button
                 class="close-sidebar-btn"
-                onclick={() => (mode = null)}
+                onclick={onClose}
                 aria-label="Close Sidebar"
             >
                 ×
@@ -114,7 +168,11 @@
                 <div class="sidebar-list">
                     {#if recentFiles.length === 0}
                         <div class="empty-hint">
-                            {t("sidebar.empty", undefined, $resolvedLocale)}
+                            {t(
+                                "sidebar.empty_recent",
+                                undefined,
+                                $resolvedLocale,
+                            )}
                         </div>
                     {:else}
                         {#each recentFiles as file}
@@ -139,7 +197,9 @@
                     <button
                         class="dir-up-btn"
                         onclick={goUp}
-                        disabled={currentBrowsePath === baseDir || dirLoading}
+                        disabled={currentBrowsePath === baseDir ||
+                            dirLoading ||
+                            dirError}
                     >
                         ⬆️ {t("sidebar.up", undefined, $resolvedLocale)}
                     </button>
@@ -152,9 +212,18 @@
                 <div class="sidebar-list">
                     {#if dirLoading}
                         <div class="empty-hint">Loading...</div>
+                    {:else if dirError}
+                        <!-- ★ 新增：目录不可达提示 -->
+                        <div class="dir-error-hint">
+                            {t(
+                                "sidebar.dir_unreachable",
+                                { path: baseDir },
+                                $resolvedLocale,
+                            )}
+                        </div>
                     {:else if currentDirFiles.length === 0}
                         <div class="empty-hint">
-                            {t("sidebar.empty", undefined, $resolvedLocale)}
+                            {t("sidebar.empty_dir", undefined, $resolvedLocale)}
                         </div>
                     {:else}
                         {#each currentDirFiles as file}
@@ -201,6 +270,7 @@
         box-sizing: border-box;
         user-select: none;
         flex-shrink: 0;
+        position: relative; /* ★ 核心修复：让内部的绝对定位有参考系 */
     }
 
     /* Mac 红绿灯占位 */
@@ -228,35 +298,52 @@
         pointer-events: none;
     }
 
-    /* 假标签文字 */
-    .fake-tab-title {
-        flex: 1;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--tab-foreground);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding-left: 4px;
+    /* 文字外壳：绝对定位实现完美居中 */
+    .fake-tab-title-wrapper {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* 关闭按钮 (悬停显示) */
+    /* 假标签文字本体 */
+    .fake-tab-title {
+        font-size: 13px;
+        font-weight: 500;
+        padding-top: 5px;
+        color: var(--tab-foreground);
+        white-space: nowrap;
+        /* 删除了 padding、border-radius、transition */
+    }
+
+    /* 关闭按钮 (位置固定在右侧) */
     .close-sidebar-btn {
+        position: absolute;
+        right: 0;
         background: none;
         border: none;
         font-size: 16px;
         color: var(--tab-foreground);
         cursor: pointer;
-        padding: 0 12px;
+        padding: 5px 12px 0;
         height: 100%;
         display: flex;
         align-items: center;
         opacity: 0;
-        transition: opacity 0.15s;
+        transition:
+            opacity 0.15s,
+            color 0.15s;
     }
     .sidebar-header:hover .close-sidebar-btn {
-        opacity: 1; /* 鼠标悬停在头部时显示 */
+        opacity: 1;
     }
+    .close-sidebar-btn:hover {
+        color: var(--accent);
+    }
+
     .close-sidebar-btn:hover {
         color: var(--accent);
     }
@@ -353,5 +440,16 @@
         overflow: hidden;
         text-overflow: ellipsis;
         flex: 1;
+    }
+    /* 目录不可达的错误提示面板 */
+    .dir-error-hint {
+        padding: 32px 16px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--warning-strong);
+        line-height: 1.6;
+        white-space: pre-line; /* 关键：让 \n 生效换行 */
+        word-break: break-all; /* 防止超长路径撑破侧边栏 */
+        opacity: 0.9;
     }
 </style>

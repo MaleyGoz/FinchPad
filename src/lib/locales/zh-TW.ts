@@ -62,11 +62,13 @@ export const zhTW: Record<string, string> = {
   "editor_menu.select_all": "全選",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "暫無最近檔案",
+  "sidebar.empty_dir": "空資料夾",
+  "sidebar.up": "返回上一級",
+  "sidebar.dir_unreachable": "⚠️ 無法存取以下目錄：\n{path}\n\n可能的原因：USB 裝置已拔出、網路磁碟未掛載、或資料夾被重新命名。",
   "sidebar.recent": "最近檔案",
   "sidebar.directory": "目前目錄",
   "sidebar.file_not_found": "檔案不存在或已被移動：{path}",
-  "sidebar.empty": "暫無記錄",
-  "sidebar.up": "返回上一級",
 
   // ===== 狀態欄 =====
   "status.unsaved": "未儲存",

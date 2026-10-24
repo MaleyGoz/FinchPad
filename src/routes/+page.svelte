@@ -111,6 +111,7 @@
 
     // 侧边栏相关
     let sidebarMode: "recent" | "directory" | null = null;
+    let lastSidebarMode: "recent" | "directory" = "directory";
     let canUseDirectory = false;
     // 当标签切换时，判断是否可用当前目录
     $: canUseDirectory = !!snapshot.tab_paths[snapshot.active_index];
@@ -119,6 +120,22 @@
             sidebarMode = null;
         } else {
             sidebarMode = mode;
+            lastSidebarMode = mode; // ★ 记录最后一次打开的面板
+        }
+    }
+    function handleSidebarShortcut() {
+        if (sidebarMode !== null) {
+            sidebarMode = null; // 开着则关
+            return;
+        }
+
+        const activePath = snapshot.tab_paths[snapshot.active_index];
+        if (!activePath) {
+            // 未命名标签 -> 降级为最近文件
+            sidebarMode = "recent";
+        } else {
+            // 已命名标签 -> 按记忆打开
+            sidebarMode = lastSidebarMode;
         }
     }
     // ★ 侧边栏打开文件的统一入口
@@ -1913,6 +1930,7 @@
             activeIndex: snapshot.active_index,
             applyZoomDelta,
             setZoomValue,
+            onToggleSidebarShortcut: handleSidebarShortcut,
         })}
 />
 
@@ -1924,6 +1942,7 @@
             mode={sidebarMode}
             activeFilePath={snapshot.tab_paths[snapshot.active_index] || ""}
             onOpenFile={handleSidebarOpenFile}
+            onClose={() => (sidebarMode = null)}
         />
         <!-- 右侧主体：包含标签栏和编辑器 -->
         <div class="main-content">

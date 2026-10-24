@@ -62,11 +62,14 @@ export const ko: Record<string, string> = {
   "editor_menu.select_all": "모두 선택",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "최근 파일 없음",
+  "sidebar.empty_dir": "빈 폴더",
+  "sidebar.up": "상위 폴더로",
+  "sidebar.dir_unreachable": "⚠️ 디렉토리에 액세스할 수 없습니다:\n{path}\n\n가능한 원인: USB 드라이브 분리됨, 네트워크 드라이브가 마운트되지 않음 또는 폴더 이름 변경됨.",
+
   "sidebar.recent": "최근 파일",
   "sidebar.directory": "현재 디렉토리",
   "sidebar.file_not_found": "파일을 찾을 수 없거나 이동되었습니다: {path}",
-  "sidebar.empty": "기록 없음",
-  "sidebar.up": "상위 폴더로",
 
   // ===== 상태 표시줄 =====
   "status.unsaved": "저장되지 않음",

@@ -62,11 +62,14 @@ export const plPL: Record<string, string> = {
   "editor_menu.select_all": "Zaznacz wszystko",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Brak ostatnich plików",
+  "sidebar.empty_dir": "Pusty folder",
+  "sidebar.up": "W górę",
+  "sidebar.dir_unreachable": "⚠️ Nie można uzyskać dostępu do katalogu:\n{path}\n\nMożliwe przyczyny: odłączony dysk USB, niezamontowany dysk sieciowy lub zmieniona nazwa folderu.",
+
   "sidebar.recent": "Ostatnie pliki",
   "sidebar.directory": "Bieżący katalog",
   "sidebar.file_not_found": "Plik nie znaleziony lub przeniesiony: {path}",
-  "sidebar.empty": "Brak wpisów",
-  "sidebar.up": "W górę",
 
   // ===== Pasek stanu =====
   "status.unsaved": "Nie zapisano",

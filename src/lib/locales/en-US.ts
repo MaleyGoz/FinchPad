@@ -66,8 +66,11 @@ export const enUS: Record<string, string> = {
   "sidebar.recent": "Recent Files",
   "sidebar.directory": "Current Directory",
   "sidebar.file_not_found": "File not found or has been moved: {path}",
-  "sidebar.empty": "No recent files",
+  "sidebar.empty_recent": "No recent files",
+  "sidebar.empty_dir": "Empty folder",
   "sidebar.up": "Go Up",
+  "sidebar.dir_unreachable": "⚠️ Cannot access the directory:\n{path}\n\nPossible reasons: USB drive unplugged, network drive not mounted, or folder renamed.",
+
 
   // ===== Status Bar =====
   "status.unsaved": "Unsaved",

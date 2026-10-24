@@ -62,11 +62,14 @@ export const nlNL: Record<string, string> = {
   "editor_menu.select_all": "Alles selecteren",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Geen recente bestanden",
+  "sidebar.empty_dir": "Lege map",
+  "sidebar.up": "Omhoog",
+  "sidebar.dir_unreachable": "⚠️ Kan geen toegang krijgen tot de map:\n{path}\n\nMogelijke oorzaken: USB-station losgekoppeld, netwerkschijf niet gekoppeld of map hernoemd.",
+
   "sidebar.recent": "Recente bestanden",
   "sidebar.directory": "Huidige map",
   "sidebar.file_not_found": "Bestand niet gevonden of verplaatst: {path}",
-  "sidebar.empty": "Geen records",
-  "sidebar.up": "Omhoog",
 
   // ===== Statusbalk =====
   "status.unsaved": "Niet opgeslagen",

@@ -62,11 +62,14 @@ export const trTR: Record<string, string> = {
   "editor_menu.select_all": "Tümünü Seç",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Son dosya yok",
+  "sidebar.empty_dir": "Boş klasör",
+  "sidebar.up": "Üst Dizine Çık",
+  "sidebar.dir_unreachable": "⚠️ Dizine erişilemiyor:\n{path}\n\nOlası nedenler: USB sürücüsü çıkarıldı, ağ sürücüsü bağlanmadı veya klasör yeniden adlandırıldı.",
+
   "sidebar.recent": "Son Dosyalar",
   "sidebar.directory": "Mevcut Dizin",
   "sidebar.file_not_found": "Dosya bulunamadı veya taşındı: {path}",
-  "sidebar.empty": "Kayıt yok",
-  "sidebar.up": "Üst Dizine Çık",
 
   // ===== Durum Çubuğu =====
   "status.unsaved": "Kaydedilmedi",

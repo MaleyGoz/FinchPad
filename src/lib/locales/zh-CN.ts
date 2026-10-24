@@ -64,8 +64,10 @@ export const zhCN: Record<string, string> = {
   "sidebar.recent": "最近文件",
   "sidebar.directory": "当前目录",
   "sidebar.file_not_found": "文件不存在或已被移动：{path}",
-  "sidebar.empty": "暂无记录", 
+  "sidebar.empty_recent": "暂无最近文件",
+  "sidebar.empty_dir": "此文件夹为空",
   "sidebar.up": "返回上一级", 
+  "sidebar.dir_unreachable": "⚠️ 无法访问以下目录：\n{path}\n\n可能的原因：U盘已拔出、网盘未挂载、或文件夹被重命名。",
 
   // ===== 状态栏 =====
   "status.unsaved": "未保存",

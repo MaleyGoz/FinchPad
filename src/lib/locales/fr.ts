@@ -62,11 +62,14 @@ export const fr: Record<string, string> = {
   "editor_menu.select_all": "Tout sélectionner",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Aucun fichier récent",
+  "sidebar.empty_dir": "Dossier vide",
+  "sidebar.up": "Dossier parent",
+  "sidebar.dir_unreachable": "⚠️ Impossible d'accéder au répertoire :\n{path}\n\nRaisons possibles : clé USB débranchée, lecteur réseau non monté ou dossier renommé.",
+
   "sidebar.recent": "Fichiers récents",
   "sidebar.directory": "Dossier actuel",
   "sidebar.file_not_found": "Fichier introuvable ou déplacé : {path}",
-  "sidebar.empty": "Aucun enregistrement",
-  "sidebar.up": "Dossier parent",
 
   // ===== Barre d'État =====
   "status.unsaved": "Non enregistré",

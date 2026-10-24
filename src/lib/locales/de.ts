@@ -62,11 +62,14 @@ export const de: Record<string, string> = {
   "editor_menu.select_all": "Alles auswählen",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Keine aktuellen Dateien",
+  "sidebar.empty_dir": "Leerer Ordner",
+  "sidebar.up": "Übergeordneter Ordner",
+  "sidebar.dir_unreachable": "⚠️ Auf das Verzeichnis kann nicht zugegriffen werden:\n{path}\n\nMögliche Ursachen: USB-Laufwerk entfernt, Netzlaufwerk nicht eingebunden oder Ordner umbenannt.",
+
   "sidebar.recent": "Zuletzt verwendet",
   "sidebar.directory": "Aktuelles Verzeichnis",
   "sidebar.file_not_found": "Datei nicht gefunden oder verschoben: {path}",
-  "sidebar.empty": "Keine Einträge",
-  "sidebar.up": "Übergeordneter Ordner",
 
   // ===== Statusleiste =====
   "status.unsaved": "Nicht gespeichert",

@@ -26,6 +26,7 @@ export type ShortcutContext = {
     activeIndex: number;
     applyZoomDelta: (delta: number) => void;
     setZoomValue: (val: number) => void;
+    onToggleSidebarShortcut: () => void;
 };
 
 export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
@@ -85,6 +86,13 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     if (key === "h" && !e.shiftKey) {
         e.preventDefault();
         ctx.editorRef?.execEditorAction("replace");
+        return;
+    }
+
+    // 侧边栏切换 (Ctrl+B / Cmd+B)
+    if (key === "b" && !e.shiftKey) {
+        e.preventDefault();
+        ctx.onToggleSidebarShortcut();
         return;
     }
 

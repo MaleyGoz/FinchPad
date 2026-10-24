@@ -62,11 +62,14 @@ export const thTH: Record<string, string> = {
   "editor_menu.select_all": "เลือกทั้งหมด",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "ไม่มีไฟล์ล่าสุด",
+  "sidebar.empty_dir": "โฟลเดอร์ว่างเปล่า",
+  "sidebar.up": "ระดับบน",
+  "sidebar.dir_unreachable": "⚠️ ไม่สามารถเข้าถึงไดเรกทอรี:\n{path}\n\nสาเหตุที่เป็นไปได้: ถอดไดรฟ์ USB ออก, ไม่ได้เมานต์ไดรฟ์เครือข่าย, หรือเปลี่ยนชื่อโฟลเดอร์",
+
   "sidebar.recent": "ไฟล์ล่าสุด",
   "sidebar.directory": "โฟลเดอร์ปัจจุบัน",
   "sidebar.file_not_found": "ไม่พบไฟล์หรือไฟล์ถูกย้าย: {path}",
-  "sidebar.empty": "ไม่มีบันทึก",
-  "sidebar.up": "ระดับบน",
 
   // ===== แถบสถานะ =====
   "status.unsaved": "ยังไม่ได้บันทึก",

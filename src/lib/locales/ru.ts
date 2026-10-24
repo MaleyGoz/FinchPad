@@ -62,11 +62,14 @@ export const ru: Record<string, string> = {
   "editor_menu.select_all": "Выделить всё",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Нет недавних файлов",
+  "sidebar.empty_dir": "Пустая папка",
+  "sidebar.up": "На уровень выше",
+  "sidebar.dir_unreachable": "⚠️ Невозможно получить доступ к каталогу:\n{path}\n\nВозможные причины: USB-накопитель отключен, сетевой диск не смонтирован или папка переименована.",
+
   "sidebar.recent": "Недавние файлы",
   "sidebar.directory": "Текущая папка",
   "sidebar.file_not_found": "Файл не найден или перемещён: {path}",
-  "sidebar.empty": "Нет записей",
-  "sidebar.up": "На уровень выше",
 
   // ===== Строка состояния =====
   "status.unsaved": "Не сохранено",

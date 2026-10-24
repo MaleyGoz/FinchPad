@@ -62,11 +62,14 @@ export const idID: Record<string, string> = {
   "editor_menu.select_all": "Pilih Semua",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Tidak ada file terbaru",
+  "sidebar.empty_dir": "Folder kosong",
+  "sidebar.up": "Naik Satu Tingkat",
+  "sidebar.dir_unreachable": "⚠️ Tidak dapat mengakses direktori:\n{path}\n\nKemungkinan penyebab: Drive USB dicabut, drive jaringan tidak terpasang, atau folder diganti namanya.",
+
   "sidebar.recent": "File Terbaru",
   "sidebar.directory": "Direktori Saat Ini",
   "sidebar.file_not_found": "File tidak ditemukan atau telah dipindahkan: {path}",
-  "sidebar.empty": "Tidak ada catatan",
-  "sidebar.up": "Naik Satu Tingkat",
 
   // ===== Status Bar =====
   "status.unsaved": "Belum Disimpan",

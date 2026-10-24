@@ -62,11 +62,13 @@ export const viVN: Record<string, string> = {
   "editor_menu.select_all": "Chọn tất cả",
 
   // ===== SideBar =====
+  "sidebar.empty_recent": "Không có tệp gần đây",
+  "sidebar.empty_dir": "Thư mục trống",
+  "sidebar.up": "Lên một cấp",
+  "sidebar.dir_unreachable": "⚠️ Không thể truy cập thư mục:\n{path}\n\nNguyên nhân có thể: Ổ USB đã rút, ổ mạng chưa được gắn, hoặc thư mục đã đổi tên.",
   "sidebar.recent": "Tệp gần đây",
   "sidebar.directory": "Thư mục hiện tại",
   "sidebar.file_not_found": "Không tìm thấy tệp hoặc đã bị di chuyển: {path}",
-  "sidebar.empty": "Không có bản ghi nào",
-  "sidebar.up": "Lên một cấp",
 
   // ===== Thanh trạng thái =====
   "status.unsaved": "Chưa lưu",
