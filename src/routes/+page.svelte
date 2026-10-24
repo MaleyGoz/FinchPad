@@ -749,54 +749,43 @@
 
         if (snapshot.is_unnamed) {
             // 未命名 → 走另存为
-            const path = await save({
-                defaultPath: isMac
-                    ? snapshot.default_save_path.replace(/\.txt$/i, "")
-                    : snapshot.default_save_path,
-                filters: [
-                    {
-                        name: t(
-                            "dialog.filter.text_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["txt"],
-                    },
-                    {
-                        name: t(
-                            "dialog.filter.all_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["*"],
-                    },
-                ],
-            });
+
+            // ★ 核心修复：动态提取当前文件的后缀名（如果没有后缀，默认用 txt）
+            const defaultPath = snapshot.default_save_path;
+            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
+            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
+
+            // 构建过滤器：把当前文件的后缀放在第一位，Mac 系统就会以此为准，不再强行加 .txt
+            const filters = [
+                {
+                    name: `${currentExt.toUpperCase()} Files`,
+                    extensions: [currentExt],
+                },
+                {
+                    name: t(
+                        "dialog.filter.text_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["txt"],
+                },
+                {
+                    name: t(
+                        "dialog.filter.all_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["*"],
+                },
+            ];
+
+            const path = await save({ defaultPath, filters });
 
             if (!path) return;
 
-            // ★ Mac 专属：拦截并修正错误的后缀
-            let finalPath = path;
-            if (isMac) {
-                // 1. 如果系统自动拼了 .*（说明用户没写后缀，且选了所有文件），强改回 .txt
-                if (finalPath.endsWith(".*")) {
-                    finalPath = finalPath.slice(0, -2) + ".txt";
-                }
-                // 2. 如果系统强行补了 .txt（比如用户写了 a.ts 变成了 a.ts.txt），切掉后缀
-                else if (finalPath.endsWith(".txt")) {
-                    // 判断用户在默认带后缀的情况下，有没有手动改后缀
-                    // 如果用户原名是 a.txt，用户输入了 a.ts，Mac 返回的可能是 a.ts.txt
-                    // 只要是这种情况，我们就把多余的 .txt 掐掉
-                    const baseName = finalPath.slice(0, -4); // 去掉 .txt
-                    if (baseName.includes(".") && !baseName.endsWith(".txt")) {
-                        // 比如 baseName 是 a.ts，说明用户改成了 a.ts
-                        finalPath = baseName;
-                    }
-                }
-            }
-
+            // ★ 彻底删除了原本复杂的 if (isMac) { ... } 截断逻辑，直接信任系统返回的 path
             try {
-                snapshot = await api.saveActiveFileAs(finalPath);
+                snapshot = await api.saveActiveFileAs(path);
             } catch (e) {
                 if (e === "FileAlreadyOpen") {
                     modal = {
@@ -960,52 +949,49 @@
         await refresh();
 
         if (isUnnamed) {
-            const path = await save({
-                defaultPath: isMac
-                    ? snapshot.default_save_path.replace(/\.txt$/i, "")
-                    : snapshot.default_save_path,
-                filters: [
-                    {
-                        name: t(
-                            "dialog.filter.text_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["txt"],
-                    },
-                    {
-                        name: t(
-                            "dialog.filter.all_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["*"],
-                    },
-                ],
-            });
+            // ★ 核心修复：动态提取当前文件的后缀名
+            const defaultPath = snapshot.default_save_path;
+            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
+            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
+
+            // 把当前文件后缀放到第一位，Mac 就不会瞎加 .txt 了
+            const filters = [
+                {
+                    name: `${currentExt.toUpperCase()} Files`,
+                    extensions: [currentExt],
+                },
+                {
+                    name: t(
+                        "dialog.filter.text_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["txt"],
+                },
+                {
+                    name: t(
+                        "dialog.filter.all_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["*"],
+                },
+            ];
+
+            const path = await save({ defaultPath, filters });
+
             if (!path) {
-                // 用户取消文件对话框 → 中止整个队列
+                // 用户取消文件对话框 → 中止整个队列 (原有逻辑，一字未改)
                 closeQueue = [];
                 closeQueueActive = false;
                 return;
             }
 
-            // ★ 新增：Mac 专属拦截逻辑
-            let finalPath = path;
-            if (isMac) {
-                if (finalPath.endsWith(".*")) {
-                    finalPath = finalPath.slice(0, -2) + ".txt";
-                } else if (finalPath.endsWith(".txt")) {
-                    const baseName = finalPath.slice(0, -4);
-                    if (baseName.includes(".") && !baseName.endsWith(".txt")) {
-                        finalPath = baseName;
-                    }
-                }
-            }
+            // ★ 彻底删除了原本复杂的 if (isMac) { ... } 修正逻辑
 
             try {
-                // ★ 注意：这里要传 finalPath，不要传 path
-                await api.saveActiveFileAs(finalPath);
+                // 直接传入干净的 path
+                await api.saveActiveFileAs(path);
             } catch (e) {
                 if (e === "FileAlreadyOpen") {
                     modal = {
@@ -1025,11 +1011,13 @@
                             ],
                         ],
                     };
+                    // 保存失败，中止当前关闭队列 (原有逻辑，一字未改)
                     closeQueue = [];
                     closeQueueActive = false;
                     return;
                 } else {
                     console.error("保存失败：", e);
+                    // 保存失败，中止当前关闭队列 (原有逻辑，一字未改)
                     closeQueue = [];
                     closeQueueActive = false;
                     return;
@@ -1039,6 +1027,7 @@
             await api.saveActiveFile();
         }
 
+        // 处理完毕，继续关闭下一个 (原有逻辑，一字未改)
         await api.closeTab(idx);
         await refresh();
         processNextClose();
@@ -1163,53 +1152,43 @@
 
         if (isUnnamed) {
             // 未命名 → 走另存为
-            const path = await save({
-                defaultPath: isMac
-                    ? snapshot.default_save_path.replace(/\.txt$/i, "")
-                    : snapshot.default_save_path,
-                filters: [
-                    {
-                        name: t(
-                            "dialog.filter.text_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["txt"],
-                    },
-                    {
-                        name: t(
-                            "dialog.filter.all_files",
-                            undefined,
-                            get(resolvedLocale),
-                        ),
-                        extensions: ["*"],
-                    },
-                ],
-            });
+
+            // ★ 核心修复：动态提取当前文件的后缀名
+            const defaultPath = snapshot.default_save_path;
+            const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
+            const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
+
+            // 把当前文件后缀放到第一位
+            const filters = [
+                {
+                    name: `${currentExt.toUpperCase()} Files`,
+                    extensions: [currentExt],
+                },
+                {
+                    name: t(
+                        "dialog.filter.text_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["txt"],
+                },
+                {
+                    name: t(
+                        "dialog.filter.all_files",
+                        undefined,
+                        get(resolvedLocale),
+                    ),
+                    extensions: ["*"],
+                },
+            ];
+
+            const path = await save({ defaultPath, filters });
 
             if (!path) return;
 
-            // ★ Mac 专属：拦截并修正错误的后缀
-            let finalPath = path;
-            if (isMac) {
-                // 1. 如果系统自动拼了 .*（说明用户没写后缀，且选了所有文件），强改回 .txt
-                if (finalPath.endsWith(".*")) {
-                    finalPath = finalPath.slice(0, -2) + ".txt";
-                }
-                // 2. 如果系统强行补了 .txt（比如用户写了 a.ts 变成了 a.ts.txt），切掉后缀
-                else if (finalPath.endsWith(".txt")) {
-                    // 判断用户在默认带后缀的情况下，有没有手动改后缀
-                    // 如果用户原名是 a.txt，用户输入了 a.ts，Mac 返回的可能是 a.ts.txt
-                    // 只要是这种情况，我们就把多余的 .txt 掐掉
-                    const baseName = finalPath.slice(0, -4); // 去掉 .txt
-                    if (baseName.includes(".") && !baseName.endsWith(".txt")) {
-                        // 比如 baseName 是 a.ts，说明用户改成了 a.ts
-                        finalPath = baseName;
-                    }
-                }
-            }
-
-            await api.saveActiveFileAs(finalPath);
+            // ★ 彻底删除了原本复杂的 if (isMac) { ... } 修正逻辑
+            // 直接传入干净的 path
+            await api.saveActiveFileAs(path);
         } else {
             await api.saveActiveFile();
         }
@@ -1405,6 +1384,38 @@
         }
     }
 
+    // ★ 新增：动态生成安全的保存参数，完美兼容 Mac 后缀补全机制
+    function getSaveOptions() {
+        // 直接用完整的路径，不要用 replace 去掉什么
+        const defaultPath = snapshot.default_save_path;
+
+        // 提取当前文件的后缀名（比如 json, py, txt）
+        const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
+        const currentExt = extMatch ? extMatch[1].toLowerCase() : "";
+
+        const filters: any[] = [];
+
+        // 如果有后缀，把它放在第一位！这样 Mac 就不会乱加 .txt 了
+        if (currentExt) {
+            filters.push({
+                name: `${currentExt.toUpperCase()} Files`,
+                extensions: [currentExt],
+            });
+        }
+
+        // 把 Text Files 和 All Files 放在后面
+        filters.push({
+            name: t("dialog.filter.text_files", undefined, get(resolvedLocale)),
+            extensions: ["txt"],
+        });
+        filters.push({
+            name: t("dialog.filter.all_files", undefined, get(resolvedLocale)),
+            extensions: ["*"],
+        });
+
+        return { defaultPath, filters };
+    }
+
     //另存为
     async function handleSaveAs() {
         if (isSaving) return;
@@ -1419,52 +1430,48 @@
             return;
         }
 
-        // 其它情况：弹另存为
-        const path = await save({
-            defaultPath: isMac
-                ? snapshot.default_save_path.replace(/\.txt$/i, "")
-                : snapshot.default_save_path,
-            filters: [
-                {
-                    name: t(
-                        "dialog.filter.text_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["txt"],
-                },
-                {
-                    name: t(
-                        "dialog.filter.all_files",
-                        undefined,
-                        get(resolvedLocale),
-                    ),
-                    extensions: ["*"],
-                },
-            ],
-        });
+        // ★ 核心修复：动态提取当前文件的后缀名
+        const defaultPath = snapshot.default_save_path;
+        const extMatch = defaultPath.match(/\.([a-zA-Z0-9]+)$/);
+        const currentExt = extMatch ? extMatch[1].toLowerCase() : "txt";
+
+        // 把当前文件后缀放到第一位，Mac 就不会瞎加 .txt 了
+        const filters = [
+            {
+                name: `${currentExt.toUpperCase()} Files`,
+                extensions: [currentExt],
+            },
+            {
+                name: t(
+                    "dialog.filter.text_files",
+                    undefined,
+                    get(resolvedLocale),
+                ),
+                extensions: ["txt"],
+            },
+            {
+                name: t(
+                    "dialog.filter.all_files",
+                    undefined,
+                    get(resolvedLocale),
+                ),
+                extensions: ["*"],
+            },
+        ];
+
+        const path = await save({ defaultPath, filters });
 
         if (!path) {
             isSaving = false;
             return;
         }
 
-        // ★ Mac 专属：拦截并修正错误的后缀
-        let finalPath = path;
-        if (isMac) {
-            if (finalPath.endsWith(".*")) {
-                finalPath = finalPath.slice(0, -2) + ".txt";
-            } else if (finalPath.endsWith(".txt")) {
-                const baseName = finalPath.slice(0, -4);
-                if (baseName.includes(".") && !baseName.endsWith(".txt")) {
-                    finalPath = baseName;
-                }
-            }
-        }
+        // ★ 彻底删除了原本复杂的 if (isMac) { ... } 修正逻辑
 
         // ★ 捕获后端错误
         try {
-            snapshot = await api.saveActiveFileAs(finalPath);
+            // 直接传入干净的 path
+            snapshot = await api.saveActiveFileAs(path);
             lastDetectTime = Date.now(); // ★ 关键：保存成功后，重置检测冷却时间，防止立刻触发外部检测覆盖状态
         } catch (e) {
             if (e === "FileAlreadyOpen") {
@@ -2405,7 +2412,7 @@
         onMenuSave={menuSave}
         onMenuSaveAs={menuSaveAs}
         onShowDiffSubmenu={showDiffSubmenu}
-        onScheduleCloseDiffSubmenu={scheduleCloseDiffSubmenu}
+        onScheduleCloseDiffSubmenu={isMac ? () => {} : scheduleCloseDiffSubmenu}
         onMenuCloseSingle={menuCloseSingle}
         onMenuCloseOthers={menuCloseOthers}
         onMenuCloseLeft={menuCloseLeft}
