@@ -1425,13 +1425,14 @@ pub fn read_dir(path: String) -> Result<Vec<FileEntry>, String> {
     let mut entries = Vec::new();
     if let Ok(read_dir) = std::fs::read_dir(dir_path) {
         for entry in read_dir.flatten() {
-            if let Ok(metadata) = entry.metadata() {
+            // ★ 修正：使用 file_type() 替代 metadata()，性能更好
+            if let Ok(file_type) = entry.file_type() {
                 let file_name = entry.file_name().to_string_lossy().to_string();
                 let file_path = entry.path().to_string_lossy().to_string();
                 entries.push(FileEntry {
                     name: file_name,
                     path: file_path,
-                    is_dir: file_type.is_dir(), // ★ 改动在这里
+                    is_dir: file_type.is_dir(), // ★ 现在这里能匹配上了
                 });
             }
         }

@@ -1624,6 +1624,43 @@
         anchorRight: 0,
         anchorTop: 0,
     };
+    // 语言菜单悬停防抖
+    let langSubmenuCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function showLangSubmenu(e: MouseEvent) {
+        if (langSubmenuCloseTimer) {
+            clearTimeout(langSubmenuCloseTimer);
+            langSubmenuCloseTimer = null;
+        }
+        const el = e.currentTarget as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        langSubmenu = {
+            visible: true,
+            anchorLeft: rect.left,
+            anchorRight: rect.right,
+            anchorTop: rect.top,
+        };
+    }
+
+    function scheduleCloseLangSubmenu() {
+        if (langSubmenuCloseTimer) clearTimeout(langSubmenuCloseTimer);
+        langSubmenuCloseTimer = setTimeout(() => {
+            langSubmenu = {
+                visible: false,
+                anchorLeft: 0,
+                anchorRight: 0,
+                anchorTop: 0,
+            };
+            langSubmenuCloseTimer = null;
+        }, 250);
+    }
+
+    function cancelCloseLangSubmenu() {
+        if (langSubmenuCloseTimer) {
+            clearTimeout(langSubmenuCloseTimer);
+            langSubmenuCloseTimer = null;
+        }
+    }
 
     // ★ 新增：点击触发二级菜单
     function toggleLangSubmenu(e: MouseEvent) {
@@ -2105,7 +2142,7 @@
         onMenuSave={menuSave}
         onMenuSaveAs={menuSaveAs}
         onShowDiffSubmenu={showDiffSubmenu}
-        onScheduleCloseDiffSubmenu={isMac ? () => {} : scheduleCloseDiffSubmenu}
+        onScheduleCloseDiffSubmenu={scheduleCloseDiffSubmenu}
         onMenuCloseSingle={menuCloseSingle}
         onMenuCloseOthers={menuCloseOthers}
         onMenuCloseLeft={menuCloseLeft}
@@ -2124,6 +2161,9 @@
         onBarMenuOpen={barMenuOpen}
         onCloseEditorContextMenu={closeEditorContextMenu}
         onRunEditorAction={runEditorAction}
+        onShowLangSubmenu={showLangSubmenu}
+        onScheduleCloseLangSubmenu={scheduleCloseLangSubmenu}
+        onCancelCloseLangSubmenu={cancelCloseLangSubmenu}
     />
 </main>
 

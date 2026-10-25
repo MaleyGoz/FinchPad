@@ -32,6 +32,9 @@
     export let onToggleWordWrap: () => void;
     export let onSetTheme: (name: string) => void;
     export let onToggleLangSubmenu: (e: MouseEvent) => void;
+    export let onShowLangSubmenu: (e: MouseEvent) => void;
+    export let onScheduleCloseLangSubmenu: () => void;
+    export let onCancelCloseLangSubmenu: () => void;
     export let onCloseLangSubmenu: () => void;
     export let onSelectLanguage: (key: string) => void;
     export let onCheckUpdate: () => void;
@@ -233,7 +236,8 @@
             <button
                 class="context-item"
                 style="margin-top: 4px;"
-                onclick={onToggleLangSubmenu}
+                onmouseenter={onShowLangSubmenu}
+                onmouseleave={onScheduleCloseLangSubmenu}
             >
                 <span>
                     {t("settings.language", undefined, $resolvedLocale)}: {LANGUAGE_NAMES[
@@ -295,8 +299,12 @@
     >
         <div
             class="context-menu"
+            class:bridge-right={!hasLeft}
+            class:bridge-left={hasLeft}
             style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
             onclick={(e) => e.stopPropagation()}
+            onmouseenter={onCancelCloseLangSubmenu}
+            onmouseleave={onScheduleCloseLangSubmenu}
             role="menu"
             tabindex="-1"
         >
@@ -550,9 +558,10 @@
     >
         <div
             class="context-menu"
+            class:bridge-right={!hasRight}
+            class:bridge-left={hasRight}
             style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
             onclick={(e) => e.stopPropagation()}
-            oncontextmenu={(e) => e.stopPropagation()}
             onmouseenter={onCancelCloseDiffSubmenu}
             onmouseleave={onScheduleCloseDiffSubmenu}
             role="menu"
@@ -993,5 +1002,25 @@
     /* 隐藏原生滚动条两端的上下小箭头（极其丑陋） */
     .context-menu::-webkit-scrollbar-button {
         display: none;
+    }
+
+    /* 给靠右的子菜单加左侧隐形桥梁 */
+    .context-menu.bridge-left::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -8px;
+        width: 8px;
+    }
+
+    /* 给靠左的子菜单加右侧隐形桥梁 */
+    .context-menu.bridge-right::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: -8px;
+        width: 8px;
     }
 </style>
