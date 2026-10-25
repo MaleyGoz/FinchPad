@@ -1065,6 +1065,8 @@
 
     //打开
     async function handleOpen() {
+        if (isAnyModalOpen) return;
+
         // 1. 先构建基础参数
         const openOptions: any = {
             multiple: true,
@@ -1888,6 +1890,20 @@
             })
             .catch(console.error);
 
+        // ★6.1 新增 监听窗口焦点变化（用于红绿灯和标签栏背景）
+        let unlistenFocus: (() => void) | null = null;
+        getCurrentWindow()
+            .onFocusChanged(({ payload: focused }) => {
+                isWindowFocused = focused;
+            })
+            .then((fn) => (unlistenFocus = fn))
+            .catch(console.error);
+        // 前端兜底：只要用户在窗口内点击，就强制认为窗口获得了焦点
+        const handleGlobalClick = () => {
+            if (!isWindowFocused) isWindowFocused = true;
+        };
+        window.addEventListener("mousedown", handleGlobalClick);
+
         // 7. 清理函数（必须放最后）
         return () => {
             window.removeEventListener("focus", handleDetect);
@@ -1895,6 +1911,8 @@
             if (unlistenClose) unlistenClose();
             clearInterval(autosaveTimer);
             if (unlistenSingleInstance) unlistenSingleInstance();
+            if (unlistenFocus) unlistenFocus();
+            window.removeEventListener("mousedown", handleGlobalClick);
         };
     });
 </script>
@@ -1994,6 +2012,7 @@
                         onLoadRequest={handleLoadPending}
                         onZoomDelta={applyZoomDelta}
                         onEditorContextMenu={handleEditorContextMenu}
+                        onOpenRequest={handleOpen}
                     />
                 </div>
 

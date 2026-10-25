@@ -353,10 +353,8 @@ pub fn open_files(
 
     // 记录到最近文件
     for (path_str, _) in files.iter() {
-        let path = std::path::PathBuf::from(path_str);
-        if path.exists() {
-            ws.add_recent_file(path_str.clone());
-        }
+        // 前端对话框返回的路径必定存在，无需再做检查，避免 Mac 路径解析失败误伤
+        ws.add_recent_file(path_str.clone());
     }
 
     state.mark_session_dirty();

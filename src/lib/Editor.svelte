@@ -44,6 +44,7 @@
         canRedo: boolean;
     }) => void = () => {};
     export let onZoomDelta: (delta: number) => void = () => {};
+    export let onOpenRequest: () => void = () => {};
 
     const BASE_FONT_SIZE = 15;
 
@@ -348,6 +349,11 @@
             guides: { bracketPairs: false, indentation: false },
             hover: { enabled: "off" as const },
             contextmenu: false,
+        });
+
+        // ★ 拦截 Ctrl/Cmd + O，防止 Monaco 内部把它当换行处理
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, () => {
+            onOpenRequest();
         });
 
         // 打字内容变化时
