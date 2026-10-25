@@ -340,19 +340,17 @@ pub fn open_files(
             }
         }
     }
-    // ★ 记录最近打开的目录（只记录成功加载的文件）
+
+    // 4. 记录最近打开的目录（只记录成功加载的文件，取最后一个）
     let mut last_dir: Option<std::path::PathBuf> = None;
     for (i, (path_str, _)) in files.iter().enumerate() {
-        if last_dir.is_some() {
-            break;
-        }
         let path = std::path::PathBuf::from(path_str);
-        let opened_ok = if lazy_flags[i] {
-            true // 懒加载也算成功打开
-        } else {
-            path.exists()
-        };
+
+        // 沿用原逻辑：懒加载算成功，非懒加载判断文件是否存在
+        let opened_ok = if lazy_flags[i] { true } else { path.exists() };
+
         if opened_ok {
+            // ★ 不 break，持续覆盖，最终留下最后一个成功打开的目录
             last_dir = path.parent().map(|p| p.to_path_buf());
         }
     }
@@ -360,6 +358,7 @@ pub fn open_files(
         ws.set_last_used_path(Some(dir));
     }
 
+    // 5. 标记状态
     state.mark_session_dirty();
     Ok(snapshot_from_workspace(&ws))
 }
@@ -898,9 +897,9 @@ pub fn restore_session(
     if let Some(window) = app.get_webview_window("main") {
         let w = session.window.width;
         let h = session.window.height;
+
         let _ = window.set_size(tauri::LogicalSize::new(w, h));
 
-        // ★ 位置恢复（先做可见性检查，失败则回退居中）
         let x = session.window.x;
         let y = session.window.y;
         if x >= 0.0 && y >= 0.0 {
@@ -1125,18 +1124,47 @@ fn write_session_now(app: &tauri::AppHandle, state: &AppState) -> Result<(), Str
     let ws = state.workspace.lock().map_err(|e| e.to_string())?;
     let mut session = build_session_from_ws(&ws);
     session.window.last_used_path = ws.last_used_path().cloned();
-    if let Some(window) = app.get_webview_window("main") {
-        if let Ok(scale) = window.scale_factor() {
-            if let Ok(size) = window.outer_size() {
-                session.window.width = size.width as f32 / scale as f32;
-                session.window.height = size.height as f32 / scale as f32;
-            }
-            if let Ok(pos) = window.outer_position() {
-                session.window.x = pos.x as f32 / scale as f32;
-                session.window.y = pos.y as f32 / scale as f32;
+
+    // ★ 替换开始：优先从内存读取窗口尺寸和位置
+    let mut size_updated = false;
+    let mut pos_updated = false;
+
+    if let Ok(s) = state.last_window_size.lock() {
+        if let Some((w, h)) = *s {
+            session.window.width = w;
+            session.window.height = h;
+            size_updated = true;
+        }
+    }
+    if let Ok(p) = state.last_window_pos.lock() {
+        if let Some((x, y)) = *p {
+            session.window.x = x;
+            session.window.y = y;
+            pos_updated = true;
+        }
+    }
+
+    // 兜底：如果内存里没有（比如刚启动没动过），再去读当前窗口
+    if !size_updated || !pos_updated {
+        if let Some(window) = app.get_webview_window("main") {
+            if let Ok(scale) = window.scale_factor() {
+                if !size_updated {
+                    if let Ok(size) = window.inner_size() {
+                        session.window.width = size.width as f32 / scale as f32;
+                        session.window.height = size.height as f32 / scale as f32;
+                    }
+                }
+                if !pos_updated {
+                    if let Ok(pos) = window.inner_position() {
+                        session.window.x = pos.x as f32 / scale as f32;
+                        session.window.y = pos.y as f32 / scale as f32;
+                    }
+                }
             }
         }
     }
+    // ★ 替换结束
+
     crate::io::session::save(&session).map_err(|e| e.to_string())
 }
 
@@ -1403,7 +1431,7 @@ pub fn read_dir(path: String) -> Result<Vec<FileEntry>, String> {
                 entries.push(FileEntry {
                     name: file_name,
                     path: file_path,
-                    is_dir: metadata.is_dir(),
+                    is_dir: file_type.is_dir(), // ★ 改动在这里
                 });
             }
         }

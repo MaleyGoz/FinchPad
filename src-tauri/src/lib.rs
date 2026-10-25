@@ -119,6 +119,8 @@ pub fn run() {
                                         size.height as f32 / scale as f32,
                                     ));
                                 }
+                                // ★ 新增：标记为脏，等待下一次 tick_autosave 自动落盘
+                                state.mark_session_dirty();
                             }
                         }
                     }
@@ -135,6 +137,8 @@ pub fn run() {
                                         pos.y as f32 / scale as f32,
                                     ));
                                 }
+                                // ★ 新增：标记为脏
+                                state.mark_session_dirty();
                             }
                         }
                     }
