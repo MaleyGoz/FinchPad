@@ -14,6 +14,8 @@ pub struct AppState {
     pub startup_files: Mutex<Vec<String>>,
     /// 对比窗口的数据载荷（主窗口设置，对比窗口读取）
     pub diff_payload: Mutex<Option<DiffPayload>>,
+    // ★ 新增：防止退出时死循环的标志
+    pub is_exiting: std::sync::atomic::AtomicBool,
 }
 
 impl AppState {
@@ -694,52 +696,42 @@ pub fn discard_tab_changes(state: tauri::State<AppState>, index: i32) -> Result<
     Ok(())
 }
 
-/// 关闭窗口前的收尾：写所有小文件脏标签的 cache + 写 session.json。
-#[tauri::command]
-pub fn save_and_prepare_exit(
-    app: tauri::AppHandle,
-    state: tauri::State<AppState>,
-) -> Result<(), String> {
+/// 纯 Rust 端调用的保存会话逻辑（不退出应用），供前端和系统退出共用
+pub fn do_save_session(app: &tauri::AppHandle, state: &AppState) -> Result<(), String> {
     use tauri::Manager;
 
-    // ★ 修改点 1：添加 `mut`，因为后面需要可变借用
-    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
-
-    // 1. 写小文件脏标签的缓存
+    // 1. 写缓存和构建 session
     let mut keep_ids: Vec<String> = Vec::new();
-    // ★ 修改点 2：使用 tabs_mut().iter_mut() 拿到可变引用
-    for tab in ws.tabs_mut().iter_mut() {
-        if tab.is_pending_load {
-            continue;
-        }
-        if tab.file_size >= LARGE_FILE_THRESHOLD {
-            continue; // 大文件不缓存
-        }
+    let mut session = {
+        let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
 
-        // ★ 无论是否 cache_stale，都推入 keep_ids，防止误删
-        keep_ids.push(tab.id.clone());
+        for tab in ws.tabs_mut().iter_mut() {
+            if tab.is_pending_load {
+                continue;
+            }
+            if tab.file_size >= LARGE_FILE_THRESHOLD {
+                continue;
+            }
 
-        if !tab.cache_stale {
-            continue; // 缓存有效，跳过写入
+            keep_ids.push(tab.id.clone());
+            if !tab.cache_stale {
+                continue;
+            }
+
+            let content = tab.buffer.to_string();
+            if crate::io::session::write_cache(&tab.id, &content).is_ok() {
+                tab.cache_stale = false;
+            }
         }
+        build_session_from_ws(&ws)
+    };
 
-        let content = tab.buffer.to_string();
-        if crate::io::session::write_cache(&tab.id, &content).is_ok() {
-            // 写入成功后，将 cache_stale 置为 false
-            tab.cache_stale = false;
-        }
-    }
-
-    // 2. 清理孤儿缓存
     crate::io::session::cleanup_orphan_cache(&keep_ids);
 
-    // 3. 构建并写 session
-    // ★ 注意：这里使用 &ws 是不可变借用，因为前面的可变借用（循环）已经结束了，Rust 允许这种降级
-    let mut session = build_session_from_ws(&ws);
-    // window 相关字段（zoom / word_wrap 等）已由 build_session_from_ws 填充
-    session.window.last_used_path = ws.last_used_path().cloned();
+    // 2. 更新窗口信息
     if let Some(window) = app.get_webview_window("main") {
         if let Ok(scale) = window.scale_factor() {
+            // （注意：这里暂时保留 outer_size，第四步我们会专门改为 inner_size）
             if let Ok(size) = window.outer_size() {
                 session.window.width = size.width as f32 / scale as f32;
                 session.window.height = size.height as f32 / scale as f32;
@@ -751,14 +743,30 @@ pub fn save_and_prepare_exit(
         }
     }
 
+    // 更新 last_used_path
+    {
+        let ws = state.workspace.lock().map_err(|e| e.to_string())?;
+        session.window.last_used_path = ws.last_used_path().cloned();
+    }
+
     if let Err(e) = crate::io::session::save(&session) {
         eprintln!("写 session 失败：{e}");
     }
 
-    // ★ 直接退出整个应用（不需要前端再调 destroy）
+    Ok(())
+}
+
+/// 前端关闭窗口时调用的命令
+#[tauri::command]
+pub fn save_and_prepare_exit(
+    app: tauri::AppHandle,
+    state: tauri::State<AppState>,
+) -> Result<(), String> {
+    do_save_session(&app, &state)?;
     app.exit(0);
     Ok(())
 }
+
 fn build_session_from_ws(ws: &crate::model::Workspace) -> crate::io::session::Session {
     let mut session = crate::io::session::Session::new();
 

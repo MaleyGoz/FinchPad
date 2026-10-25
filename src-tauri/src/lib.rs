@@ -89,6 +89,7 @@ pub fn run() {
             last_medium_cache_time: std::sync::atomic::AtomicU64::new(0),
             startup_files: Mutex::new(startup_files),
             diff_payload: Mutex::new(None),
+            is_exiting: std::sync::atomic::AtomicBool::new(false), // ★ 新增
         })
         .setup(|app| {
             use tauri::Manager;
@@ -140,31 +141,59 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|app_handle, event| {
-            #[cfg(target_os = "macos")]
-            if let tauri::RunEvent::Opened { urls } = event {
-                use tauri::Emitter;
-                // use tauri::Manager;
+            match event {
+                #[cfg(target_os = "macos")]
+                tauri::RunEvent::Opened { urls } => {
+                    use tauri::Emitter;
+                    let paths: Vec<String> = urls
+                        .into_iter()
+                        .filter_map(|url| url.to_file_path().ok())
+                        .map(|p| p.to_string_lossy().into_owned())
+                        .collect();
 
-                let paths: Vec<String> = urls
-                    .into_iter()
-                    .filter_map(|url| url.to_file_path().ok())
-                    .map(|p| p.to_string_lossy().into_owned())
-                    .collect();
-
-                if !paths.is_empty() {
-                    // 冷启动：存入状态供前端 take
-                    if let Some(state) = app_handle.try_state::<AppState>() {
-                        if let Ok(mut files) = state.startup_files.lock() {
-                            files.extend(paths.clone());
+                    if !paths.is_empty() {
+                        // 冷启动：存入状态供前端 take
+                        if let Some(state) = app_handle.try_state::<AppState>() {
+                            if let Ok(mut files) = state.startup_files.lock() {
+                                files.extend(paths.clone());
+                            }
+                        }
+                        // 热启动：发事件给前端
+                        let _ = app_handle.emit("single-instance-files", paths);
+                        if let Some(window) = app_handle.get_webview_window("main") {
+                            let _ = window.set_focus();
+                            let _ = window.unminimize();
                         }
                     }
-                    // 热启动：发事件给前端
-                    let _ = app_handle.emit("single-instance-files", paths);
-                    if let Some(window) = app_handle.get_webview_window("main") {
-                        let _ = window.set_focus();
-                        let _ = window.unminimize();
+                }
+
+                // ★ 新增：拦截系统级退出（包括 macOS 的 Cmd+Q 和 Windows 的强制退出）
+                tauri::RunEvent::ExitRequested { api, .. } => {
+                    use std::sync::atomic::Ordering;
+
+                    if let Some(state) = app_handle.try_state::<AppState>() {
+                        // 如果已经在退出流程中，直接放行，防止死循环
+                        if state.is_exiting.load(Ordering::Relaxed) {
+                            return;
+                        }
+
+                        // 标记为正在退出
+                        state.is_exiting.store(true, Ordering::Relaxed);
+
+                        // 阻止本次默认退出，给我们时间保存
+                        api.prevent_exit();
+
+                        // 执行兜底保存
+                        if let Err(e) = app::do_save_session(&app_handle, &state) {
+                            eprintln!("退出时保存会话失败: {}", e);
+                        }
+
+                        // 保存完毕后，彻底退出进程
+                        std::process::exit(0);
                     }
                 }
+
+                _ => {}
             }
         });
 }
