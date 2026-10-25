@@ -144,6 +144,8 @@
         try {
             await flushPendingEdit();
             snapshot = await api.openFiles([path]);
+            // ★ 新增：通知侧边栏刷新
+            recentFilesVersion++;
         } catch (e) {
             console.error("打开文件失败:", e);
             alert(t("sidebar.file_not_found", { path }, get(resolvedLocale)));
@@ -1139,6 +1141,8 @@
         const paths = Array.isArray(selected) ? selected : [selected];
         await flushPendingEdit();
         snapshot = await api.openFiles(paths);
+        // ★ 新增：通知侧边栏刷新最近文件
+        recentFilesVersion;
     }
 
     //保存
@@ -1265,6 +1269,8 @@
         try {
             // 直接传入干净的 path
             snapshot = await api.saveActiveFileAs(path);
+            // ★ 新增：另存为成功后，通知侧边栏刷新最近文件
+            recentFilesVersion++;
             lastDetectTime = Date.now(); // ★ 关键：保存成功后，重置检测冷却时间，防止立刻触发外部检测覆盖状态
         } catch (e) {
             if (e === "FileAlreadyOpen") {

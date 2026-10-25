@@ -125,17 +125,6 @@ pub fn close_tab(state: tauri::State<AppState>, index: i32) -> Result<(), String
     }
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
 
-    // ★ 新增：关闭前，如果是已命名文件，记录到最近文件
-    // （先提取出 Option<String>，结束不可变借用）
-    let recent_path = ws
-        .tab(index as usize)
-        .and_then(|t| t.file_path.as_ref())
-        .map(|p| p.to_string_lossy().into_owned());
-
-    if let Some(path) = recent_path {
-        ws.add_recent_file(path);
-    }
-
     // ★ 关闭前先拿到 tab_id，用于清理对应缓存
     let tab_id = ws.tab(index as usize).map(|t| t.id.clone());
 
@@ -329,6 +318,8 @@ pub fn open_files(
         let path = std::path::PathBuf::from(path_str);
         if lazy_flags[i] {
             ws.open_file_lazy(path, *size);
+            // ★ 新增：懒加载的文件也算成功打开，记录到最近文件
+            ws.add_recent_file(path_str.clone());
         } else {
             match crate::io::file::read_file(&path) {
                 Ok((content, encoding, line_ending, mtime)) => {
@@ -337,6 +328,8 @@ pub fn open_files(
                     if let Some(tab) = ws.tab_mut(idx) {
                         tab.file_size = *size;
                     }
+                    // ★ 新增：读取成功的文件，记录到最近文件
+                    ws.add_recent_file(path_str.clone());
                 }
                 Err(e) => eprintln!("打开失败 {path_str}: {e}"),
             }
@@ -464,7 +457,8 @@ pub fn save_active_file_as(
 
     let new_mtime = crate::io::file::write_file(&path_buf, &content, encoding, line_ending)
         .map_err(|e| e.to_string())?;
-
+    // ★ 新增：另存为成功后，记录新路径到最近文件
+    ws.add_recent_file(path.clone());
     let title = path_buf
         .file_name()
         .map(|n| n.to_string_lossy().to_string())
