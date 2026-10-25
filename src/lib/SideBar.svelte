@@ -8,6 +8,7 @@
     export let mode: "recent" | "directory" | null = null;
     export let activeFilePath: string = "";
     export let onOpenFile: (path: string) => void = () => {};
+    export let recentFilesVersion = 0;
 
     let recentFiles: string[] = [];
     let currentDirFiles: FileEntry[] = [];
@@ -78,6 +79,13 @@
     // 记录上一次的状态，用于判断是否真的发生了切换
     let lastActivePath = "";
     let wasOpen = false;
+
+    // ★ 新增：监听最近文件模式
+    // 只要切到最近文件面板，或者 recentFilesVersion 变化（有关闭标签操作），就去重新拉取
+    $: if (mode === "recent") {
+        void recentFilesVersion;
+        loadRecentFiles();
+    }
 
     // 触发时机 1 & 2：面板打开、标签切换
     $: {

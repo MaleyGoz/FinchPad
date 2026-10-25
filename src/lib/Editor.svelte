@@ -45,6 +45,7 @@
     }) => void = () => {};
     export let onZoomDelta: (delta: number) => void = () => {};
     export let onOpenRequest: () => void = () => {};
+    export let onToggleSidebarRequest: () => void = () => {};
 
     const BASE_FONT_SIZE = 15;
 
@@ -275,12 +276,18 @@
             capture: true,
         });
 
-        // ★ 核心修复：在捕获阶段强行拦截 Mac 的 Ctrl+O（以及 Cmd+O 双重保险）
+        // ★ 核心修复：在捕获阶段强行拦截 Mac 的 Ctrl+O以及Ctrl+B
         const keydownHandler = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
                 e.preventDefault();
                 e.stopPropagation();
                 onOpenRequest();
+            }
+            // ★ 新增：拦截 Ctrl/Cmd + B
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSidebarRequest();
             }
         };
         container.addEventListener("keydown", keydownHandler, {

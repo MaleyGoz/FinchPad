@@ -94,10 +94,14 @@ fn default_locale_choice() -> String {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Session {
     pub version: u32,
+    #[serde(default)]
     pub tabs: Vec<TabSession>,
+    #[serde(default)]
     pub active_index: usize,
+    #[serde(default)]
     pub window: WindowSession,
-    pub recent_files: Vec<String>,
+    #[serde(default)]
+    pub recent_files: Vec<String>, // ★ 核心修复：加上 default，兼容旧版 JSON
 }
 
 impl Session {

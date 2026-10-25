@@ -111,6 +111,7 @@
 
     // 侧边栏相关
     let sidebarMode: "recent" | "directory" | null = null;
+    let recentFilesVersion = 0;
     let lastSidebarMode: "recent" | "directory" = "directory";
     let canUseDirectory = false;
     // 当标签切换时，判断是否可用当前目录
@@ -495,6 +496,7 @@
             // 干净标签 → 直接关
             await api.closeTab(i);
             await refresh();
+            recentFilesVersion++;
             return;
         }
 
@@ -879,6 +881,7 @@
         closeModal();
         await api.closeTab(idx);
         await refresh();
+        recentFilesVersion++;
         processNextClose();
     }
 
@@ -1008,12 +1011,14 @@
 
         await api.closeTab(i);
         await refresh();
+        recentFilesVersion++;
     }
 
     async function discardAndClose(i: number) {
         closeModal();
         await api.closeTab(i);
         await refresh();
+        recentFilesVersion++;
     }
 
     function handleTextChange(text: string) {
@@ -1961,6 +1966,7 @@
             activeFilePath={snapshot.tab_paths[snapshot.active_index] || ""}
             onOpenFile={handleSidebarOpenFile}
             onClose={() => (sidebarMode = null)}
+            {recentFilesVersion}
         />
         <!-- 右侧主体：包含标签栏和编辑器 -->
         <div class="main-content">
@@ -2013,6 +2019,7 @@
                         onZoomDelta={applyZoomDelta}
                         onEditorContextMenu={handleEditorContextMenu}
                         onOpenRequest={handleOpen}
+                        onToggleSidebarRequest={handleSidebarShortcut}
                     />
                 </div>
 
