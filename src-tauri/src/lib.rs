@@ -90,6 +90,9 @@ pub fn run() {
             startup_files: Mutex::new(startup_files),
             diff_payload: Mutex::new(None),
             is_exiting: std::sync::atomic::AtomicBool::new(false), // ★ 新增
+            // ★ 新增
+            last_window_size: Mutex::new(None),
+            last_window_pos: Mutex::new(None),
         })
         .setup(|app| {
             use tauri::Manager;
@@ -98,6 +101,47 @@ pub fn run() {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_decorations(true);
             }
+
+            // ★ 修正：使用 on_window_event 监听窗口大小和位置变化
+            if let Some(window) = app.get_webview_window("main") {
+                let app_handle = app.handle().clone();
+                window.on_window_event(move |event| match event {
+                    tauri::WindowEvent::Resized(size) => {
+                        if let Ok(scale) = app_handle
+                            .get_webview_window("main")
+                            .and_then(|w| w.scale_factor().ok())
+                            .ok_or(())
+                        {
+                            if let Some(state) = app_handle.try_state::<AppState>() {
+                                if let Ok(mut s) = state.last_window_size.lock() {
+                                    *s = Some((
+                                        size.width as f32 / scale as f32,
+                                        size.height as f32 / scale as f32,
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    tauri::WindowEvent::Moved(pos) => {
+                        if let Ok(scale) = app_handle
+                            .get_webview_window("main")
+                            .and_then(|w| w.scale_factor().ok())
+                            .ok_or(())
+                        {
+                            if let Some(state) = app_handle.try_state::<AppState>() {
+                                if let Ok(mut p) = state.last_window_pos.lock() {
+                                    *p = Some((
+                                        pos.x as f32 / scale as f32,
+                                        pos.y as f32 / scale as f32,
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                });
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

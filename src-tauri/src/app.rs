@@ -16,6 +16,9 @@ pub struct AppState {
     pub diff_payload: Mutex<Option<DiffPayload>>,
     // ★ 新增：防止退出时死循环的标志
     pub is_exiting: std::sync::atomic::AtomicBool,
+    // ★ 新增：实时缓存的窗口物理状态（只存内存，不写磁盘）
+    pub last_window_size: Mutex<Option<(f32, f32)>>,
+    pub last_window_pos: Mutex<Option<(f32, f32)>>,
 }
 
 impl AppState {
@@ -728,17 +731,43 @@ pub fn do_save_session(app: &tauri::AppHandle, state: &AppState) -> Result<(), S
 
     crate::io::session::cleanup_orphan_cache(&keep_ids);
 
-    // 2. 更新窗口信息
-    if let Some(window) = app.get_webview_window("main") {
-        if let Ok(scale) = window.scale_factor() {
-            // （注意：这里暂时保留 outer_size，第四步我们会专门改为 inner_size）
-            if let Ok(size) = window.outer_size() {
-                session.window.width = size.width as f32 / scale as f32;
-                session.window.height = size.height as f32 / scale as f32;
-            }
-            if let Ok(pos) = window.outer_position() {
-                session.window.x = pos.x as f32 / scale as f32;
-                session.window.y = pos.y as f32 / scale as f32;
+    // 2. 优先从内存中读取实时缓存的窗口信息（完美解决 Cmd+Q 拿不到窗口的痛点）
+    let mut size_updated = false;
+    let mut pos_updated = false;
+
+    if let Ok(s) = state.last_window_size.lock() {
+        if let Some((w, h)) = *s {
+            session.window.width = w;
+            session.window.height = h;
+            size_updated = true;
+        }
+    }
+    if let Ok(p) = state.last_window_pos.lock() {
+        if let Some((x, y)) = *p {
+            session.window.x = x;
+            session.window.y = y;
+            pos_updated = true;
+        }
+    }
+
+    // 兜底：如果内存里没有（比如第一次启动没拖动过），再去从当前窗口获取一次
+    if !size_updated || !pos_updated {
+        if let Some(window) = app.get_webview_window("main") {
+            if let Ok(scale) = window.scale_factor() {
+                if !size_updated {
+                    if let Ok(size) = window.inner_size() {
+                        // ★ 改用 inner_size 规避 Mac 偏差
+                        session.window.width = size.width as f32 / scale as f32;
+                        session.window.height = size.height as f32 / scale as f32;
+                    }
+                }
+                if !pos_updated {
+                    if let Ok(pos) = window.inner_position() {
+                        // ★ 改用 inner_position
+                        session.window.x = pos.x as f32 / scale as f32;
+                        session.window.y = pos.y as f32 / scale as f32;
+                    }
+                }
             }
         }
     }
