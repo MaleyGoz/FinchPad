@@ -125,6 +125,13 @@ pub fn close_tab(state: tauri::State<AppState>, index: i32) -> Result<(), String
     }
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
 
+    // ★ 新增：关闭前，如果是已命名文件，记录到最近文件
+    if let Some(tab) = ws.tab(index as usize) {
+        if let Some(path) = &tab.file_path {
+            ws.add_recent_file(path.to_string_lossy().into_owned());
+        }
+    }
+
     // ★ 关闭前先拿到 tab_id，用于清理对应缓存
     let tab_id = ws.tab(index as usize).map(|t| t.id.clone());
 
@@ -349,12 +356,6 @@ pub fn open_files(
     }
     if let Some(dir) = last_dir {
         ws.set_last_used_path(Some(dir));
-    }
-
-    // 记录到最近文件
-    for (path_str, _) in files.iter() {
-        // 前端对话框返回的路径必定存在，无需再做检查，避免 Mac 路径解析失败误伤
-        ws.add_recent_file(path_str.clone());
     }
 
     state.mark_session_dirty();

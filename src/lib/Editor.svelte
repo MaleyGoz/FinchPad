@@ -275,6 +275,19 @@
             capture: true,
         });
 
+        // ★ 核心修复：在捕获阶段强行拦截 Mac 的 Ctrl+O（以及 Cmd+O 双重保险）
+        const keydownHandler = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenRequest();
+            }
+        };
+        container.addEventListener("keydown", keydownHandler, {
+            capture: true,
+        });
+        (container as any).__keydownHandler = keydownHandler;
+
         // 右键 → 上报给父组件，由父组件渲染自定义菜单
         const contextmenuHandler = (e: MouseEvent) => {
             if (!editor) return;
@@ -349,11 +362,6 @@
             guides: { bracketPairs: false, indentation: false },
             hover: { enabled: "off" as const },
             contextmenu: false,
-        });
-
-        // ★ 拦截 Ctrl/Cmd + O，防止 Monaco 内部把它当换行处理
-        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO, () => {
-            onOpenRequest();
         });
 
         // 打字内容变化时
@@ -454,6 +462,10 @@
         const ch = (container as any).__contextmenuHandler;
         if (ch) {
             container.removeEventListener("contextmenu", ch);
+        }
+        const kh = (container as any).__keydownHandler;
+        if (kh) {
+            container.removeEventListener("keydown", kh, { capture: true });
         }
         editor?.dispose();
     });
