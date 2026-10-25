@@ -126,10 +126,14 @@ pub fn close_tab(state: tauri::State<AppState>, index: i32) -> Result<(), String
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
 
     // ★ 新增：关闭前，如果是已命名文件，记录到最近文件
-    if let Some(tab) = ws.tab(index as usize) {
-        if let Some(path) = &tab.file_path {
-            ws.add_recent_file(path.to_string_lossy().into_owned());
-        }
+    // （先提取出 Option<String>，结束不可变借用）
+    let recent_path = ws
+        .tab(index as usize)
+        .and_then(|t| t.file_path.as_ref())
+        .map(|p| p.to_string_lossy().into_owned());
+
+    if let Some(path) = recent_path {
+        ws.add_recent_file(path);
     }
 
     // ★ 关闭前先拿到 tab_id，用于清理对应缓存
