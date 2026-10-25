@@ -120,10 +120,14 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
         class="context-overlay"
-        onclick={onCloseSettings}
+        onclick={() => {
+            onCloseSettings();
+            onCloseLangSubmenu(); // 顺带关闭语言子菜单
+        }}
         oncontextmenu={(e) => {
             e.preventDefault();
             onCloseSettings();
+            onCloseLangSubmenu();
         }}
         role="presentation"
     >
@@ -293,45 +297,40 @@
 
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
-        class="context-overlay"
-        onclick={onCloseLangSubmenu}
-        role="presentation"
+        class="context-menu"
+        class:bridge-right={!hasLeft}
+        class:bridge-left={hasLeft}
+        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        onmouseenter={onCancelCloseLangSubmenu}
+        onmouseleave={onScheduleCloseLangSubmenu}
+        role="menu"
+        tabindex="-1"
     >
-        <div
-            class="context-menu"
-            class:bridge-right={!hasLeft}
-            class:bridge-left={hasLeft}
-            style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
-            onclick={(e) => e.stopPropagation()}
-            onmouseenter={onCancelCloseLangSubmenu}
-            onmouseleave={onScheduleCloseLangSubmenu}
-            role="menu"
-            tabindex="-1"
-        >
-            {#each LOCALE_OPTIONS as opt}
-                <button
-                    class="context-item"
-                    onclick={() => onSelectLanguage(opt.key)}
-                >
-                    <span>{LANGUAGE_NAMES[opt.key]}</span>
-                    {#if $localeChoice === opt.key}
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            style="margin-left: auto;"
-                        >
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    {/if}
-                </button>
-            {/each}
-        </div>
+        {#each LOCALE_OPTIONS as opt}
+            <button
+                class="context-item"
+                onclick={() => onSelectLanguage(opt.key)}
+            >
+                <span>{LANGUAGE_NAMES[opt.key]}</span>
+                {#if $localeChoice === opt.key}
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="margin-left: auto;"
+                    >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                {/if}
+            </button>
+        {/each}
     </div>
 {/if}
 
@@ -347,10 +346,14 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
         class="context-overlay"
-        onclick={onCloseContextMenu}
+        onclick={() => {
+            onCloseContextMenu();
+            onCloseDiffSubmenu(); // 顺带关闭对比子菜单
+        }}
         oncontextmenu={(e) => {
             e.preventDefault();
             onCloseContextMenu();
+            onCloseDiffSubmenu();
         }}
         role="presentation"
     >
@@ -543,41 +546,29 @@
         Math.min(diffSubmenu.anchorTop, window.innerHeight - ddH - 8),
     )}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
+
     <div
-        class="context-overlay"
-        onclick={() => {
-            onCloseDiffSubmenu();
-            onCloseContextMenu();
-        }}
-        oncontextmenu={(e) => {
-            e.preventDefault();
-            onCloseDiffSubmenu();
-            onCloseContextMenu();
-        }}
-        role="presentation"
+        class="context-menu"
+        class:bridge-right={!hasRight}
+        class:bridge-left={hasRight}
+        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        onclick={(e) => e.stopPropagation()}
+        oncontextmenu={(e) => e.stopPropagation()}
+        onmouseenter={onCancelCloseDiffSubmenu}
+        onmouseleave={onScheduleCloseDiffSubmenu}
+        role="menu"
+        tabindex="-1"
     >
-        <div
-            class="context-menu"
-            class:bridge-right={!hasRight}
-            class:bridge-left={hasRight}
-            style="left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
-            onclick={(e) => e.stopPropagation()}
-            onmouseenter={onCancelCloseDiffSubmenu}
-            onmouseleave={onScheduleCloseDiffSubmenu}
-            role="menu"
-            tabindex="-1"
-        >
-            {#each tabTitles as title, idx}
-                {#if idx !== contextMenu.index}
-                    <button
-                        class="context-item"
-                        onclick={() => onSelectDiffTarget(idx)}
-                    >
-                        <span>{title}</span>
-                    </button>
-                {/if}
-            {/each}
-        </div>
+        {#each tabTitles as title, idx}
+            {#if idx !== contextMenu.index}
+                <button
+                    class="context-item"
+                    onclick={() => onSelectDiffTarget(idx)}
+                >
+                    <span>{title}</span>
+                </button>
+            {/if}
+        {/each}
     </div>
 {/if}
 
