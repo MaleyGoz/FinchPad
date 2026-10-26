@@ -52,6 +52,12 @@ pub struct WindowSession {
     // ★ 新增：最近一次"系统文件对话框成功返回"的目录
     #[serde(default)]
     pub last_used_path: Option<PathBuf>,
+    #[serde(default = "default_true")]
+    pub record_recent_files: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for WindowSession {
@@ -67,6 +73,7 @@ impl Default for WindowSession {
             x: -1.0,              // ★ 新增
             y: -1.0,              // ★ 新增
             last_used_path: None, // ★ 新增
+            record_recent_files: true,
         }
     }
 }

@@ -74,70 +74,59 @@
 <svelte:window onclick={handleWindowClick} />
 
 <div class="status-bar" data-locale={$resolvedLocale}>
-    <!-- ★ 新增：侧边栏切换按钮 -->
-    <div class="sidebar-btn-group">
-        <!-- 最近文件 -->
-        <div class="tooltip-wrapper tooltip-left">
-            <button
-                class="sidebar-btn"
-                class:active={sidebarMode === "recent"}
-                onclick={() => onToggleSidebar("recent")}
-                aria-label={t("sidebar.recent", undefined, $resolvedLocale)}
+    <!-- 最近文件 -->
+    <div class="tooltip-wrapper tooltip-left">
+        <button
+            class="sidebar-btn"
+            class:active={sidebarMode === "recent"}
+            onclick={() => onToggleSidebar("recent")}
+            aria-label={t("sidebar.recent", undefined, $resolvedLocale)}
+        >
+            <svg
+                class="btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
             >
-                <svg
-                    class="btn-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        d="M12 4.5C16.1421 4.5 19.5 7.85786 19.5 12C19.5 16.1421 16.1421 19.5 12 19.5C7.85786 19.5 4.5 16.1421 4.5 12C4.5 11.6236 4.52772 11.2538 4.58123 10.8923C4.64845 10.4382 4.31609 10 3.85708 10C3.48623 10 3.161 10.2562 3.10471 10.6228C3.03576 11.0718 3 11.5317 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C9.69494 3 7.59227 3.86656 6 5.29168V4.25C6 3.83579 5.66421 3.5 5.25 3.5C4.83579 3.5 4.5 3.83579 4.5 4.25V7.25C4.5 7.66421 4.83579 8 5.25 8H8.25C8.66421 8 9 7.66421 9 7.25C9 6.83579 8.66421 6.5 8.25 6.5H6.90093C8.23907 5.25883 10.0309 4.5 12 4.5ZM12.5 7.75C12.5 7.33579 12.1642 7 11.75 7C11.3358 7 11 7.33579 11 7.75V12.25C11 12.6642 11.3358 13 11.75 13H14.75C15.1642 13 15.5 12.6642 15.5 12.25C15.5 11.8358 15.1642 11.5 14.75 11.5H12.5V7.75Z"
-                        fill="currentColor"
-                    />
-                </svg>
-            </button>
-            <!-- 修改 Tooltip：名称 + 浅色快捷键 -->
-            <span class="tooltip">
-                <span>{t("sidebar.recent", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{sidebarShortcut}</span>
-            </span>
-        </div>
+                <path
+                    d="M12 4.5C16.1421 4.5 19.5 7.85786 19.5 12C19.5 16.1421 16.1421 19.5 12 19.5C7.85786 19.5 4.5 16.1421 4.5 12C4.5 11.6236 4.52772 11.2538 4.58123 10.8923C4.64845 10.4382 4.31609 10 3.85708 10C3.48623 10 3.161 10.2562 3.10471 10.6228C3.03576 11.0718 3 11.5317 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C9.69494 3 7.59227 3.86656 6 5.29168V4.25C6 3.83579 5.66421 3.5 5.25 3.5C4.83579 3.5 4.5 3.83579 4.5 4.25V7.25C4.5 7.66421 4.83579 8 5.25 8H8.25C8.66421 8 9 7.66421 9 7.25C9 6.83579 8.66421 6.5 8.25 6.5H6.90093C8.23907 5.25883 10.0309 4.5 12 4.5ZM12.5 7.75C12.5 7.33579 12.1642 7 11.75 7C11.3358 7 11 7.33579 11 7.75V12.25C11 12.6642 11.3358 13 11.75 13H14.75C15.1642 13 15.5 12.6642 15.5 12.25C15.5 11.8358 15.1642 11.5 14.75 11.5H12.5V7.75Z"
+                    fill="currentColor"
+                />
+            </svg>
+        </button>
+        <!-- 修改 Tooltip：名称 + 浅色快捷键 -->
+        <span class="tooltip">
+            <span>{t("sidebar.recent", undefined, $resolvedLocale)}</span>
+            <span class="shortcut">{sidebarShortcut}</span>
+        </span>
+    </div>
 
-        <!-- 当前目录 -->
-        <div class="tooltip-wrapper">
-            <button
-                class="sidebar-btn"
-                class:active={sidebarMode === "directory"}
-                onclick={() => onToggleSidebar("directory")}
-                disabled={!canUseDirectory}
-                aria-label={t("sidebar.directory", undefined, $resolvedLocale)}
+    <!-- 当前目录 -->
+    <div class="tooltip-wrapper">
+        <button
+            class="sidebar-btn"
+            class:active={sidebarMode === "directory"}
+            onclick={() => onToggleSidebar("directory")}
+            disabled={!canUseDirectory}
+            aria-label={t("sidebar.directory", undefined, $resolvedLocale)}
+        >
+            <svg
+                class="btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
             >
-                <svg
-                    class="btn-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        d="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C3.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z"
-                        fill="currentColor"
-                    />
-                </svg>
-            </button>
-            {#if canUseDirectory}
-                <!-- 修改 Tooltip：名称 + 浅色快捷键 -->
-                <span class="tooltip">
-                    <span
-                        >{t(
-                            "sidebar.directory",
-                            undefined,
-                            $resolvedLocale,
-                        )}</span
-                    >
-                    <span class="shortcut">{sidebarShortcut}</span>
-                </span>
-            {/if}
-        </div>
+                <path
+                    d="M3.5 6.25V8H8.12868C8.32759 8 8.51836 7.92098 8.65901 7.78033L10.1893 6.25L8.65901 4.71967C8.51836 4.57902 8.32759 4.5 8.12868 4.5H5.25C4.2835 4.5 3.5 5.2835 3.5 6.25ZM2 6.25C2 4.45507 3.45507 3 5.25 3H8.12868C8.72542 3 9.29771 3.23705 9.71967 3.65901L11.5607 5.5H18.75C20.5449 5.5 22 6.95507 22 8.75V17.75C22 19.5449 20.5449 21 18.75 21H5.25C3.45507 21 2 19.5449 2 17.75V6.25ZM3.5 9.5V17.75C3.5 18.7165 4.2835 19.5 5.25 19.5H18.75C19.7165 19.5 20.5 18.7165 20.5 17.75V8.75C20.5 7.7835 19.7165 7 18.75 7H11.5607L9.71967 8.84099C9.29771 9.26295 8.72542 9.5 8.12868 9.5H3.5Z"
+                    fill="currentColor"
+                />
+            </svg>
+        </button>
+        <!-- 修改 Tooltip：名称 + 浅色快捷键 -->
+        <span class="tooltip">
+            <span>{t("sidebar.directory", undefined, $resolvedLocale)}</span>
+            <span class="shortcut">{sidebarShortcut}</span>
+        </span>
     </div>
 
     <span class="sep">|</span>
@@ -207,12 +196,12 @@
     <span class="spacer"></span>
 
     <!-- 显示行号 -->
-    <button class="status-btn" onclick={onToggleLineNumbers}>
-        {t(
-            "status.short_line_numbers",
-            undefined,
-            $resolvedLocale,
-        )}{showLineNumbers ? "☑" : "☐"}
+    <button
+        class="status-btn"
+        class:off={!showLineNumbers}
+        onclick={onToggleLineNumbers}
+    >
+        {t("settings.show_line_numbers", undefined, $resolvedLocale)}
     </button>
 
     <span class="sep">|</span>
@@ -220,11 +209,11 @@
     <!-- 自动换行 -->
     <button
         class="status-btn"
+        class:off={!wordWrap || wordWrapDisabled}
         onclick={onToggleWordWrap}
         disabled={wordWrapDisabled}
     >
-        {t("status.short_word_wrap", undefined, $resolvedLocale)}
-        {wordWrap && !wordWrapDisabled ? "☑" : "☐"}
+        {t("settings.word_wrap", undefined, $resolvedLocale)}
     </button>
 
     <span class="sep">|</span>
@@ -293,7 +282,8 @@
 
 <style>
     .status-bar {
-        height: 24px;
+        height: 26px;
+        box-sizing: border-box;
         background: var(--status-bar-background);
         border-top: 1px solid var(--overlay-divider);
         display: flex;
@@ -345,22 +335,39 @@
     .status-btn {
         background: none;
         border: none;
-        padding: 0;
+        /* ★ 调整：给一点内边距，这样背景色才会有呼吸感，不会紧贴着字 */
+        padding: 2px 6px;
+        border-radius: 4px; /* ★ 圆角让背景色显得更精致 */
         font-size: 12px;
-        color: var(--status-bar-foreground);
+        color: var(--status-bar-foreground); /* 开启状态颜色 */
         cursor: pointer;
-        font-family: inherit;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        letter-spacing: 1px;
         flex-shrink: 0;
         white-space: nowrap;
-        font-family: "Segoe UI", system-ui, sans-serif;
-        letter-spacing: 1px; /* 稍微拉开一点字距，显得更清晰 */
+        transition: background-color 0.15s; /* ★ 只过渡背景色 */
+        line-height: 1; /* ★ 核心新增：让文字盒子上下绝对对称 */
     }
+
+    /* 关闭状态的字体颜色 */
     .status-btn.off {
         color: var(--status-bar-foreground-muted);
     }
+
+    /* ★ 核心修改：悬停时只变背景，绝对不改字体颜色 */
+    .status-btn:hover:not(:disabled) {
+        background-color: color-mix(
+            in srgb,
+            var(--status-bar-foreground) 12%,
+            transparent
+        );
+    }
+
+    /* 禁用状态的样式 */
     .status-btn:disabled {
         cursor: default;
         color: var(--status-bar-foreground-muted);
+        background: none; /* 禁用时取消背景色 */
     }
 
     .zoom-trigger {
@@ -423,6 +430,7 @@
         color: var(--status-bar-foreground);
         flex-shrink: 0;
         white-space: nowrap;
+        line-height: 1; /* ★ 核心新增：同上，保证编码、换行等文字也居中 */
     }
 
     .tooltip-wrapper {
@@ -431,45 +439,57 @@
         align-items: center;
         flex-shrink: 0;
     }
+
     .tooltip {
         position: absolute;
         bottom: 22px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--overlay-background);
         color: var(--overlay-foreground);
-        border: 1px solid var(--overlay-border);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-radius: 4px;
         padding: 4px 10px;
         font-size: 11px;
         white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.12s;
         z-index: 1000;
-
-        /* ★ 新增：使用 flex 让名称和快捷键完美并排居中 */
         display: flex;
         align-items: center;
-    }
-    /* ★ 新增：快捷键的样式，类似右键菜单的 .shortcut */
-    .tooltip .shortcut {
-        margin-left: 6px; /* 替代空格，用 6px 的间距更精准 */
-        color: var(--status-bar-foreground-muted); /* 颜色比主文字浅 */
-        /* 如果觉得快捷键还要小一点，可以加上 font-size: 10px; */
-    }
-    .tooltip-wrapper:hover .tooltip {
-        opacity: 1;
+
+        /* ★ 核心魔法：隐藏状态下，背景透明，无边框，无阴影！ */
+        opacity: 0;
+        pointer-events: none;
+        background: transparent;
+        border: 1px solid transparent;
+        box-shadow: none;
+
+        /* 加上所有属性的平滑过渡 */
+        transition:
+            opacity 0.12s,
+            background-color 0.12s,
+            border-color 0.12s,
+            box-shadow 0.12s;
     }
 
-    /* 最右侧 tooltip 右对齐，避免超出窗口 */
+    /* ★ 悬停时，才把高颜值的背景、边框和阴影加回来 */
+    .tooltip-wrapper:hover .tooltip {
+        opacity: 1;
+        background: var(--overlay-background);
+        border: 1px solid var(--overlay-border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .tooltip .shortcut {
+        margin-left: 6px;
+        color: var(--status-bar-foreground-muted);
+    }
+
+    /* 最右侧对齐修正 */
     .tooltip-wrapper.tooltip-right .tooltip {
         left: auto;
         right: 0;
         transform: none;
     }
-    /* ★ 新增：最左侧的 tooltip 左对齐，避免溢出屏幕 */
+
+    /* 最左侧对齐修正 */
     .tooltip-wrapper.tooltip-left .tooltip {
         left: 0;
         transform: none;
@@ -478,48 +498,49 @@
     .sidebar-btn {
         background: none;
         border: none;
-        padding: 2px 4px;
+        /* ★ 用 padding 撑起点击区域，去掉 height: 100% */
+        padding: 4px 6px;
         margin: 0;
         font-size: 12px;
         font-family: inherit;
-        /* ★ 修复：普通状态下使用与状态栏一致的颜色 */
         color: var(--status-bar-foreground);
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: 4px; /* 圆润一点 */
         transition: all 0.15s;
-        /* ★ 新增：让内部图片完美居中 */
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 100%;
-    }
-    /* ★ 新增：图标大小和颜色控制 */
-    .btn-icon {
-        width: 18px;
-        height: 18px;
-        object-fit: contain;
-        /* 如果你的图标在深色主题下看不清，可以取消下面这行的注释，使用 CSS 滤镜反色 */
-        /* filter: invert(var(--is-dark-theme)); */
+        outline: none; /* 消除点击残影 */
     }
 
+    .btn-icon {
+        width: 16px; /* 稍微缩小一点点，显得更精致 */
+        height: 16px;
+        object-fit: contain;
+    }
+
+    /* 悬停状态：统一使用柔和的前景色混合背景 */
     .sidebar-btn:hover:not(:disabled) {
-        /* ★ 修复：鼠标悬停时给一个非常轻柔的背景和主题色，显得有质感 */
-        background: var(--overlay-divider);
+        background: color-mix(
+            in srgb,
+            var(--status-bar-foreground) 12%,
+            transparent
+        );
         color: var(--accent);
     }
+
+    /* 激活状态 */
     .sidebar-btn.active {
-        /* 展开时保留原来的高亮，不修改 */
-        background: var(--overlay-hover-background);
+        background: color-mix(
+            in srgb,
+            var(--status-bar-foreground) 20%,
+            transparent
+        );
         color: var(--accent);
     }
+
     .sidebar-btn:disabled {
         color: var(--overlay-foreground-muted);
         cursor: default;
-    }
-    /* 侧边栏按钮组 */
-    .sidebar-btn-group {
-        display: flex;
-        gap: 2px; /* 内部按钮紧挨着，消除父级 8px 的 gap 影响 */
-        margin-right: 2px; /* 和右边的分隔线稍微拉开一点距离 */
     }
 </style>

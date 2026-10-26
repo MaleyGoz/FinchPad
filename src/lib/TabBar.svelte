@@ -104,8 +104,7 @@
     const DD_BTN_W = 32; // ▼ 下拉
     const SETTINGS_BTN_W = 32; // ⚙ 设置
     const WINDOW_BTNS_W = 46 * 3; // ─ □ × 三个窗口按钮
-    const LOGO_W = 38;
-    const MIN_BLANK = 80; // 拖动区最小宽度（从 80 加大）
+    const MIN_BLANK = 10; // 拖动区最小宽度（从 10 加大）
     const GAP = 1;
     const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
@@ -201,8 +200,17 @@
             const targetWidth = maxTextW + fixedOverhead;
             tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, targetWidth));
 
-            // 4. 判断当前窗口能不能装下这么多固定宽度的标签
-            const avail = width - FIXED_WIDTH - MIN_BLANK;
+            // 4. 判断当前窗口能不能装下这么多固定宽度的标签，★ 新增：扣除左侧 Logo / Mac红绿灯 占用的宽度
+            let leftSpacerW = 0;
+            if (!sidebarMode) {
+                leftSpacerW = isMac ? 100 : 40;
+            }
+            // ★ 新增：扣除右侧预览按钮的宽度（如果显示的话）
+            const previewBtnW = canPreview ? SETTINGS_BTN_W : 0;
+            // ★ 修正：把左侧占位和预览按钮扣除，并将右侧的预留空白从 80 缩小到 40
+            // 这样既能算准剩余空间，又能释放右侧的拖拽区宽度
+            const avail =
+                width - FIXED_WIDTH - leftSpacerW - previewBtnW - MIN_BLANK;
 
             // 计算不加 ▼ 时，放得下所有的标签需要多宽
             const totalNeeded = tabWidth * count + GAP * (count - 1);

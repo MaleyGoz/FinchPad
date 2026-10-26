@@ -39,6 +39,7 @@ export type Snapshot = {
   show_line_numbers: boolean;
   editor_bg: string;
   last_used_path: string;
+  record_recent_files: boolean;
 };
 
 export type DiffPayload = {
@@ -106,4 +107,7 @@ export const api = {
   applyDiskVersion: (idx: number) => invoke("apply_disk_version", { idx }),
     readDir: (path: string) => invoke<FileEntry[]>("read_dir", { path }),
   getRecentFiles: () => invoke<string[]>("get_recent_files"),
+  setRecordRecentFiles: (value: boolean) => invoke("set_record_recent_files", { value }),
+  clearRecentFiles: () => invoke("clear_recent_files"),
+  removeRecentFile: (path: string) => invoke("remove_recent_file", { path }),
 };

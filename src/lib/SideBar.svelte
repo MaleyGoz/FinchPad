@@ -3,12 +3,16 @@
     import { api, type FileEntry } from "$lib/api";
     import { tooltip } from "$lib/tooltip";
     import { t, resolvedLocale } from "$lib/i18n";
-    export let onClose: () => void = () => {};
+    import FileIcon from "$lib/FileIcon.svelte";
+    import Toggle from "$lib/Toggle.svelte";
 
+    export let onClose: () => void = () => {};
     export let mode: "recent" | "directory" | null = null;
     export let activeFilePath: string = "";
     export let onOpenFile: (path: string) => void = () => {};
     export let recentFilesVersion = 0;
+    export let recordRecentFiles: boolean = true;
+    export let onToggleRecordRecentFiles: (value: boolean) => void = () => {};
 
     let recentFiles: string[] = [];
     let currentDirFiles: FileEntry[] = [];
@@ -23,6 +27,21 @@
 
     function getSep(path: string) {
         return path.includes("\\") ? "\\" : "/";
+    }
+
+    // 清空操作
+    async function handleClearRecent() {
+        await api.clearRecentFiles();
+        recentFiles = [];
+        // 触发父组件版本号变化，如果是普通情况可以直接在这里更新
+        // 假设父组件传入的 recentFilesVersion 会有变化
+    }
+
+    // 单条删除
+    async function handleRemoveRecent(e: MouseEvent, path: string) {
+        e.stopPropagation();
+        await api.removeRecentFile(path);
+        recentFiles = recentFiles.filter((f) => f !== path);
     }
 
     // 加载最近文件
@@ -173,9 +192,40 @@
         <div class="sidebar-body">
             <!-- 最近文件 -->
             {#if mode === "recent"}
+                <!-- ★ 新增：悬浮置顶工具栏 -->
+                <div class="recent-toolbar">
+                    <!-- 记录历史按钮 -->
+                    <button
+                        class="record-btn"
+                        onclick={() =>
+                            onToggleRecordRecentFiles(!recordRecentFiles)}
+                    >
+                        <span style="transform: translateY(-0.5px);">
+                            {t(
+                                "sidebar.record_history",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </span>
+
+                        <Toggle
+                            checked={recordRecentFiles}
+                            onChange={onToggleRecordRecentFiles}
+                        />
+                    </button>
+                    <!-- 清空按钮 -->
+                    <button class="clear-btn" onclick={handleClearRecent}>
+                        {t("sidebar.clear_history", undefined, $resolvedLocale)}
+                    </button>
+                </div>
+
+                <!-- 最近文件列表 -->
                 <div class="sidebar-list">
                     {#if recentFiles.length === 0}
-                        <div class="empty-hint">
+                        <div
+                            class="empty-hint"
+                            style="color: var(--status-bar-foreground); opacity: 0.6;"
+                        >
                             {t(
                                 "sidebar.empty_recent",
                                 undefined,
@@ -184,16 +234,33 @@
                         </div>
                     {:else}
                         {#each recentFiles as file}
-                            <button
-                                class="sidebar-item"
+                            <div
+                                class="sidebar-item recent-item"
                                 onclick={() => onOpenFile(file)}
+                                onkeydown={(e) =>
+                                    e.key === "Enter" && onOpenFile(file)}
                                 use:tooltip={file}
+                                role="button"
+                                tabindex="0"
                             >
-                                <span class="item-name"
-                                    >{file.split(/[\\/]/).pop()}</span
+                                <span
+                                    class="item-name"
+                                    style="flex: 1; overflow: hidden; text-overflow: ellipsis;"
                                 >
-                                <span class="item-path">{file}</span>
-                            </button>
+                                    {file.split(/[\\/]/).pop()}
+                                </span>
+                                <button
+                                    class="delete-btn"
+                                    onclick={(e) => handleRemoveRecent(e, file)}
+                                    aria-label={t(
+                                        "sidebar.delete_record",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                >
+                                    ×
+                                </button>
+                            </div>
                         {/each}
                     {/if}
                 </div>
@@ -244,7 +311,10 @@
                                         : onOpenFile(file.path)}
                             >
                                 <span class="item-name">
-                                    {file.is_dir ? "📁" : "📄"}
+                                    <FileIcon
+                                        name={file.name}
+                                        isDir={file.is_dir}
+                                    />
                                     {file.name}
                                 </span>
                             </button>
@@ -265,7 +335,6 @@
         flex-direction: column;
         background: var(--status-bar-background); /* ★ 改：主体用状态栏背景 */
         border-right: 1px solid var(--overlay-divider); /* 右侧分割线 */
-        z-index: 10;
     }
 
     /* 头部假标签 */
@@ -358,6 +427,7 @@
     .sidebar-body {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden; /* ★ 新增：彻底锁死横向滚动条 */
     }
     .sidebar-list {
         display: flex;
@@ -383,6 +453,7 @@
         text-align: left;
         width: 100%;
         overflow: hidden;
+        box-sizing: border-box;
     }
     /* 悬停背景 */
     .sidebar-item:hover {
@@ -405,17 +476,9 @@
         display: flex;
         align-items: center;
         width: 100%;
+        min-width: 0; /* ★ 新增：黄金法则！允许 Flex 子项缩小到比文字内容更小，从而触发省略号 */
     }
-    /* 列表项路径 */
-    .item-path {
-        font-size: 10px;
-        color: var(--status-bar-foreground-muted); /* ★ 改：使用状态栏弱化色 */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
-        margin-top: 2px;
-    }
+
     .dir-toolbar {
         display: flex;
         align-items: center;
@@ -459,5 +522,151 @@
         white-space: pre-line; /* 关键：让 \n 生效换行 */
         word-break: break-all; /* 防止超长路径撑破侧边栏 */
         opacity: 0.9;
+    }
+
+    /* 悬浮置顶工具栏 */
+    .recent-toolbar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 8px;
+        background: var(--status-bar-background);
+        border-bottom: 1px solid var(--overlay-divider);
+        z-index: 2;
+    }
+
+    /* ★ 完美复刻状态栏的按钮样式 */
+    .record-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 12px;
+        color: var(--status-bar-foreground);
+        cursor: pointer;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: color 0.15s;
+        line-height: 1; /* ★ 新增：抹平文字默认的上下行距，强制居中 */
+    }
+
+    .record-btn:hover {
+        color: var(--accent);
+    }
+
+    .clear-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: var(--status-bar-foreground);
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+        transition: all 0.15s;
+    }
+
+    .clear-btn:hover {
+        background: var(--overlay-hover-background);
+        color: var(--accent);
+    }
+
+    .clear-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    .clear-btn:hover {
+        background: var(--overlay-hover-background);
+    }
+
+    /* 单条记录悬停与删除按钮 */
+    .recent-item {
+        position: relative;
+        display: flex;
+        flex-direction: row; /* 改为横向排列 */
+        align-items: center;
+        padding: 6px 28px 6px 8px; /* 右侧留出删除按钮的空间 */
+    }
+
+    .delete-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: var(--status-bar-foreground-muted);
+        font-size: 16px;
+        cursor: pointer;
+        opacity: 0;
+        transition:
+            opacity 0.15s,
+            color 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    .recent-item:hover .delete-btn {
+        opacity: 1;
+    }
+
+    .delete-btn:hover {
+        color: var(--danger); /* 假设你有这个颜色，如果没有可以用 red */
+        background: var(--overlay-hover-background);
+    }
+
+    /* ==========================================
+       侧边栏滚动条（参数 100% 对齐 Monaco 编辑器）
+       ========================================== */
+    .sidebar-body::-webkit-scrollbar {
+        width: 10px; /* 对应 Monaco 的 10px 宽度 */
+        height: 10px;
+    }
+
+    .sidebar-body::-webkit-scrollbar-track {
+        background: transparent; /* 轨道透明 */
+    }
+
+    .sidebar-body::-webkit-scrollbar-thumb {
+        /* 使用带透明度的前景色，完美适配所有主题 */
+        background: color-mix(
+            in srgb,
+            var(--status-bar-foreground) 25%,
+            transparent
+        );
+        border-radius: 5px; /* 对应 Monaco 的 5px 圆角 */
+        min-height: 40px; /* 对应 Monaco 的 40px 最小高度 */
+        transition: background 0.2s ease-in-out; /* 对应 Monaco 的平滑过渡 */
+
+        /* 关键技巧：加一圈透明边框，让原生滑块显得更细，留出呼吸感 */
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+
+    .sidebar-body::-webkit-scrollbar-thumb:hover {
+        /* 悬停时加深 */
+        background: color-mix(
+            in srgb,
+            var(--status-bar-foreground) 50%,
+            transparent
+        );
+    }
+
+    /* 隐藏原生的上下小箭头 */
+    .sidebar-body::-webkit-scrollbar-button {
+        display: none;
     }
 </style>

@@ -1,6 +1,6 @@
 {
   "name": "finchpad",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A modern, lightweight, multi-tab plain-text editor designed to replace the default editors on Windows, Linux, and macOS.",
   "type": "module",
   "scripts": {

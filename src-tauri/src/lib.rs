@@ -3,13 +3,14 @@ mod io;
 mod model;
 
 use app::{
-    apply_disk_version, check_tab_full_state, check_tab_state, close_diff_window, close_tab,
-    discard_tab_changes, get_diff_payload, get_disk_content, get_large_dirty_tabs,
-    get_recent_files, get_tab_content, get_tab_path, get_workspace_state, get_zoom,
-    load_pending_tab, new_tab, open_diff_window, open_files, read_dir, reload_tab, rename_tab_file,
-    reorder_tabs, restore_session, save_active_file, save_active_file_as, save_and_prepare_exit,
-    set_editor_bg, set_locale, set_show_line_numbers, set_word_wrap, set_zoom, show_window,
-    switch_tab, take_startup_files, tick_autosave, update_active_text, AppState,
+    apply_disk_version, check_tab_full_state, check_tab_state, clear_recent_files,
+    close_diff_window, close_tab, discard_tab_changes, get_diff_payload, get_disk_content,
+    get_large_dirty_tabs, get_recent_files, get_tab_content, get_tab_path, get_workspace_state,
+    get_zoom, load_pending_tab, new_tab, open_diff_window, open_files, read_dir, reload_tab,
+    remove_recent_file, rename_tab_file, reorder_tabs, restore_session, save_active_file,
+    save_active_file_as, save_and_prepare_exit, set_editor_bg, set_locale, set_record_recent_files,
+    set_show_line_numbers, set_word_wrap, set_zoom, show_window, switch_tab, take_startup_files,
+    tick_autosave, update_active_text, AppState,
 };
 use model::Workspace;
 use std::sync::Mutex;
@@ -105,47 +106,54 @@ pub fn run() {
             // ★ 修正：使用 on_window_event 监听窗口大小和位置变化
             if let Some(window) = app.get_webview_window("main") {
                 let app_handle = app.handle().clone();
-                window.on_window_event(move |event| match event {
-                    tauri::WindowEvent::Resized(size) => {
-                        if let Ok(scale) = app_handle
-                            .get_webview_window("main")
-                            .and_then(|w| w.scale_factor().ok())
-                            .ok_or(())
-                        {
-                            if let Some(state) = app_handle.try_state::<AppState>() {
-                                if let Ok(mut s) = state.last_window_size.lock() {
-                                    *s = Some((
-                                        size.width as f32 / scale as f32,
-                                        size.height as f32 / scale as f32,
-                                    ));
+                window.on_window_event(move |event| {
+                    match event {
+                        tauri::WindowEvent::Resized(size) => {
+                            // ★ 核心防御 3：过滤掉任何小于 200x200 的异常尺寸（比如启动瞬间的 0x0）
+                            if size.width < 200 || size.height < 200 {
+                                return;
+                            }
+                            if let Ok(scale) = app_handle
+                                .get_webview_window("main")
+                                .and_then(|w| w.scale_factor().ok())
+                                .ok_or(())
+                            {
+                                if let Some(state) = app_handle.try_state::<AppState>() {
+                                    if let Ok(mut s) = state.last_window_size.lock() {
+                                        *s = Some((
+                                            size.width as f32 / scale as f32,
+                                            size.height as f32 / scale as f32,
+                                        ));
+                                    }
+                                    state.mark_session_dirty();
                                 }
-                                // ★ 新增：标记为脏，等待下一次 tick_autosave 自动落盘
-                                state.mark_session_dirty();
                             }
                         }
-                    }
-                    tauri::WindowEvent::Moved(pos) => {
-                        if let Ok(scale) = app_handle
-                            .get_webview_window("main")
-                            .and_then(|w| w.scale_factor().ok())
-                            .ok_or(())
-                        {
-                            if let Some(state) = app_handle.try_state::<AppState>() {
-                                if let Ok(mut p) = state.last_window_pos.lock() {
-                                    *p = Some((
-                                        pos.x as f32 / scale as f32,
-                                        pos.y as f32 / scale as f32,
-                                    ));
+                        tauri::WindowEvent::Moved(pos) => {
+                            // 位置校验（可选）：过滤极端坐标
+                            if pos.x.abs() > 50000 || pos.y.abs() > 50000 {
+                                return;
+                            }
+                            if let Ok(scale) = app_handle
+                                .get_webview_window("main")
+                                .and_then(|w| w.scale_factor().ok())
+                                .ok_or(())
+                            {
+                                if let Some(state) = app_handle.try_state::<AppState>() {
+                                    if let Ok(mut p) = state.last_window_pos.lock() {
+                                        *p = Some((
+                                            pos.x as f32 / scale as f32,
+                                            pos.y as f32 / scale as f32,
+                                        ));
+                                    }
+                                    state.mark_session_dirty();
                                 }
-                                // ★ 新增：标记为脏
-                                state.mark_session_dirty();
                             }
                         }
+                        _ => {}
                     }
-                    _ => {}
                 });
             }
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -184,7 +192,10 @@ pub fn run() {
             apply_disk_version,
             rename_tab_file,
             read_dir,
-            get_recent_files
+            get_recent_files,
+            set_record_recent_files,
+            clear_recent_files,
+            remove_recent_file,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

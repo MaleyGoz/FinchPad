@@ -7,6 +7,7 @@
         localeChoice,
     } from "$lib/i18n";
     import { THEMES, THEME_ORDER } from "$lib/themes";
+    import Toggle from "$lib/Toggle.svelte";
 
     // 接收从父组件传来的状态和数据
     export let modal: any;
@@ -144,6 +145,7 @@
             <div class="settings-group-title">
                 {t("settings.view", undefined, $resolvedLocale)}
             </div>
+            <!-- 显示行号开关 -->
             <button class="context-item" onclick={onToggleLineNumbers}>
                 <span
                     >{t(
@@ -152,22 +154,13 @@
                         $resolvedLocale,
                     )}</span
                 >
-                {#if showLineNumbers}
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="margin-left: auto;"
-                    >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                {/if}
+                <!-- ★ 替换为 Toggle 组件 -->
+                <Toggle
+                    checked={showLineNumbers}
+                    onChange={onToggleLineNumbers}
+                />
             </button>
+            <!-- 自动换行开关 -->
             <button
                 class="context-item"
                 class:disabled={largeFile}
@@ -177,21 +170,11 @@
                 <span
                     >{t("settings.word_wrap", undefined, $resolvedLocale)}</span
                 >
-                {#if wordWrap && !largeFile}
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        style="margin-left: auto;"
-                    >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                {/if}
+                <!-- ★ 替换为 Toggle 组件 -->
+                <Toggle
+                    checked={wordWrap && !largeFile}
+                    onChange={onToggleWordWrap}
+                />
             </button>
 
             <div class="context-divider"></div>

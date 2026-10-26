@@ -35,6 +35,7 @@ pub struct Workspace {
     last_used_path: Option<PathBuf>,
     /// 最近打开的文件路径
     recent_files: Vec<String>,
+    pub record_recent_files: bool,
 }
 
 impl Workspace {
@@ -83,6 +84,7 @@ impl Workspace {
             locale_choice: "auto".to_string(),
             last_used_path: None,
             recent_files: Vec::new(),
+            record_recent_files: true,
         };
         let first = ws.make_blank_tab();
         ws.tabs.push(first);
@@ -275,9 +277,25 @@ impl Workspace {
     }
 
     pub fn add_recent_file(&mut self, path: String) {
+        if !self.record_recent_files {
+            return; // ★ 如果用户关闭了记录，直接返回
+        }
         self.recent_files.retain(|p| p != &path); // 去重
         self.recent_files.insert(0, path); // 插到最前面
         self.recent_files.truncate(20); // 限制 20 个
+    }
+
+    pub fn record_recent_files(&self) -> bool {
+        self.record_recent_files
+    }
+    pub fn set_record_recent_files(&mut self, value: bool) {
+        self.record_recent_files = value;
+    }
+    pub fn clear_recent_files(&mut self) {
+        self.recent_files.clear();
+    }
+    pub fn remove_recent_file(&mut self, path: &str) {
+        self.recent_files.retain(|p| p != path);
     }
 
     pub fn set_recent_files(&mut self, files: Vec<String>) {

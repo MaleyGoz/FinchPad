@@ -72,6 +72,7 @@ pub struct WorkspaceSnapshot {
     pub editor_bg: String,
     /// 最近使用的目录（用于打开/另存为对话框的默认目录）
     pub last_used_path: String,
+    pub record_recent_files: bool,
 }
 
 // 编辑区域
@@ -264,6 +265,7 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
             .last_used_path()
             .map(|p| p.to_string_lossy().into_owned())
             .unwrap_or_default(),
+        record_recent_files: ws.record_recent_files(),
     }
 }
 
@@ -835,6 +837,7 @@ fn build_session_from_ws(ws: &crate::model::Workspace) -> crate::io::session::Se
     session.window.locale_choice = ws.locale_choice().to_string();
     // ★ 新增：把最近文件存入 session
     session.recent_files = ws.recent_files().to_vec();
+    session.window.record_recent_files = ws.record_recent_files();
 
     session
 }
@@ -891,17 +894,25 @@ pub fn restore_session(
         ws.set_editor_bg(session.window.editor_bg.clone());
         ws.locale_choice_restore(session.window.locale_choice.clone());
         ws.set_last_used_path(session.window.last_used_path.clone()); // ★ 新增
+        ws.set_record_recent_files(session.window.record_recent_files);
     }
 
     // 4. 恢复窗口大小和位置
     if let Some(window) = app.get_webview_window("main") {
-        let w = session.window.width;
-        let h = session.window.height;
+        let mut w = session.window.width;
+        let mut h = session.window.height;
+
+        // ★ 核心防御 1：如果宽高异常（比如被 dev 模式写成了 1x1），强制重置为默认的 800x600
+        if w < 400.0 || h < 300.0 {
+            w = 800.0;
+            h = 600.0;
+        }
 
         let _ = window.set_size(tauri::LogicalSize::new(w, h));
 
         let x = session.window.x;
         let y = session.window.y;
+        // ★ 核心防御 2：坐标也不能是极端的负数
         if x >= 0.0 && y >= 0.0 {
             if is_position_visible(&window, x, y) {
                 let _ = window.set_position(tauri::LogicalPosition::new(x, y));
@@ -1459,3 +1470,30 @@ pub fn get_recent_files(state: tauri::State<AppState>) -> Result<Vec<String>, St
     Ok(ws.recent_files().to_vec())
 }
 // ===========侧边栏功能相关结束================
+
+#[tauri::command]
+pub fn set_record_recent_files(state: tauri::State<AppState>, value: bool) -> Result<(), String> {
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    ws.set_record_recent_files(value);
+    drop(ws);
+    state.mark_session_dirty();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn clear_recent_files(state: tauri::State<AppState>) -> Result<(), String> {
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    ws.clear_recent_files();
+    drop(ws);
+    state.mark_session_dirty();
+    Ok(())
+}
+
+#[tauri::command]
+pub fn remove_recent_file(state: tauri::State<AppState>, path: String) -> Result<(), String> {
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    ws.remove_recent_file(&path);
+    drop(ws);
+    state.mark_session_dirty();
+    Ok(())
+}

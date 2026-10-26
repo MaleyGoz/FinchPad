@@ -68,6 +68,10 @@ export const zhCN: Record<string, string> = {
   "sidebar.empty_dir": "此文件夹为空",
   "sidebar.up": "返回上一级", 
   "sidebar.dir_unreachable": "⚠️ 无法访问以下目录：\n{path}\n\n可能的原因：U盘已拔出、网盘未挂载、或文件夹被重命名。",
+  "sidebar.record_history": "记录历史",
+  "sidebar.clear_history": "清空历史",
+  "sidebar.delete_record": "删除记录",
+
 
   // ===== 状态栏 =====
   "status.unsaved": "未保存",

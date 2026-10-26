@@ -107,7 +107,13 @@
         show_line_numbers: true,
         editor_bg: "white",
         last_used_path: "",
+        record_recent_files: true,
     };
+
+    async function handleToggleRecordRecentFiles(value: boolean) {
+        await api.setRecordRecentFiles(value);
+        snapshot = await api.getWorkspaceState();
+    }
 
     // 侧边栏相关
     let sidebarMode: "recent" | "directory" | null = null;
@@ -603,7 +609,8 @@
 
     function barMenuOpen() {
         closeBarContextMenu();
-        handleOpen();
+        // ★ 修复：延迟 0ms 调用，等待 Svelte 响应式更新 isAnyModalOpen 的状态
+        setTimeout(handleOpen, 0);
     }
 
     async function handleReorder(from: number, to: number) {
@@ -2010,6 +2017,8 @@
             onOpenFile={handleSidebarOpenFile}
             onClose={() => (sidebarMode = null)}
             {recentFilesVersion}
+            recordRecentFiles={snapshot.record_recent_files}
+            onToggleRecordRecentFiles={handleToggleRecordRecentFiles}
         />
         <!-- 右侧主体：包含标签栏和编辑器 -->
         <div class="main-content">
