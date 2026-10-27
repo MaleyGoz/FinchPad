@@ -21,10 +21,6 @@ export const ru: Record<string, string> = {
   "dialog.update_cancel": "Отмена",
 
   // ===== Языковые опции =====
-  "locale.auto": "Авто",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.ru": "Русский",
 
   // ===== Контекстное меню вкладки =====
   "tab_menu.save": "Сохранить",
@@ -113,10 +109,6 @@ export const ru: Record<string, string> = {
   "dialog.large_close_no": "Не сохранять",
 
   // ===== Заглушка большого файла =====
-  "pending.title": "Большой файл, ещё не загружен",
-  "pending.size": "Размер: {size}",
-  "pending.hint": "После загрузки редактор может временно не отвечать",
-  "pending.load": "Загрузить сейчас",
 
   // ===== Диалог «О программе» =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const ru: Record<string, string> = {
   // ===== Безымянные вкладки =====
   "tab.unnamed": "Безымянный {index}",
   "tab.unnamed_fallback": "Без имени",
+
+  "large_file.searching": "Сканирование файла...",
+  "large_file.search_limit": "Показаны только первые 100 результатов, используйте более точные ключевые слова",
+  "sidebar.record_history": "Записывать историю",
+  "large_file.search_placeholder": "Поиск...",
+  "large_file.auto_detect": "🔄 Автоопределение",
+  "large_file.search_failed": "Ошибка поиска, проверьте состояние файла.",
+  "large_file.pending_size": "Размер файла: {size}",
+  "large_file.pending_btn": "⚡ Быстрый просмотр только для чтения",
+  "large_file.no_results": "Совпадений не найдено",
+  "large_file.pending_hint": "Чтобы основной интерфейс работал плавно, он откроется в отдельном окне для сверхбыстрого рендеринга только для чтения.",
+  "large_file.pending_title": "Этот файл большой и еще не загружен",
+  "large_file.load_failed": "Ошибка чтения. Файл мог быть изменен или удален извне.",
+  "large_file.file_not_found": "Файл был удален или перемещен извне, невозможно открыть.",
+  "sidebar.delete_record": "Удалить запись",
+  "sidebar.clear_history": "Очистить историю",
 };

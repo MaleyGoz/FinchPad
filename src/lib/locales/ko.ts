@@ -21,10 +21,6 @@ export const ko: Record<string, string> = {
   "dialog.update_cancel": "취소",
 
   // ===== 언어 옵션 =====
-  "locale.auto": "자동",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.ko": "한국어",
 
   // ===== 탭 컨텍스트 메뉴 =====
   "tab_menu.save": "저장",
@@ -113,10 +109,6 @@ export const ko: Record<string, string> = {
   "dialog.large_close_no": "저장하지 않음",
 
   // ===== 큰 파일 플레이스홀더 =====
-  "pending.title": "큰 파일, 아직 로드되지 않음",
-  "pending.size": "크기: {size}",
-  "pending.hint": "로드 후 편집기가 잠시 응답하지 않을 수 있습니다",
-  "pending.load": "지금 로드",
 
   // ===== 정보 대화상자 =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const ko: Record<string, string> = {
   // ===== 제목 없는 탭 =====
   "tab.unnamed": "제목 없음 {index}",
   "tab.unnamed_fallback": "제목 없음",
+
+  "large_file.searching": "파일 검색 중...",
+  "large_file.search_limit": "처음 100개의 결과만 표시됩니다. 더 정확한 키워드를 사용하세요",
+  "sidebar.record_history": "기록 기록",
+  "large_file.search_placeholder": "검색...",
+  "large_file.auto_detect": "🔄 자동 감지",
+  "large_file.search_failed": "검색 실패, 파일 상태를 확인하세요.",
+  "large_file.pending_size": "파일 크기: {size}",
+  "large_file.pending_btn": "⚡ 빠른 읽기 전용 보기",
+  "large_file.no_results": "일치하는 항목이 없습니다",
+  "large_file.pending_hint": "메인 UI의 부드러운 작동을 위해 별도의 창에서 초고속 읽기 전용 렌더링으로 열립니다.",
+  "large_file.pending_title": "이 파일은 크기가 커서 아직 로드되지 않았습니다",
+  "large_file.load_failed": "읽기 실패. 파일이 외부에서 수정되거나 삭제되었을 수 있습니다.",
+  "large_file.file_not_found": "파일이 외부에서 삭제되거나 이동되어 열 수 없습니다.",
+  "sidebar.delete_record": "기록 삭제",
+  "sidebar.clear_history": "기록 지우기",
 };

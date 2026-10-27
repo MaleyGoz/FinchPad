@@ -21,10 +21,6 @@ export const zhTW: Record<string, string> = {
   "dialog.update_cancel": "取消",
 
   // ===== 語言選項 =====
-  "locale.auto": "跟隨系統",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== 標籤右鍵選單 =====
   "tab_menu.save": "儲存",
@@ -112,10 +108,6 @@ export const zhTW: Record<string, string> = {
   "dialog.large_close_no": "不儲存",
 
   // ===== 大檔案占位 =====
-  "pending.title": "此檔案較大，尚未載入",
-  "pending.size": "檔案大小：{size}",
-  "pending.hint": "載入後編輯器可能短暫無響應",
-  "pending.load": "立即載入",
 
   // ===== 關於彈窗 =====
   "about.title": "FinchPad",
@@ -131,4 +123,20 @@ export const zhTW: Record<string, string> = {
   // ===== 未命名標籤 =====
   "tab.unnamed": "未命名 {index}",
   "tab.unnamed_fallback": "未命名",
+
+  "large_file.searching": "正在全檔案掃描...",
+  "large_file.search_limit": "僅顯示前 100 個結果，請使用更精確的關鍵字",
+  "sidebar.record_history": "記錄歷史",
+  "large_file.search_placeholder": "搜尋...",
+  "large_file.auto_detect": "🔄 自動識別",
+  "large_file.search_failed": "搜尋失敗，請檢查檔案狀態。",
+  "large_file.pending_size": "檔案大小：{size}",
+  "large_file.pending_btn": "⚡ 極速唯讀檢視",
+  "large_file.no_results": "未找到匹配項",
+  "large_file.pending_hint": "為了不卡頓主介面，將在獨立視窗中進行極速唯讀渲染。",
+  "large_file.pending_title": "此檔案較大，尚未載入",
+  "large_file.load_failed": "讀取失敗，檔案可能已被外部修改或刪除。",
+  "large_file.file_not_found": "檔案已被外部刪除或移動，無法開啟。",
+  "sidebar.delete_record": "刪除記錄",
+  "sidebar.clear_history": "清空歷史",
 };

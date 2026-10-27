@@ -520,40 +520,56 @@
 
 <!-- 对比子菜单 -->
 {#if diffSubmenu.visible}
-    {@const ddW = 200}
-    {@const ddH = Math.min((tabTitles.length - 1) * 32 + 8, 400)}
+    {@const ddW = 220}
+    <!-- ★ 核心修改：宽度锁定为 220，必须和下面 CSS 保持一致 -->
+    {@const ddH = Math.min((tabTitles.length - 1) * 32 + 8, 300)}
+
+    <!-- ★ 核心修改：这里的右侧空间判断将极其精准 -->
     {@const hasRight = diffSubmenu.anchorRight + ddW + 8 <= window.innerWidth}
     {@const ddLeft = hasRight
         ? diffSubmenu.anchorRight + 4
         : Math.max(8, diffSubmenu.anchorLeft - ddW - 4)}
+
     {@const ddTop = Math.max(
         8,
         Math.min(diffSubmenu.anchorTop, window.innerHeight - ddH - 8),
     )}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-
     <div
-        class="context-menu"
-        class:bridge-right={!hasRight}
-        class:bridge-left={hasRight}
-        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
-        onclick={(e) => e.stopPropagation()}
-        oncontextmenu={(e) => e.stopPropagation()}
-        onmouseenter={onCancelCloseDiffSubmenu}
-        onmouseleave={onScheduleCloseDiffSubmenu}
-        role="menu"
-        tabindex="-1"
+        class="context-overlay"
+        onclick={() => {
+            onCloseDiffSubmenu();
+            onCloseContextMenu();
+        }}
+        oncontextmenu={(e) => {
+            e.preventDefault();
+            onCloseDiffSubmenu();
+            onCloseContextMenu();
+        }}
+        role="presentation"
     >
-        {#each tabTitles as title, idx}
-            {#if idx !== contextMenu.index}
-                <button
-                    class="context-item"
-                    onclick={() => onSelectDiffTarget(idx)}
-                >
-                    <span>{title}</span>
-                </button>
-            {/if}
-        {/each}
+        <div
+            class="context-menu"
+            style="width: {ddW}px; max-width: {ddW}px; box-sizing: border-box; left: {ddLeft}px; top: {ddTop}px; max-height: 300px; overflow-y: auto; overflow-x: hidden;"
+            onclick={(e) => e.stopPropagation()}
+            oncontextmenu={(e) => e.stopPropagation()}
+            onmouseenter={onCancelCloseDiffSubmenu}
+            onmouseleave={onScheduleCloseDiffSubmenu}
+            role="menu"
+            tabindex="-1"
+        >
+            {#each tabTitles as title, idx}
+                {#if idx !== contextMenu.index}
+                    <button
+                        class="context-item diff-item-btn"
+                        onclick={() => onSelectDiffTarget(idx)}
+                        {title}
+                    >
+                        <span class="diff-item-text">{title}</span>
+                    </button>
+                {/if}
+            {/each}
+        </div>
     </div>
 {/if}
 
@@ -946,6 +962,32 @@
     }
     .context-item.disabled .shortcut {
         color: var(--overlay-foreground-muted);
+    }
+
+    /* ★ 新增：对比菜单里的列表项 */
+    .diff-item-btn {
+        display: block;
+        width: 100%;
+        min-width: 0; /* 允许文字截断 */
+        text-align: left;
+        overflow: hidden;
+
+        /* ★ 核心修复 1：拒绝被 Flex 挤压，保持原本的物理高度 */
+        flex-shrink: 0;
+
+        /* ★ 核心修复 2：确保行高和内边距不被格式化工具删掉 */
+        padding: 6px 12px;
+        line-height: 1.5;
+        box-sizing: border-box;
+    }
+
+    /* ★ 新增：文字单行截断，显示省略号 */
+    .diff-item-text {
+        display: block;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* ==========================================

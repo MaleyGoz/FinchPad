@@ -21,10 +21,6 @@ export const thTH: Record<string, string> = {
   "dialog.update_cancel": "ยกเลิก",
 
   // ===== ตัวเลือกภาษา =====
-  "locale.auto": "ตามระบบ",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== เมนูคลิกขวาที่แท็บ =====
   "tab_menu.save": "บันทึก",
@@ -115,10 +111,6 @@ export const thTH: Record<string, string> = {
   "dialog.large_close_no": "ไม่บันทึก",
 
   // ===== ข้อความแสดงไฟล์ใหญ่ =====
-  "pending.title": "ไฟล์นี้มีขนาดใหญ่ ยังไม่ได้โหลด",
-  "pending.size": "ขนาด: {size}",
-  "pending.hint": "ตัวแก้ไขอาจไม่ตอบสนองชั่วคราวหลังจากโหลด",
-  "pending.load": "โหลดตอนนี้",
 
   // ===== กล่องโต้ตอบเกี่ยวกับ =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const thTH: Record<string, string> = {
   // ===== แท็บที่ยังไม่ได้ตั้งชื่อ =====
   "tab.unnamed": "ไม่มีชื่อ {index}",
   "tab.unnamed_fallback": "ไม่มีชื่อ",
+
+  "large_file.searching": "กำลังสแกนไฟล์...",
+  "large_file.search_limit": "แสดงเฉพาะ 100 ผลลัพธ์แรกเท่านั้น โปรดใช้คำค้นหาที่เจาะจงมากขึ้น",
+  "sidebar.record_history": "บันทึกประวัติ",
+  "large_file.search_placeholder": "ค้นหา...",
+  "large_file.auto_detect": "🔄 ตรวจจับอัตโนมัติ",
+  "large_file.search_failed": "การค้นหาล้มเหลว โปรดตรวจสอบสถานะไฟล์",
+  "large_file.pending_size": "ขนาดไฟล์: {size}",
+  "large_file.pending_btn": "⚡ ดูแบบอ่านอย่างเดียวอย่างรวดเร็ว",
+  "large_file.no_results": "ไม่พบรายการที่ตรงกัน",
+  "large_file.pending_hint": "เพื่อให้อินเทอร์เฟซหลักทำงานได้อย่างราบรื่น ไฟล์จะเปิดในหน้าต่างแยกต่างหากสำหรับการเรนเดอร์แบบอ่านอย่างเดียวที่รวดเร็วเป็นพิเศษ",
+  "large_file.pending_title": "ไฟล์นี้มีขนาดใหญ่และยังไม่ได้โหลด",
+  "large_file.load_failed": "การอ่านล้มเหลว ไฟล์อาจถูกแก้ไขหรือลบจากภายนอก",
+  "large_file.file_not_found": "ไฟล์ถูกลบหรือย้ายจากภายนอกและไม่สามารถเปิดได้",
+  "sidebar.delete_record": "ลบระเบียน",
+  "sidebar.clear_history": "ล้างประวัติ",
 };

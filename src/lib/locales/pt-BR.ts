@@ -21,10 +21,6 @@ export const pt: Record<string, string> = {
   "dialog.update_cancel": "Cancelar",
 
   // ===== Opções de Idioma =====
-  "locale.auto": "Automático",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.pt-BR": "Português (Brasil)",
 
   // ===== Menu de Contexto da Guia =====
   "tab_menu.save": "Salvar",
@@ -113,10 +109,6 @@ export const pt: Record<string, string> = {
   "dialog.large_close_no": "Não salvar",
 
   // ===== Placeholder de Arquivo Grande =====
-  "pending.title": "Arquivo grande, ainda não carregado",
-  "pending.size": "Tamanho: {size}",
-  "pending.hint": "O editor pode ficar brevemente sem resposta após o carregamento",
-  "pending.load": "Carregar agora",
 
   // ===== Diálogo Sobre =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const pt: Record<string, string> = {
   // ===== Guias Sem Título =====
   "tab.unnamed": "Sem título {index}",
   "tab.unnamed_fallback": "Sem título",
+
+  "large_file.searching": "Digitalizando arquivo...",
+  "large_file.search_limit": "Mostrando apenas os primeiros 100 resultados, use palavras-chave mais precisas",
+  "sidebar.record_history": "Registrar histórico",
+  "large_file.search_placeholder": "Pesquisar...",
+  "large_file.auto_detect": "🔄 Detecção automática",
+  "large_file.search_failed": "Falha na pesquisa, verifique o status do arquivo.",
+  "large_file.pending_size": "Tamanho do arquivo: {size}",
+  "large_file.pending_btn": "⚡ Visualização rápida somente leitura",
+  "large_file.no_results": "Nenhuma correspondência encontrada",
+  "large_file.pending_hint": "Para manter a interface principal fluida, ele será aberto em uma janela separada para renderização somente leitura ultrarrápida.",
+  "large_file.pending_title": "Este arquivo é grande e ainda não foi carregado",
+  "large_file.load_failed": "Falha na leitura. O arquivo pode ter sido modificado ou excluído externamente.",
+  "large_file.file_not_found": "O arquivo foi excluído ou movido externamente e não pode ser aberto.",
+  "sidebar.delete_record": "Excluir registro",
+  "sidebar.clear_history": "Limpar histórico",
 };

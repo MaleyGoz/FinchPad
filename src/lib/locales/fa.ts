@@ -21,10 +21,6 @@ export const faIR: Record<string, string> = {
   "dialog.update_cancel": "انصراف",
 
   // ===== گزینه‌های زبان =====
-  "locale.auto": "خودکار",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== منوی راست‌کلیک زبانه =====
   "tab_menu.save": "ذخیره",
@@ -115,10 +111,6 @@ export const faIR: Record<string, string> = {
   "dialog.large_close_no": "ذخیره نکن",
 
   // ===== جایگزین فایل بزرگ =====
-  "pending.title": "این فایل بزرگ است و هنوز بارگذاری نشده",
-  "pending.size": "اندازه: {size}",
-  "pending.hint": "پس از بارگذاری، ویرایشگر ممکن است کوتاه‌مدت پاسخگو نباشد",
-  "pending.load": "بارگذاری هم‌اکنون",
 
   // ===== پنجره درباره =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const faIR: Record<string, string> = {
   // ===== زبانه‌های بی‌نام =====
   "tab.unnamed": "بی‌نام {index}",
   "tab.unnamed_fallback": "بی‌نام",
+
+  "large_file.searching": "در حال اسکن فایل...",
+  "large_file.search_limit": "فقط 100 نتیجه اول نمایش داده می‌شود، لطفاً از کلمات کلیدی دقیق‌تری استفاده کنید",
+  "sidebar.record_history": "ثبت تاریخچه",
+  "large_file.search_placeholder": "جستجو...",
+  "large_file.auto_detect": "🔄 تشخیص خودکار",
+  "large_file.search_failed": "جستجو ناموفق بود، لطفاً وضعیت فایل را بررسی کنید.",
+  "large_file.pending_size": "حجم فایل: {size}",
+  "large_file.pending_btn": "⚡ نمای سریع فقط‌خواندنی",
+  "large_file.no_results": "هیچ نتیجه منطبقی یافت نشد",
+  "large_file.pending_hint": "برای روان ماندن رابط کاربری اصلی، در یک پنجره جداگانه برای رندر فوق‌سریع فقط‌خواندنی باز می‌شود.",
+  "large_file.pending_title": "این فایل بزرگ است و هنوز بارگیری نشده است",
+  "large_file.load_failed": "خواندن ناموفق بود. ممکن است فایل به صورت خارجی تغییر کرده یا حذف شده باشد.",
+  "large_file.file_not_found": "فایل به صورت خارجی حذف یا منتقل شده است و قابل باز شدن نیست.",
+  "sidebar.delete_record": "حذف رکورد",
+  "sidebar.clear_history": "پاک کردن تاریخچه",
 };

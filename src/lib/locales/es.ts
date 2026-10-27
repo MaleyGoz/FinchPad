@@ -21,10 +21,6 @@ export const es: Record<string, string> = {
   "dialog.update_cancel": "Cancelar",
 
   // ===== Opciones de Idioma =====
-  "locale.auto": "Auto",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.es": "Español",
 
   // ===== Menú Contextual de Pestaña =====
   "tab_menu.save": "Guardar",
@@ -113,10 +109,6 @@ export const es: Record<string, string> = {
   "dialog.large_close_no": "No guardar",
 
   // ===== Marcador de Archivo Grande =====
-  "pending.title": "Archivo grande, aún no cargado",
-  "pending.size": "Tamaño: {size}",
-  "pending.hint": "El editor podría no responder brevemente tras cargar",
-  "pending.load": "Cargar ahora",
 
   // ===== Diálogo Acerca de =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const es: Record<string, string> = {
   // ===== Pestañas Sin Título =====
   "tab.unnamed": "Sin título {index}",
   "tab.unnamed_fallback": "Sin título",
+
+  "large_file.searching": "Escaneando archivo...",
+  "large_file.search_limit": "Mostrando solo los primeros 100 resultados, por favor usa palabras clave más precisas",
+  "sidebar.record_history": "Registrar historial",
+  "large_file.search_placeholder": "Buscar...",
+  "large_file.auto_detect": "🔄 Detección automática",
+  "large_file.search_failed": "Error en la búsqueda, por favor verifica el estado del archivo.",
+  "large_file.pending_size": "Tamaño del archivo: {size}",
+  "large_file.pending_btn": "⚡ Vista rápida de solo lectura",
+  "large_file.no_results": "No se encontraron coincidencias",
+  "large_file.pending_hint": "Para mantener fluida la interfaz principal, se abrirá en una ventana separada para una renderización de solo lectura ultrarrápida.",
+  "large_file.pending_title": "Este archivo es grande y aún no se ha cargado",
+  "large_file.load_failed": "Error de lectura. El archivo puede haber sido modificado o eliminado externamente.",
+  "large_file.file_not_found": "El archivo ha sido eliminado o movido externamente y no se puede abrir.",
+  "sidebar.delete_record": "Eliminar registro",
+  "sidebar.clear_history": "Borrar historial",
 };

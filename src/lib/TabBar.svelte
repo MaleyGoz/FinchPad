@@ -1053,6 +1053,37 @@
         padding: 4px;
         box-sizing: border-box;
     }
+    /* ★ 新增：标签下拉框的自定义滚动条 */
+    .dropdown-menu::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    .dropdown-menu::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .dropdown-menu::-webkit-scrollbar-thumb {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 25%,
+            transparent
+        );
+        border-radius: 5px;
+        min-height: 40px;
+        transition: background 0.2s ease-in-out;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    .dropdown-menu::-webkit-scrollbar-thumb:hover {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 50%,
+            transparent
+        );
+    }
+    .dropdown-menu::-webkit-scrollbar-button {
+        display: none;
+    }
+
     .dropdown-item {
         display: block;
         width: 100%;

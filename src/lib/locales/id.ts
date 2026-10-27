@@ -21,10 +21,6 @@ export const idID: Record<string, string> = {
   "dialog.update_cancel": "Batal",
 
   // ===== Language Options =====
-  "locale.auto": "Otomatis",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== Tab Context Menu =====
   "tab_menu.save": "Simpan",
@@ -115,10 +111,6 @@ export const idID: Record<string, string> = {
   "dialog.large_close_no": "Jangan Simpan",
 
   // ===== Large File Placeholder =====
-  "pending.title": "File besar, belum dimuat",
-  "pending.size": "Ukuran: {size}",
-  "pending.hint": "Editor mungkin tidak responsif sebentar setelah dimuat",
-  "pending.load": "Muat Sekarang",
 
   // ===== About Dialog =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const idID: Record<string, string> = {
   // ===== Untitled Tabs =====
   "tab.unnamed": "Tanpa Judul {index}",
   "tab.unnamed_fallback": "Tanpa Judul",
+
+  "large_file.searching": "Memindai file...",
+  "large_file.search_limit": "Hanya menampilkan 100 hasil pertama, gunakan kata kunci yang lebih tepat",
+  "sidebar.record_history": "Catat Riwayat",
+  "large_file.search_placeholder": "Cari...",
+  "large_file.auto_detect": "🔄 Deteksi Otomatis",
+  "large_file.search_failed": "Pencarian gagal, periksa status file.",
+  "large_file.pending_size": "Ukuran File: {size}",
+  "large_file.pending_btn": "⚡ Tampilan Cepat Hanya-Baca",
+  "large_file.no_results": "Tidak ada hasil yang cocok",
+  "large_file.pending_hint": "Untuk menjaga antarmuka utama tetap lancar, file akan dibuka di jendela terpisah untuk rendering hanya-baca yang sangat cepat.",
+  "large_file.pending_title": "File ini besar dan belum dimuat",
+  "large_file.load_failed": "Gagal membaca. File mungkin telah dimodifikasi atau dihapus secara eksternal.",
+  "large_file.file_not_found": "File telah dihapus atau dipindahkan secara eksternal dan tidak dapat dibuka.",
+  "sidebar.delete_record": "Hapus Catatan",
+  "sidebar.clear_history": "Hapus Riwayat",
 };

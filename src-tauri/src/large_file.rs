@@ -100,6 +100,7 @@ pub async fn open_large_file_window(
 
     Ok(())
 }
+
 // 获取大文件路径
 #[tauri::command]
 pub fn get_large_file_path(
@@ -124,16 +125,15 @@ pub fn read_large_chunk(
     path: String,
     start_line: usize,
     lines_count: usize,
-    encoding: Option<String>, // ★ 新增编码参数
+    encoding: Option<String>,
 ) -> Result<ChunkResult, String> {
-    use encoding_rs::Encoding;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
     let file = File::open(&path).map_err(|e| format!("打开文件失败: {}", e))?;
     let mut reader = BufReader::new(file);
 
-    // 获取对应的编码器，默认 UTF-8
+    // ★ 恢复为直接匹配编码，前端保证不传 "Auto" 进来
     let enc = encoding
         .as_deref()
         .and_then(|name| Encoding::for_label(name.as_bytes()))
@@ -154,11 +154,9 @@ pub fn read_large_chunk(
         }
 
         if current_line >= start_line {
-            // ★ 核心修改：按指定编码解码，不再直接 lossy
             let (decoded, _, _) = enc.decode(&buf);
             result.push_str(&decoded);
             read_count += 1;
-
             if read_count >= lines_count {
                 break;
             }
@@ -189,9 +187,8 @@ pub struct SearchResponse {
 pub fn search_in_large_file(
     path: String,
     keyword: String,
-    encoding: Option<String>, // ★ 新增
+    encoding: Option<String>,
 ) -> Result<SearchResponse, String> {
-    use encoding_rs::Encoding;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
@@ -230,8 +227,10 @@ pub fn search_in_large_file(
         let line_str = decoded.trim_end_matches(['\r', '\n']);
 
         if line_str.contains(&keyword) {
+            // ★ 核心修复：先判断字节长度，再用 chars().take() 按“字符”安全截断，防止汉字被切断导致 Panic
             let content = if line_str.len() > 200 {
-                format!("{}...", &line_str[..200])
+                let truncated: String = line_str.chars().take(200).collect();
+                format!("{}...", truncated)
             } else {
                 line_str.to_string()
             };

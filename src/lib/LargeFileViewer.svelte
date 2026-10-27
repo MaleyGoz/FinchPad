@@ -58,17 +58,45 @@
         null;
 
     // 编码支持
-    let currentEncoding = "UTF-8";
+    let currentEncoding = "UTF-8"; //
     const ENCODINGS = [
+        "AutoDetect", // ★ 置顶：自动探测
         "UTF-8",
+        "UTF-16LE",
+        "UTF-16BE",
         "GBK",
         "GB18030",
         "Big5",
-        "UTF-16LE",
-        "UTF-16BE",
         "Shift_JIS",
+        "EUC-JP",
+        "ISO-2022-JP",
+        "EUC-KR",
         "Windows-1252",
+        "ISO-8859-1",
+        "ISO-8859-15",
+        "Windows-1251",
+        "KOI8-R",
+        "Windows-1250",
+        "ISO-8859-2",
+        "Windows-1256",
+        "Windows-874",
     ];
+
+    // ★ 新增：获取真实编码（如果是 Auto，则让后端探测）
+    async function getActualEncoding(): Promise<string> {
+        if (currentEncoding === "AutoDetect") {
+            try {
+                const enc = await api.getFileEncoding(filePath);
+                if (enc.includes("GBK") || enc.includes("gbk")) return "GBK";
+                if (enc.includes("GB18030")) return "GB18030";
+                return enc;
+            } catch (e) {
+                console.warn("编码探测失败，默认UTF-8", e);
+                return "UTF-8";
+            }
+        }
+        return currentEncoding;
+    }
 
     // ★ 全局快捷键拦截
     function handleWindowKeydown(e: KeyboardEvent) {
@@ -206,24 +234,11 @@
             // 获取文件路径
             filePath = await api.getLargeFilePath(windowId);
 
-            // 探测编码
-            try {
-                const enc = await api.getFileEncoding(filePath);
-                if (enc.includes("GBK") || enc.includes("gbk"))
-                    currentEncoding = "GBK";
-                else if (enc.includes("GB18030")) currentEncoding = "GB18030";
-                else currentEncoding = enc;
-            } catch (e) {
-                console.warn(e);
-            }
+            // 读取首批数据（获取真实编码）
+            const actualEnc = await getActualEncoding();
+            currentEncoding = actualEnc; // ★ 核心：立刻把下拉框显示为真实编码
+            const res = await api.readLargeChunk(filePath, 0, 5000, actualEnc);
 
-            // 读取首批数据
-            const res = await api.readLargeChunk(
-                filePath,
-                0,
-                5000,
-                currentEncoding,
-            );
             loadedLines = res.total_lines;
 
             await tick();
@@ -363,11 +378,12 @@
         isLoadingChunk = true;
 
         try {
+            const actualEnc = await getActualEncoding();
             const res = await api.readLargeChunk(
                 filePath,
                 loadedLines,
                 CHUNK_SIZE,
-                currentEncoding,
+                actualEnc,
             );
             if (!res || res.total_lines === 0) return;
 
@@ -409,10 +425,11 @@
         isLimitReached = false; // ★ 重置
 
         try {
+            const actualEnc = await getActualEncoding();
             const res = await api.searchInLargeFile(
                 filePath,
                 searchKeyword,
-                currentEncoding,
+                actualEnc,
             );
             searchResults = res.results;
             isLimitReached = res.is_limit_reached; // ★ 记录是否被截断
@@ -477,11 +494,12 @@
 
         const fetchStart = Math.max(0, targetLine - 100);
         try {
+            const actualEnc = await getActualEncoding();
             const res = await api.readLargeChunk(
                 filePath,
                 fetchStart,
                 CHUNK_SIZE,
-                currentEncoding,
+                actualEnc,
             );
             if (editorInstance) {
                 lineNumberOffset = fetchStart;
@@ -554,8 +572,15 @@
     }
 
     async function handleEncodingChange(e: Event) {
-        const newEnc = (e.target as HTMLSelectElement).value;
-        currentEncoding = newEnc;
+        const selectedValue = (e.target as HTMLSelectElement).value;
+
+        if (selectedValue === "AutoDetect") {
+            currentEncoding = "AutoDetect"; // 临时设为它，触发重新探测
+            const actualEnc = await getActualEncoding();
+            currentEncoding = actualEnc; // 探测完立刻变回真实编码
+        } else {
+            currentEncoding = selectedValue;
+        }
 
         showResults = false;
         searchResults = [];
@@ -571,14 +596,11 @@
                 currentEncoding,
             );
             if (editorInstance) {
-                // ★ 重置偏移量
                 lineNumberOffset = 0;
-
                 editorInstance.setValue(res.content);
                 editorInstance.updateOptions({
                     lineNumbers: (n) => (n + lineNumberOffset).toString(),
                 });
-
                 loadedLines = res.total_lines;
                 editorInstance.revealLine(1);
             }
@@ -686,7 +708,15 @@
             onchange={handleEncodingChange}
         >
             {#each ENCODINGS as enc}
-                <option value={enc}>{enc}</option>
+                <option value={enc}>
+                    {enc === "AutoDetect"
+                        ? t(
+                              "large_file.auto_detect",
+                              undefined,
+                              $resolvedLocale,
+                          )
+                        : enc}
+                </option>
             {/each}
         </select>
 
@@ -702,7 +732,11 @@
                     bind:value={searchKeyword}
                     onkeydown={(e) => e.key === "Enter" && handleSearch()}
                     class="tool-input search-input"
-                    placeholder="Search..."
+                    placeholder={t(
+                        "large_file.search_placeholder",
+                        undefined,
+                        $resolvedLocale,
+                    )}
                 />
                 <!-- ★ 新增：只有有文字时才显示 X -->
                 {#if searchKeyword.length > 0}
@@ -967,6 +1001,36 @@
         border-radius: 0 0 4px 4px;
         overflow-y: auto;
         z-index: 100;
+    }
+    /* ★ 新增：搜索结果面板的自定义滚动条 */
+    .search-results-panel::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    .search-results-panel::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .search-results-panel::-webkit-scrollbar-thumb {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 25%,
+            transparent
+        );
+        border-radius: 5px;
+        min-height: 40px;
+        transition: background 0.2s ease-in-out;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    .search-results-panel::-webkit-scrollbar-thumb:hover {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 50%,
+            transparent
+        );
+    }
+    .search-results-panel::-webkit-scrollbar-button {
+        display: none;
     }
 
     .result-item {

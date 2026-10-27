@@ -21,10 +21,6 @@ export const fr: Record<string, string> = {
   "dialog.update_cancel": "Annuler",
 
   // ===== Options de Langue =====
-  "locale.auto": "Auto",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.fr": "Français",
 
   // ===== Menu Contextuel d'Onglet =====
   "tab_menu.save": "Enregistrer",
@@ -113,10 +109,6 @@ export const fr: Record<string, string> = {
   "dialog.large_close_no": "Ne pas enregistrer",
 
   // ===== Placeholder Gros Fichier =====
-  "pending.title": "Fichier volumineux, pas encore chargé",
-  "pending.size": "Taille : {size}",
-  "pending.hint": "L'éditeur peut être brièvement indisponible après le chargement",
-  "pending.load": "Charger maintenant",
 
   // ===== Dialogue À Propos =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const fr: Record<string, string> = {
   // ===== Onglets Sans Titre =====
   "tab.unnamed": "Sans titre {index}",
   "tab.unnamed_fallback": "Sans titre",
+
+  "large_file.searching": "Analyse du fichier...",
+  "large_file.search_limit": "Affichage des 100 premiers résultats uniquement, veuillez utiliser des mots-clés plus précis",
+  "sidebar.record_history": "Enregistrer l'historique",
+  "large_file.search_placeholder": "Rechercher...",
+  "large_file.auto_detect": "🔄 Détection automatique",
+  "large_file.search_failed": "Échec de la recherche, veuillez vérifier l'état du fichier.",
+  "large_file.pending_size": "Taille du fichier : {size}",
+  "large_file.pending_btn": "⚡ Aperçu rapide en lecture seule",
+  "large_file.no_results": "Aucune correspondance trouvée",
+  "large_file.pending_hint": "Pour garder l'interface principale fluide, il s'ouvrira dans une fenêtre séparée pour un rendu ultra-rapide en lecture seule.",
+  "large_file.pending_title": "Ce fichier est volumineux et n'est pas encore chargé",
+  "large_file.load_failed": "Échec de la lecture. Le fichier a peut-être été modifié ou supprimé en externe.",
+  "large_file.file_not_found": "Le fichier a été supprimé ou déplacé en externe et ne peut pas être ouvert.",
+  "sidebar.delete_record": "Supprimer l'enregistrement",
+  "sidebar.clear_history": "Effacer l'historique",
 };

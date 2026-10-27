@@ -21,11 +21,6 @@ export const ar: Record<string, string> = {
   "dialog.update_cancel": "إلغاء",
 
   // ===== خيارات اللغة =====
-  "locale.auto": "تلقائي",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
-  "locale.ar": "العربية",
 
   // ===== قائمة النقر بزر الماوس الأيمن على التبويب =====
   "tab_menu.save": "حفظ",
@@ -115,10 +110,6 @@ export const ar: Record<string, string> = {
   "dialog.large_close_no": "عدم الحفظ",
 
   // ===== عنصر نائب لملف كبير =====
-  "pending.title": "ملف كبير، لم يتم تحميله بعد",
-  "pending.size": "الحجم: {size}",
-  "pending.hint": "قد لا يستجيب المحرر مؤقتًا بعد التحميل",
-  "pending.load": "تحميل الآن",
 
   // ===== حوار حول =====
   "about.title": "FinchPad",
@@ -134,4 +125,20 @@ export const ar: Record<string, string> = {
   // ===== تبويبات بدون عنوان =====
   "tab.unnamed": "بدون عنوان {index}",
   "tab.unnamed_fallback": "بدون عنوان",
+
+  "large_file.searching": "جاري فحص الملف...",
+  "large_file.search_limit": "يتم عرض أول 100 نتيجة فقط، يرجى استخدام كلمات رئيسية أكثر دقة",
+  "sidebar.record_history": "تسجيل السجل",
+  "large_file.search_placeholder": "بحث...",
+  "large_file.auto_detect": "🔄 اكتشاف تلقائي",
+  "large_file.search_failed": "فشل البحث، يرجى التحقق من حالة الملف.",
+  "large_file.pending_size": "حجم الملف: {size}",
+  "large_file.pending_btn": "⚡ عرض سريع للقراءة فقط",
+  "large_file.no_results": "لم يتم العثور على نتائج مطابقة",
+  "large_file.pending_hint": "للحفاظ على سلاسة الواجهة الرئيسية، سيتم فتحه في نافذة منفصلة لعرض فائق السرعة للقراءة فقط.",
+  "large_file.pending_title": "هذا الملف كبير ولم يتم تحميله بعد",
+  "large_file.load_failed": "فشلت القراءة. ربما تم تعديل الملف أو حذفه خارجيًا.",
+  "large_file.file_not_found": "تم حذف الملف أو نقله خارجيًا ولا يمكن فتحه.",
+  "sidebar.delete_record": "حذف السجل",
+  "sidebar.clear_history": "مسح السجل",
 };

@@ -21,10 +21,6 @@ export const de: Record<string, string> = {
   "dialog.update_cancel": "Abbrechen",
 
   // ===== Sprachoptionen =====
-  "locale.auto": "Auto",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.de": "Deutsch",
 
   // ===== Tab-Kontextmenü =====
   "tab_menu.save": "Speichern",
@@ -113,10 +109,6 @@ export const de: Record<string, string> = {
   "dialog.large_close_no": "Nicht speichern",
 
   // ===== Platzhalter für große Datei =====
-  "pending.title": "Große Datei, noch nicht geladen",
-  "pending.size": "Größe: {size}",
-  "pending.hint": "Der Editor reagiert nach dem Laden möglicherweise kurzzeitig nicht",
-  "pending.load": "Jetzt laden",
 
   // ===== Über-Dialog =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const de: Record<string, string> = {
   // ===== Unbenannte Tabs =====
   "tab.unnamed": "Unbenannt {index}",
   "tab.unnamed_fallback": "Unbenannt",
+
+  "large_file.searching": "Datei wird durchsucht...",
+  "large_file.search_limit": "Es werden nur die ersten 100 Ergebnisse angezeigt, bitte präzisere Suchbegriffe verwenden",
+  "sidebar.record_history": "Verlauf aufzeichnen",
+  "large_file.search_placeholder": "Suchen...",
+  "large_file.auto_detect": "🔄 Automatische Erkennung",
+  "large_file.search_failed": "Suche fehlgeschlagen, bitte Dateistatus prüfen.",
+  "large_file.pending_size": "Dateigröße: {size}",
+  "large_file.pending_btn": "⚡ Schnellansicht (schreibgeschützt)",
+  "large_file.no_results": "Keine Treffer gefunden",
+  "large_file.pending_hint": "Um die Hauptoberfläche flüssig zu halten, wird sie in einem separaten Fenster für eine ultraschnelle schreibgeschützte Darstellung geöffnet.",
+  "large_file.pending_title": "Diese Datei ist groß und noch nicht geladen",
+  "large_file.load_failed": "Lesen fehlgeschlagen. Die Datei wurde möglicherweise extern geändert oder gelöscht.",
+  "large_file.file_not_found": "Die Datei wurde extern gelöscht oder verschoben und kann nicht geöffnet werden.",
+  "sidebar.delete_record": "Eintrag löschen",
+  "sidebar.clear_history": "Verlauf löschen",
 };

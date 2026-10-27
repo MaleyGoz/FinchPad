@@ -1063,20 +1063,13 @@
         }, 500);
     }
 
-    // 窗口标题：跟随激活标签
+    // 窗口标题：固定为 FinchPad
     $: {
         const idx = snapshot.active_index;
-        const titles = snapshot.tab_titles;
-        if (titles && titles.length > 0 && idx >= 0 && idx < titles.length) {
-            const isDirty = snapshot.tab_dirty_states?.[idx] ?? false;
-            const path = snapshot.tab_paths?.[idx] ?? "";
-            const title = titles[idx] ?? "";
-            const name = path || title;
-            const prefix = isDirty ? "● " : "";
-            getCurrentWindow()
-                .setTitle(`${prefix}${name} - FinchPad`)
-                .catch(console.error);
-        }
+        const isDirty = snapshot.tab_dirty_states?.[idx] ?? false;
+        const prefix = isDirty ? "● " : "";
+
+        getCurrentWindow().setTitle(`${prefix}FinchPad`).catch(console.error);
     }
 
     async function handleLoadPending() {

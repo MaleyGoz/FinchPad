@@ -21,10 +21,6 @@ export const it: Record<string, string> = {
   "dialog.update_cancel": "Annulla",
 
   // ===== Opzioni Lingua =====
-  "locale.auto": "Auto",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.it": "Italiano",
 
   // ===== Menu Contestuale Scheda =====
   "tab_menu.save": "Salva",
@@ -113,10 +109,6 @@ export const it: Record<string, string> = {
   "dialog.large_close_no": "Non salvare",
 
   // ===== Placeholder File Grande =====
-  "pending.title": "File grande, non ancora caricato",
-  "pending.size": "Dimensione: {size}",
-  "pending.hint": "L'editor potrebbe non rispondere brevemente dopo il caricamento",
-  "pending.load": "Carica ora",
 
   // ===== Finestra Informazioni =====
   "about.title": "FinchPad",
@@ -132,4 +124,20 @@ export const it: Record<string, string> = {
   // ===== Schede Senza Titolo =====
   "tab.unnamed": "Senza titolo {index}",
   "tab.unnamed_fallback": "Senza titolo",
+
+  "large_file.searching": "Scansione file...",
+  "large_file.search_limit": "Mostrando solo i primi 100 risultati, usa parole chiave più precise",
+  "sidebar.record_history": "Registra cronologia",
+  "large_file.search_placeholder": "Cerca...",
+  "large_file.auto_detect": "🔄 Rilevamento automatico",
+  "large_file.search_failed": "Ricerca fallita, controlla lo stato del file.",
+  "large_file.pending_size": "Dimensione file: {size}",
+  "large_file.pending_btn": "⚡ Visualizzazione rapida in sola lettura",
+  "large_file.no_results": "Nessuna corrispondenza trovata",
+  "large_file.pending_hint": "Per mantenere fluida l'interfaccia principale, verrà aperto in una finestra separata per un rendering ultra-rapido in sola lettura.",
+  "large_file.pending_title": "Questo file è grande e non è ancora stato caricato",
+  "large_file.load_failed": "Lettura fallita. Il file potrebbe essere stato modificato o eliminato esternamente.",
+  "large_file.file_not_found": "Il file è stato eliminato o spostato esternamente e non può essere aperto.",
+  "sidebar.delete_record": "Elimina record",
+  "sidebar.clear_history": "Cancella cronologia",
 };

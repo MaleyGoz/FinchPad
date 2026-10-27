@@ -21,11 +21,6 @@ export const enUS: Record<string, string> = {
     "dialog.update_confirm": "Download",
     "dialog.update_cancel": "Cancel",
 
-    // ===== Language Options =====
-    "locale.auto": "Auto",
-    "locale.zh-CN": "简体中文",
-    "locale.en-US": "English",
-
     // ===== Tab Context Menu =====
     "tab_menu.save": "Save",
     "tab_menu.save_as": "Save As",
@@ -138,11 +133,12 @@ export const enUS: Record<string, string> = {
     "large_file.pending_size": "File Size: {size}",
     "large_file.pending_hint": "To keep the main UI smooth, it will open in a separate window for ultra-fast read-only rendering.",
     "large_file.pending_btn": "⚡ Quick Read-Only View",
-
     "large_file.searching": "Scanning file...",
     "large_file.no_results": "No matches found",
     "large_file.search_failed": "Search failed, please check file status.",
     "large_file.search_limit": "Showing first 100 results only, please use more precise keywords",
     "large_file.file_not_found": "The file has been deleted or moved externally and cannot be opened.",
     "large_file.load_failed": "Read failed. The file may have been modified or deleted externally.",
+    "large_file.search_placeholder": "Search...",
+    "large_file.auto_detect": "🔄 Auto Detect",
 };

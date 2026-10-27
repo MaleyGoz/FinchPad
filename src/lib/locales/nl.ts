@@ -21,10 +21,6 @@ export const nlNL: Record<string, string> = {
   "dialog.update_cancel": "Annuleren",
 
   // ===== Taalopties =====
-  "locale.auto": "Automatisch",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== Tabblad-contextmenu =====
   "tab_menu.save": "Opslaan",
@@ -115,10 +111,6 @@ export const nlNL: Record<string, string> = {
   "dialog.large_close_no": "Niet opslaan",
 
   // ===== Groot bestand tijdelijke tekst =====
-  "pending.title": "Dit bestand is groot en nog niet geladen",
-  "pending.size": "Grootte: {size}",
-  "pending.hint": "Na het laden kan de editor kortdurend niet reageren",
-  "pending.load": "Nu laden",
 
   // ===== Over-dialoog =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const nlNL: Record<string, string> = {
   // ===== Naamloze tabbladen =====
   "tab.unnamed": "Naamloos {index}",
   "tab.unnamed_fallback": "Naamloos",
+
+  "large_file.searching": "Bestand scannen...",
+  "large_file.search_limit": "Alleen de eerste 100 resultaten worden weergegeven, gebruik specifiekere zoekwoorden",
+  "sidebar.record_history": "Geschiedenis opnemen",
+  "large_file.search_placeholder": "Zoeken...",
+  "large_file.auto_detect": "🔄 Automatische detectie",
+  "large_file.search_failed": "Zoeken mislukt, controleer de bestandsstatus.",
+  "large_file.pending_size": "Bestandsgrootte: {size}",
+  "large_file.pending_btn": "⚡ Snelle alleen-lezen weergave",
+  "large_file.no_results": "Geen overeenkomsten gevonden",
+  "large_file.pending_hint": "Om de hoofdinterface soepel te houden, wordt het geopend in een apart venster voor ultrasnelle alleen-lezen weergave.",
+  "large_file.pending_title": "Dit bestand is groot en nog niet geladen",
+  "large_file.load_failed": "Lezen mislukt. Het bestand is mogelijk extern gewijzigd of verwijderd.",
+  "large_file.file_not_found": "Het bestand is extern verwijderd of verplaatst en kan niet worden geopend.",
+  "sidebar.delete_record": "Record verwijderen",
+  "sidebar.clear_history": "Geschiedenis wissen",
 };

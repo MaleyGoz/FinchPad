@@ -21,11 +21,6 @@ export const ja: Record<string, string> = {
   "dialog.update_cancel": "キャンセル",
 
   // ===== 言語オプション =====
-  "locale.auto": "自動",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
-  "locale.ja": "日本語",
 
   // ===== タブ右クリックメニュー =====
   "tab_menu.save": "保存",
@@ -116,10 +111,6 @@ export const ja: Record<string, string> = {
   "dialog.large_close_no": "保存しない",
 
   // ===== 大ファイルプレースホルダー =====
-  "pending.title": "大きなファイルのため未読み込み",
-  "pending.size": "サイズ: {size}",
-  "pending.hint": "読み込み後、エディターが一時的に応答しなくなる場合があります",
-  "pending.load": "今すぐ読み込む",
 
   // ===== バージョン情報ダイアログ =====
   "about.title": "FinchPad",
@@ -135,4 +126,20 @@ export const ja: Record<string, string> = {
   // ===== 無題タブ =====
   "tab.unnamed": "無題 {index}",
   "tab.unnamed_fallback": "無題",
+
+  "large_file.searching": "ファイルをスキャン中...",
+  "large_file.search_limit": "最初の100件のみを表示しています。より具体的なキーワードを使用してください",
+  "sidebar.record_history": "履歴を記録",
+  "large_file.search_placeholder": "検索...",
+  "large_file.auto_detect": "🔄 自動検出",
+  "large_file.search_failed": "検索に失敗しました。ファイルの状態を確認してください。",
+  "large_file.pending_size": "ファイルサイズ：{size}",
+  "large_file.pending_btn": "⚡ 高速読み取り専用表示",
+  "large_file.no_results": "一致するものが見つかりません",
+  "large_file.pending_hint": "メイン画面の動作を維持するため、別ウィンドウで超高速の読み取り専用表示を行います。",
+  "large_file.pending_title": "このファイルは大きいため、まだ読み込まれていません",
+  "large_file.load_failed": "読み取りに失敗しました。ファイルが外部で変更または削除された可能性があります。",
+  "large_file.file_not_found": "ファイルが外部で削除または移動されたため、開くことができません。",
+  "sidebar.delete_record": "レコードを削除",
+  "sidebar.clear_history": "履歴を消去",
 };

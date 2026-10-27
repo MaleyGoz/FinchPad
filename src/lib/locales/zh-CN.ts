@@ -20,11 +20,6 @@ export const zhCN: Record<string, string> = {
     "dialog.update_confirm": "前往下载",
     "dialog.update_cancel": "取消",
 
-    // ===== 语言选项 =====
-    "locale.auto": "跟随系统",
-    "locale.zh-CN": "简体中文",
-    "locale.en-US": "English",
-
     // ===== 标签右键菜单 =====
     "tab_menu.save": "保存",
     "tab_menu.save_as": "另存为",
@@ -140,4 +135,6 @@ export const zhCN: Record<string, string> = {
     "large_file.search_limit": "仅显示前 100 个结果，请使用更精确的关键词",
     "large_file.file_not_found": "文件已被外部删除或移动，无法打开。",
     "large_file.load_failed": "读取失败，文件可能已被外部修改或删除。",
+    "large_file.search_placeholder": "搜索...",
+    "large_file.auto_detect": "🔄 自动识别",
 };

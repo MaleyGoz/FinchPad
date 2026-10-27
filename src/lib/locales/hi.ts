@@ -21,10 +21,6 @@ export const hiIN: Record<string, string> = {
   "dialog.update_cancel": "रद्द करें",
 
   // ===== भाषा विकल्प =====
-  "locale.auto": "स्वचालित",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== टैब कॉन्टेक्स्ट मेनू =====
   "tab_menu.save": "सहेजें",
@@ -115,10 +111,6 @@ export const hiIN: Record<string, string> = {
   "dialog.large_close_no": "मत सहेजें",
 
   // ===== बड़ी फ़ाइल प्लेसहोल्डर =====
-  "pending.title": "यह फ़ाइल बड़ी है, अभी तक लोड नहीं हुई",
-  "pending.size": "आकार: {size}",
-  "pending.hint": "लोड होने के बाद संपादक अस्थायी रूप से अनुत्तरदायी हो सकता है",
-  "pending.load": "अभी लोड करें",
 
   // ===== कार्यक्रम के बारे में डायलॉग =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const hiIN: Record<string, string> = {
   // ===== अनाम टैब =====
   "tab.unnamed": "बिना नाम {index}",
   "tab.unnamed_fallback": "बिना नाम",
+
+  "large_file.searching": "फ़ाइल स्कैन हो रही है...",
+  "large_file.search_limit": "केवल पहले 100 परिणाम दिखाए जा रहे हैं, कृपया अधिक सटीक कीवर्ड का उपयोग करें",
+  "sidebar.record_history": "इतिहास रिकॉर्ड करें",
+  "large_file.search_placeholder": "खोजें...",
+  "large_file.auto_detect": "🔄 स्वतः पहचानें",
+  "large_file.search_failed": "खोज विफल रही, कृपया फ़ाइल की स्थिति जांचें।",
+  "large_file.pending_size": "फ़ाइल का आकार: {size}",
+  "large_file.pending_btn": "⚡ त्वरित रीड-ओनली व्यू",
+  "large_file.no_results": "कोई मिलान नहीं मिला",
+  "large_file.pending_hint": "मुख्य UI को सुचारू रखने के लिए, इसे अल्ट्रा-फ़ास्ट रीड-ओनली रेंडरिंग के लिए एक अलग विंडो में खोला जाएगा।",
+  "large_file.pending_title": "यह फ़ाइल बड़ी है और अभी तक लोड नहीं हुई है",
+  "large_file.load_failed": "पढ़ना विफल रहा। फ़ाइल बाहरी रूप से संशोधित या हटा दी गई हो सकती है।",
+  "large_file.file_not_found": "फ़ाइल बाहरी रूप से हटा दी गई है या स्थानांतरित कर दी गई है और खोली नहीं जा सकती।",
+  "sidebar.delete_record": "रिकॉर्ड हटाएं",
+  "sidebar.clear_history": "इतिहास साफ़ करें",
 };

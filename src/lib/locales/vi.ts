@@ -21,10 +21,6 @@ export const viVN: Record<string, string> = {
   "dialog.update_cancel": "Hủy",
 
   // ===== Tùy chọn ngôn ngữ =====
-  "locale.auto": "Tự động",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== Menu chuột phải trên thẻ =====
   "tab_menu.save": "Lưu",
@@ -114,10 +110,6 @@ export const viVN: Record<string, string> = {
   "dialog.large_close_no": "Không lưu",
 
   // ===== Vùng giữ chỗ tệp lớn =====
-  "pending.title": "Tệp này khá lớn, chưa được tải",
-  "pending.size": "Kích thước: {size}",
-  "pending.hint": "Trình soạn thảo có thể tạm thời không phản hồi sau khi tải",
-  "pending.load": "Tải ngay",
 
   // ===== Hộp thoại Giới thiệu =====
   "about.title": "FinchPad",
@@ -133,4 +125,20 @@ export const viVN: Record<string, string> = {
   // ===== Thẻ chưa đặt tên =====
   "tab.unnamed": "Chưa đặt tên {index}",
   "tab.unnamed_fallback": "Chưa đặt tên",
+
+  "large_file.searching": "Đang quét tệp...",
+  "large_file.search_limit": "Chỉ hiển thị 100 kết quả đầu tiên, vui lòng sử dụng từ khóa chính xác hơn",
+  "sidebar.record_history": "Ghi lại lịch sử",
+  "large_file.search_placeholder": "Tìm kiếm...",
+  "large_file.auto_detect": "🔄 Tự động phát hiện",
+  "large_file.search_failed": "Tìm kiếm thất bại, vui lòng kiểm tra trạng thái tệp.",
+  "large_file.pending_size": "Kích thước tệp: {size}",
+  "large_file.pending_btn": "⚡ Xem nhanh chỉ đọc",
+  "large_file.no_results": "Không tìm thấy kết quả phù hợp",
+  "large_file.pending_hint": "Để giữ giao diện chính mượt mà, nó sẽ mở trong một cửa sổ riêng để hiển thị chỉ đọc cực nhanh.",
+  "large_file.pending_title": "Tệp này lớn và chưa được tải",
+  "large_file.load_failed": "Đọc thất bại. Tệp có thể đã bị sửa đổi hoặc xóa bên ngoài.",
+  "large_file.file_not_found": "Tệp đã bị xóa hoặc di chuyển bên ngoài và không thể mở.",
+  "sidebar.delete_record": "Xóa bản ghi",
+  "sidebar.clear_history": "Xóa lịch sử",
 };

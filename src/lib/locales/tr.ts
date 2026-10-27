@@ -21,10 +21,6 @@ export const trTR: Record<string, string> = {
   "dialog.update_cancel": "İptal",
 
   // ===== Dil Seçenekleri =====
-  "locale.auto": "Otomatik",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== Sekme Bağlam Menüsü =====
   "tab_menu.save": "Kaydet",
@@ -115,10 +111,6 @@ export const trTR: Record<string, string> = {
   "dialog.large_close_no": "Kaydetme",
 
   // ===== Büyük Dosya Yer Tutucu =====
-  "pending.title": "Bu dosya büyük, henüz yüklenmedi",
-  "pending.size": "Boyut: {size}",
-  "pending.hint": "Yüklendikten sonra düzenleyici kısa süreliğine yanıt vermeyebilir",
-  "pending.load": "Şimdi Yükle",
 
   // ===== Hakkında İletişim Kutusu =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const trTR: Record<string, string> = {
   // ===== Adsız Sekmeler =====
   "tab.unnamed": "Adsız {index}",
   "tab.unnamed_fallback": "Adsız",
+
+  "large_file.searching": "Dosya taranıyor...",
+  "large_file.search_limit": "Yalnızca ilk 100 sonuç gösteriliyor, lütfen daha kesin anahtar kelimeler kullanın",
+  "sidebar.record_history": "Geçmişi Kaydet",
+  "large_file.search_placeholder": "Ara...",
+  "large_file.auto_detect": "🔄 Otomatik Algıla",
+  "large_file.search_failed": "Arama başarısız, lütfen dosya durumunu kontrol edin.",
+  "large_file.pending_size": "Dosya Boyutu: {size}",
+  "large_file.pending_btn": "⚡ Hızlı Salt Okunur Görünüm",
+  "large_file.no_results": "Eşleşme bulunamadı",
+  "large_file.pending_hint": "Ana arayüzün akıcı kalması için, ultra hızlı salt okunur oluşturma için ayrı bir pencerede açılacaktır.",
+  "large_file.pending_title": "Bu dosya büyük ve henüz yüklenmedi",
+  "large_file.load_failed": "Okuma başarısız. Dosya harici olarak değiştirilmiş veya silinmiş olabilir.",
+  "large_file.file_not_found": "Dosya harici olarak silinmiş veya taşınmış, açılamıyor.",
+  "sidebar.delete_record": "Kaydı Sil",
+  "sidebar.clear_history": "Geçmişi Temizle",
 };

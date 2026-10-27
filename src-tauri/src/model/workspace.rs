@@ -282,7 +282,7 @@ impl Workspace {
         }
         self.recent_files.retain(|p| p != &path); // 去重
         self.recent_files.insert(0, path); // 插到最前面
-        self.recent_files.truncate(20); // 限制 20 个
+        self.recent_files.truncate(50);
     }
 
     pub fn record_recent_files(&self) -> bool {

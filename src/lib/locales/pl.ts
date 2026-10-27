@@ -21,10 +21,6 @@ export const plPL: Record<string, string> = {
   "dialog.update_cancel": "Anuluj",
 
   // ===== Opcje języka =====
-  "locale.auto": "Automatycznie",
-  "locale.zh-CN": "简体中文",
-  "locale.en-US": "English",
-  "locale.zh-TW": "繁體中文",
 
   // ===== Menu kontekstowe karty =====
   "tab_menu.save": "Zapisz",
@@ -115,10 +111,6 @@ export const plPL: Record<string, string> = {
   "dialog.large_close_no": "Nie zapisuj",
 
   // ===== Placeholder dużego pliku =====
-  "pending.title": "Ten plik jest duży i nie został jeszcze wczytany",
-  "pending.size": "Rozmiar: {size}",
-  "pending.hint": "Po wczytaniu edytor może przez chwilę nie odpowiadać",
-  "pending.load": "Wczytaj teraz",
 
   // ===== Okno „O programie” =====
   "about.title": "FinchPad",
@@ -134,4 +126,20 @@ export const plPL: Record<string, string> = {
   // ===== Nie nazwane karty =====
   "tab.unnamed": "Bez nazwy {index}",
   "tab.unnamed_fallback": "Bez nazwy",
+
+  "large_file.searching": "Skanowanie pliku...",
+  "large_file.search_limit": "Wyświetlane są tylko pierwsze 100 wyników, użyj bardziej precyzyjnych słów kluczowych",
+  "sidebar.record_history": "Zapisuj historię",
+  "large_file.search_placeholder": "Szukaj...",
+  "large_file.auto_detect": "🔄 Automatyczne wykrywanie",
+  "large_file.search_failed": "Wyszukiwanie nie powiodło się, sprawdź stan pliku.",
+  "large_file.pending_size": "Rozmiar pliku: {size}",
+  "large_file.pending_btn": "⚡ Szybki podgląd tylko do odczytu",
+  "large_file.no_results": "Nie znaleziono dopasowań",
+  "large_file.pending_hint": "Aby główny interfejs działał płynnie, zostanie otwarty w osobnym oknie do ultraszybkiego renderowania tylko do odczytu.",
+  "large_file.pending_title": "Ten plik jest duży i nie został jeszcze załadowany",
+  "large_file.load_failed": "Odczyt nie powiódł się. Plik mógł zostać zmodyfikowany lub usunięty zewnętrznie.",
+  "large_file.file_not_found": "Plik został zewnętrznie usunięty lub przeniesiony i nie można go otworzyć.",
+  "sidebar.delete_record": "Usuń wpis",
+  "sidebar.clear_history": "Wyczyść historię",
 };
