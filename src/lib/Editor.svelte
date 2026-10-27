@@ -46,6 +46,7 @@
     export let onZoomDelta: (delta: number) => void = () => {};
     export let onOpenRequest: () => void = () => {};
     export let onToggleSidebarRequest: () => void = () => {};
+    export let loadPendingError: string = "";
 
     const BASE_FONT_SIZE = 15;
 
@@ -486,24 +487,37 @@
 >
     <div bind:this={container} style="width: 100%; height: 100%;"></div>
 
+    <!-- 大文件提示 -->
     {#if isPendingLoad}
         <div class="pending-overlay">
             <div class="pending-card">
-                <div class="pending-title">
-                    {t("pending.title", undefined, $resolvedLocale)}
+                <div class="pending-title" style="font-weight: 600;">
+                    {t("large_file.pending_title", undefined, $resolvedLocale)}
                 </div>
                 <div class="pending-size">
                     {t(
-                        "pending.size",
+                        "large_file.pending_size",
                         { size: formatSize(fileSize) },
                         $resolvedLocale,
                     )}
                 </div>
-                <div class="pending-hint">
-                    {t("pending.hint", undefined, $resolvedLocale)}
+                <div
+                    class="pending-hint"
+                    style="margin-bottom: 16px; color: var(--status-bar-foreground-muted); font-size: 12px;"
+                >
+                    {t("large_file.pending_hint", undefined, $resolvedLocale)}
                 </div>
+
+                <!-- ★ 内联错误提示 -->
+                {#if loadPendingError}
+                    <div class="pending-error">
+                        ⚠️ {loadPendingError}
+                    </div>
+                {/if}
+
+                <!-- ★ 唯一的按钮 -->
                 <button class="pending-btn" onclick={onLoadRequest}>
-                    {t("pending.load", undefined, $resolvedLocale)}
+                    {t("large_file.pending_btn", undefined, $resolvedLocale)}
                 </button>
             </div>
         </div>
@@ -597,5 +611,17 @@
     }
     .pending-btn:hover {
         filter: brightness(0.9);
+    }
+
+    .pending-error {
+        color: var(--warning-strong);
+        font-size: 12px;
+        margin: 0 auto 16px auto;
+        padding: 6px 12px;
+        background: color-mix(in srgb, var(--warning-strong) 10%, transparent);
+        border: 1px solid var(--warning-strong);
+        border-radius: 4px;
+        text-align: center;
+        max-width: 90%;
     }
 </style>

@@ -81,6 +81,8 @@
     export let onBarMenuNew: () => void;
     export let onBarMenuOpen: () => void;
 
+    export let isPendingLoad: boolean = false; // ★ 新增：接收大文件占位状态
+
     // 编辑器右键菜单事件回调
     export let onCloseEditorContextMenu: () => void;
     export let onRunEditorAction: (action: string) => void;
@@ -352,8 +354,8 @@
         >
             <button
                 class="context-item"
-                class:disabled={!cmIsDirty}
-                disabled={!cmIsDirty}
+                class:disabled={!cmIsDirty || isPendingLoad}
+                disabled={!cmIsDirty || isPendingLoad}
                 onclick={onMenuSave}
             >
                 <span>{t("tab_menu.save", undefined, $resolvedLocale)}</span
@@ -361,8 +363,8 @@
             </button>
             <button
                 class="context-item"
-                class:disabled={cmIsUnnamed && !cmIsDirty}
-                disabled={cmIsUnnamed && !cmIsDirty}
+                class:disabled={(cmIsUnnamed && !cmIsDirty) || isPendingLoad}
+                disabled={(cmIsUnnamed && !cmIsDirty) || isPendingLoad}
                 onclick={onMenuSaveAs}
             >
                 <span>{t("tab_menu.save_as", undefined, $resolvedLocale)}</span

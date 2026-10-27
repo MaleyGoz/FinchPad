@@ -1,6 +1,4 @@
 //! Tauri IPC 命令层。
-//!
-//! Slint 版本的 app.rs 里有大量 Slint 回调，这里全部丢弃，
 //! 只保留"业务操作 → 命令函数"的映射。
 //! 前端通过 `invoke('命令名', { 参数 })` 调用。
 
@@ -14,6 +12,8 @@ pub struct AppState {
     pub startup_files: Mutex<Vec<String>>,
     /// 对比窗口的数据载荷（主窗口设置，对比窗口读取）
     pub diff_payload: Mutex<Option<DiffPayload>>,
+    // ★ 新增：用于存储多个大文件窗口对应的文件路径（窗口ID -> 路径）
+    pub large_file_paths: Mutex<std::collections::HashMap<String, String>>,
     // ★ 新增：防止退出时死循环的标志
     pub is_exiting: std::sync::atomic::AtomicBool,
     // ★ 新增：实时缓存的窗口物理状态（只存内存，不写磁盘）
@@ -235,7 +235,14 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
         char_count: tab.char_count as i32,
         encoding: tab.encoding.name().to_string(),
         line_ending: tab.line_ending.name().to_string(),
-        is_dirty: tab.is_content_dirty(),
+
+        // ★ 修复：Pending 状态下强制干净，强制磁盘状态为 normal，不读真实磁盘
+        is_dirty: if tab.is_pending_load {
+            false
+        } else {
+            tab.is_content_dirty()
+        },
+
         is_unnamed: tab.file_path.is_none(),
         default_save_path: default_save_path_for(ws, ws.active_index()),
         language_id,
@@ -255,7 +262,13 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
                     .unwrap_or_default()
             })
             .collect(),
-        disk_state: disk_state_string(&ws.active_tab()),
+
+        disk_state: if tab.is_pending_load {
+            "normal".to_string()
+        } else {
+            disk_state_string(&ws.active_tab())
+        },
+
         zoom: ws.zoom(),
         word_wrap: ws.word_wrap(),
         locale_choice: ws.locale_choice().to_string(),
@@ -408,6 +421,10 @@ pub fn save_active_file(state: tauri::State<AppState>) -> Result<WorkspaceSnapsh
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
     let idx = ws.active_index();
 
+    if ws.tab(idx).map_or(true, |t| t.is_pending_load) {
+        return Err("PendingLoadCannotSave".to_string());
+    }
+
     // 未命名 → 让前端走另存为
     if ws.tab(idx).map_or(true, |t| t.file_path.is_none()) {
         return Err("NeedsSaveAs".to_string());
@@ -450,6 +467,10 @@ pub fn save_active_file_as(
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
     let idx = ws.active_index();
     let path_buf = std::path::PathBuf::from(&path);
+
+    if ws.tab(idx).map_or(true, |t| t.is_pending_load) {
+        return Err("PendingLoadCannotSave".to_string());
+    }
 
     if ws.save_path_conflict(idx, &path_buf) {
         // ★ 返回标准错误码，方便前端识别并做多语言提示
@@ -1217,11 +1238,20 @@ pub fn set_show_line_numbers(state: tauri::State<AppState>, value: bool) -> Resu
 }
 
 #[tauri::command]
-pub fn set_editor_bg(state: tauri::State<AppState>, value: String) -> Result<(), String> {
+pub fn set_editor_bg(
+    app: tauri::AppHandle, // ★ 新增
+    state: tauri::State<AppState>,
+    value: String,
+) -> Result<(), String> {
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
-    ws.set_editor_bg(value);
+    ws.set_editor_bg(value.clone()); // 拿到 value
     drop(ws);
     state.mark_session_dirty();
+
+    use tauri::Emitter;
+    // ★ 广播给所有窗口
+    let _ = app.emit("broadcast-theme", value);
+
     Ok(())
 }
 
@@ -1256,15 +1286,21 @@ pub fn take_startup_files(state: tauri::State<AppState>) -> Result<Vec<String>, 
 
 #[tauri::command]
 pub fn set_locale(
+    app: tauri::AppHandle,
     state: tauri::State<AppState>,
     locale: String,
     unnamed_template: String,
     locale_choice: String,
 ) -> Result<(), String> {
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
-    ws.set_locale(locale, unnamed_template, locale_choice);
+    ws.set_locale(locale.clone(), unnamed_template, locale_choice); // 存真实的 locale
     drop(ws);
     state.mark_session_dirty();
+
+    use tauri::Emitter;
+    // ★ 广播真实的 locale (例如 "zh-CN" 或 "en-US")，而不是 "auto"
+    let _ = app.emit("broadcast-locale", locale);
+
     Ok(())
 }
 
@@ -1344,6 +1380,12 @@ pub async fn open_diff_window(
         .title("Compare")
         .inner_size(1200.0, 700.0)
         .min_inner_size(600.0, 400.0)
+        // ★ 核心新增：根据当前主题强制切换原生标题栏颜色
+        .theme(if theme == "dark" {
+            Some(tauri::Theme::Dark)
+        } else {
+            Some(tauri::Theme::Light)
+        })
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -1496,4 +1538,9 @@ pub fn remove_recent_file(state: tauri::State<AppState>, path: String) -> Result
     drop(ws);
     state.mark_session_dirty();
     Ok(())
+}
+
+#[tauri::command]
+pub fn check_file_exists(path: String) -> Result<bool, String> {
+    Ok(std::path::Path::new(&path).exists())
 }

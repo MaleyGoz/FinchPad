@@ -58,6 +58,8 @@
             fontFamily: "Consolas, monospace",
             readOnly: true,
             renderSideBySide: true,
+            // ★ 核心修复：禁止在空间受限时自动改为上下结构
+            useInlineViewWhenSpaceIsLimited: false,
             automaticLayout: true,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
@@ -94,6 +96,13 @@
         (async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const theme = urlParams.get("theme") ?? "white";
+
+            // ★ 核心新增：根据前端主题，动态设置系统原生标题栏的颜色
+            if (theme === "dark") {
+                appWindow.setTheme("dark").catch(console.error);
+            } else {
+                appWindow.setTheme("light").catch(console.error);
+            }
 
             payload = await api.getDiffPayload();
             if (payload) buildDiff(payload, theme);

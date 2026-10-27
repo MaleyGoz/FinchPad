@@ -1,6 +1,6 @@
 [package]
 name = "finchpad"
-version = "0.6.2"
+version = "0.7.0"
 description = "A modern, lightweight, multi-tab plain-text editor designed to replace the default text editors on Windows, Linux, and macOS."
 authors = ["MaleyGoz"]
 edition = "2021"

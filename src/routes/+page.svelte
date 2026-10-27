@@ -40,6 +40,9 @@
         openReleasePage,
     } from "$lib/utils";
 
+    import { page } from "$app/stores";
+    import LargeFileViewer from "$lib/LargeFileViewer.svelte";
+
     // ======== 全局type块 ========
     // 编辑区右键菜单
     type EditorContextMenuState = {
@@ -78,6 +81,8 @@
     };
 
     // ======== 全局变量块 ========
+    let loadPendingError = "";
+    let isOpeningLargeFile = false;
 
     // ======== 响应式变量块 ========
 
@@ -386,6 +391,9 @@
 
     async function handleSelect(i: number) {
         if (i === snapshot.active_index) return;
+        loadPendingError = ""; // ★ 新增：切换标签时清空错误提示
+        isOpeningLargeFile = false; // ★ 新增：切换标签时重置状态
+
         await flushPendingEdit();
         await api.switchTab(i);
         await refresh();
@@ -443,9 +451,10 @@
             full.disk_state === "deleted" ||
             full.disk_state === "unreachable"
         ) {
-            // ★ 新增：如果文件被删除或路径不可达，强制将其标记为脏标签
-            // 这样关闭时一定会弹窗提示保存，防止内容丢失
-            if (!snapshot.tab_dirty_states[idx]) {
+            // ★ 核心修复：如果是 Pending 状态，千万不要强制标脏！
+            // 因为它内存里没内容，关闭时不应该弹保存窗。
+            // 但如果它是普通小文件，依然要强制标脏防止数据丢失。
+            if (!snapshot.is_pending_load && !snapshot.tab_dirty_states[idx]) {
                 const newDirtyStates = [...snapshot.tab_dirty_states];
                 newDirtyStates[idx] = true;
                 snapshot = {
@@ -651,6 +660,8 @@
     }
 
     async function menuSave() {
+        if (snapshot.is_pending_load) return;
+
         const idx = contextMenu.index;
         closeContextMenu();
         await api.switchTab(idx);
@@ -703,6 +714,8 @@
     }
 
     async function menuSaveAs() {
+        if (snapshot.is_pending_load) return;
+
         const idx = contextMenu.index;
         closeContextMenu();
         await api.switchTab(idx);
@@ -1067,14 +1080,37 @@
     }
 
     async function handleLoadPending() {
-        if (!snapshot.is_pending_load) return;
-        snapshot = await api.loadPendingTab(snapshot.active_index);
-    }
+        if (!snapshot.is_pending_load || isOpeningLargeFile) return;
 
-    function formatSize(bytes: number): string {
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+        const index = snapshot.active_index;
+        const path = snapshot.tab_paths[index];
+        if (!path) return;
+
+        isOpeningLargeFile = true;
+        loadPendingError = "";
+
+        try {
+            const themeBackgroundColor =
+                THEMES[snapshot.editor_bg]?.editor_background || "#ffffff";
+            await api.openLargeFileWindow(path, themeBackgroundColor);
+        } catch (e) {
+            console.error("打开大文件窗口失败:", e);
+            const errStr = String(e);
+
+            // ★ 核心新增：拦截错误码并翻译
+            if (errStr.includes("FileNotFound")) {
+                loadPendingError = t(
+                    "large_file.file_not_found",
+                    undefined,
+                    get(resolvedLocale),
+                );
+            } else {
+                // 其他未知错误（比如权限不足），直接显示原始错误
+                loadPendingError = errStr;
+            }
+        } finally {
+            isOpeningLargeFile = false;
+        }
     }
 
     //打开
@@ -1154,6 +1190,7 @@
 
     //保存
     async function handleSave() {
+        if (snapshot.is_pending_load) return; // ★ 核心新增：拦截
         if (modal.visible) return;
 
         // 保存期间上锁，彻底阻断 detectExternalChanges 干扰
@@ -1249,6 +1286,8 @@
 
     //另存为
     async function handleSaveAs() {
+        if (snapshot.is_pending_load) return; // ★ 核心新增：拦截
+
         if (isSaving) return;
         isSaving = true;
 
@@ -1809,6 +1848,11 @@
     }
 
     onMount(() => {
+        // ★ 核心防御：如果当前是大文件独立窗口，直接停止主界面的所有初始化逻辑！
+        if ($page.url.searchParams.get("mode") === "large_viewer") {
+            return;
+        }
+
         // 获取真实的 App 版本号
         getVersion()
             .then((v) => (APP_VERSION = v))
@@ -1974,7 +2018,10 @@
 
 <!-- 快捷键 -->
 <svelte:window
-    on:keydown={(e) =>
+    on:keydown={(e) => {
+        // ★ 大文件窗口不响应主界面的快捷键
+        if ($page.url.searchParams.get("mode") === "large_viewer") return;
+
         handleGlobalShortcut(e, {
             isAnyModalOpen,
             isMac,
@@ -2004,177 +2051,186 @@
             applyZoomDelta,
             setZoomValue,
             onToggleSidebarShortcut: handleSidebarShortcut,
-        })}
+        });
+    }}
 />
 
-<main data-locale={$resolvedLocale}>
-    <!-- 左侧全高侧边栏 + 右侧主区域 -->
-    <div class="app-body">
-        <!-- 侧边栏组件 -->
-        <SideBar
-            mode={sidebarMode}
-            activeFilePath={snapshot.tab_paths[snapshot.active_index] || ""}
-            onOpenFile={handleSidebarOpenFile}
-            onClose={() => (sidebarMode = null)}
-            {recentFilesVersion}
-            recordRecentFiles={snapshot.record_recent_files}
-            onToggleRecordRecentFiles={handleToggleRecordRecentFiles}
-        />
-        <!-- 右侧主体：包含标签栏和编辑器 -->
-        <div class="main-content">
-            <!-- 标签栏 -->
-            <TabBar
-                titles={snapshot.tab_titles}
-                activeIndex={snapshot.active_index}
-                dirtyStates={snapshot.tab_dirty_states}
-                paths={snapshot.tab_paths}
-                onSelect={handleSelect}
-                onClose={handleClose}
-                onNew={handleNew}
-                onContextMenu={handleContextMenu}
-                onReorder={handleReorder}
-                onBarContextMenu={handleBarContextMenu}
-                onSettingsClick={handleSettingsClick}
-                {renamingIndex}
-                onRenameCommit={handleRenameCommit}
-                onRenameCancel={handleRenameCancel}
-                {isWindowFocused}
-                {canPreview}
-                {isPreviewOpen}
-                onTogglePreview={togglePreview}
-                {sidebarMode}
+{#if $page.url.searchParams.get("mode") === "large_viewer"}
+    <LargeFileViewer />
+{:else}
+    <!-- 主界面 -->
+    <main data-locale={$resolvedLocale}>
+        <!-- 左侧全高侧边栏 + 右侧主区域 -->
+        <div class="app-body">
+            <!-- 侧边栏组件 -->
+            <SideBar
+                mode={sidebarMode}
+                activeFilePath={snapshot.tab_paths[snapshot.active_index] || ""}
+                onOpenFile={handleSidebarOpenFile}
+                onClose={() => (sidebarMode = null)}
+                {recentFilesVersion}
+                recordRecentFiles={snapshot.record_recent_files}
+                onToggleRecordRecentFiles={handleToggleRecordRecentFiles}
             />
+            <!-- 右侧主体：包含标签栏和编辑器 -->
+            <div class="main-content">
+                <!-- 标签栏 -->
+                <TabBar
+                    titles={snapshot.tab_titles}
+                    activeIndex={snapshot.active_index}
+                    dirtyStates={snapshot.tab_dirty_states}
+                    paths={snapshot.tab_paths}
+                    onSelect={handleSelect}
+                    onClose={handleClose}
+                    onNew={handleNew}
+                    onContextMenu={handleContextMenu}
+                    onReorder={handleReorder}
+                    onBarContextMenu={handleBarContextMenu}
+                    onSettingsClick={handleSettingsClick}
+                    {renamingIndex}
+                    onRenameCommit={handleRenameCommit}
+                    onRenameCancel={handleRenameCancel}
+                    {isWindowFocused}
+                    {canPreview}
+                    {isPreviewOpen}
+                    onTogglePreview={togglePreview}
+                    {sidebarMode}
+                />
 
-            <!-- 编辑区域 -->
-            <div class="editor-area">
-                <!-- 左侧：编辑器 -->
-                <div
-                    class="editor-pane"
-                    style="width: {isPreviewOpen && canPreview
-                        ? 100 - previewWidth
-                        : 100}%;"
-                >
-                    <Editor
-                        bind:this={editorRef}
-                        value={snapshot.active_text}
-                        language={snapshot.language_id}
-                        largeFile={snapshot.large_file}
-                        isPendingLoad={snapshot.is_pending_load}
-                        fileSize={snapshot.file_size}
-                        {zoom}
-                        wordWrap={wordWrap && !snapshot.large_file}
-                        {showLineNumbers}
-                        {editorBg}
-                        onChange={handleTextChange}
-                        onStats={handleStats}
-                        onLoadRequest={handleLoadPending}
-                        onZoomDelta={applyZoomDelta}
-                        onEditorContextMenu={handleEditorContextMenu}
-                        onOpenRequest={handleOpen}
-                        onToggleSidebarRequest={handleSidebarShortcut}
-                    />
+                <!-- 编辑区域 -->
+                <div class="editor-area">
+                    <!-- 左侧：编辑器 -->
+                    <div
+                        class="editor-pane"
+                        style="width: {isPreviewOpen && canPreview
+                            ? 100 - previewWidth
+                            : 100}%;"
+                    >
+                        <Editor
+                            bind:this={editorRef}
+                            value={snapshot.active_text}
+                            language={snapshot.language_id}
+                            largeFile={snapshot.large_file}
+                            isPendingLoad={snapshot.is_pending_load}
+                            fileSize={snapshot.file_size}
+                            {loadPendingError}
+                            {zoom}
+                            wordWrap={wordWrap && !snapshot.large_file}
+                            {showLineNumbers}
+                            {editorBg}
+                            onChange={handleTextChange}
+                            onStats={handleStats}
+                            onLoadRequest={handleLoadPending}
+                            onZoomDelta={applyZoomDelta}
+                            onEditorContextMenu={handleEditorContextMenu}
+                            onOpenRequest={handleOpen}
+                            onToggleSidebarRequest={handleSidebarShortcut}
+                        />
+                    </div>
+
+                    <!-- 右侧：预览区 -->
+                    {#if isPreviewOpen && canPreview}
+                        <PreviewPane
+                            activeText={snapshot.active_text}
+                            languageId={snapshot.language_id}
+                            filePath={snapshot.tab_paths[
+                                snapshot.active_index
+                            ] || ""}
+                            {previewWidth}
+                            onWidthChange={(w) => (previewWidth = w)}
+                        />
+                    {/if}
                 </div>
-
-                <!-- 右侧：预览区 -->
-                {#if isPreviewOpen && canPreview}
-                    <PreviewPane
-                        activeText={snapshot.active_text}
-                        languageId={snapshot.language_id}
-                        filePath={snapshot.tab_paths[snapshot.active_index] ||
-                            ""}
-                        {previewWidth}
-                        onWidthChange={(w) => (previewWidth = w)}
-                    />
-                {/if}
             </div>
         </div>
-    </div>
 
-    <!-- 状态栏 -->
-    <div style="margin-top: -1px; position: relative; z-index: 2;">
-        <StatusBar
-            lineCount={snapshot.line_count}
-            charCount={snapshot.char_count}
-            {selectedCount}
-            {selectedLineCount}
-            encoding={snapshot.encoding}
-            lineEnding={snapshot.line_ending}
-            isDirty={snapshot.is_dirty}
-            diskState={snapshot.disk_state}
-            {zoom}
-            {wordWrap}
-            wordWrapDisabled={snapshot.large_file}
-            onToggleWordWrap={handleToggleWordWrap}
-            onZoomChange={setZoomValue}
-            {sidebarMode}
-            onToggleSidebar={toggleSidebar}
-            {canUseDirectory}
+        <!-- 状态栏 -->
+        <div style="margin-top: -1px; position: relative; z-index: 2;">
+            <StatusBar
+                lineCount={snapshot.line_count}
+                charCount={snapshot.char_count}
+                {selectedCount}
+                {selectedLineCount}
+                encoding={snapshot.encoding}
+                lineEnding={snapshot.line_ending}
+                isDirty={snapshot.is_dirty}
+                diskState={snapshot.disk_state}
+                {zoom}
+                {wordWrap}
+                wordWrapDisabled={snapshot.large_file}
+                onToggleWordWrap={handleToggleWordWrap}
+                onZoomChange={setZoomValue}
+                {sidebarMode}
+                onToggleSidebar={toggleSidebar}
+                {canUseDirectory}
+                {showLineNumbers}
+                onToggleLineNumbers={toggleShowLineNumbers}
+            />
+        </div>
+
+        <AppOverlays
+            {modal}
+            {aboutVisible}
+            {APP_VERSION}
+            {settingsMenu}
+            {langSubmenu}
             {showLineNumbers}
+            {wordWrap}
+            largeFile={snapshot.large_file}
+            {editorBg}
+            {contextMenu}
+            {diffSubmenu}
+            {barContextMenu}
+            {editorContextMenu}
+            tabTitles={snapshot.tab_titles}
+            tabDirtyStates={snapshot.tab_dirty_states}
+            tabUnnamedStates={snapshot.tab_unnamed_states}
+            {mod}
+            onCloseModal={closeModal}
+            onCloseAbout={() => (aboutVisible = false)}
+            onOpenGitHub={openGitHub}
+            onCloseSettings={closeSettingsMenu}
             onToggleLineNumbers={toggleShowLineNumbers}
+            onToggleWordWrap={toggleWordWrapFromSettings}
+            onSetTheme={setTheme}
+            onToggleLangSubmenu={toggleLangSubmenu}
+            onCloseLangSubmenu={() => (langSubmenu.visible = false)}
+            onSelectLanguage={selectLanguage}
+            onCheckUpdate={checkForUpdates}
+            onShowAbout={() => {
+                closeSettingsMenu();
+                aboutVisible = true;
+            }}
+            onCloseContextMenu={closeContextMenu}
+            onMenuSave={menuSave}
+            onMenuSaveAs={menuSaveAs}
+            onShowDiffSubmenu={showDiffSubmenu}
+            onScheduleCloseDiffSubmenu={scheduleCloseDiffSubmenu}
+            onMenuCloseSingle={menuCloseSingle}
+            onMenuCloseOthers={menuCloseOthers}
+            onMenuCloseLeft={menuCloseLeft}
+            onMenuCloseRight={menuCloseRight}
+            onTriggerRename={(idx) => {
+                closeContextMenu();
+                renamingIndex = idx;
+            }}
+            onMenuCopyPath={menuCopyPath}
+            onMenuRevealInExplorer={menuRevealInExplorer}
+            onCloseDiffSubmenu={closeDiffSubmenu}
+            onCancelCloseDiffSubmenu={cancelCloseDiffSubmenu}
+            onSelectDiffTarget={selectDiffTarget}
+            onCloseBarContextMenu={closeBarContextMenu}
+            onBarMenuNew={barMenuNew}
+            onBarMenuOpen={barMenuOpen}
+            onCloseEditorContextMenu={closeEditorContextMenu}
+            onRunEditorAction={runEditorAction}
+            onShowLangSubmenu={showLangSubmenu}
+            onScheduleCloseLangSubmenu={scheduleCloseLangSubmenu}
+            onCancelCloseLangSubmenu={cancelCloseLangSubmenu}
+            isPendingLoad={snapshot.is_pending_load}
         />
-    </div>
-
-    <AppOverlays
-        {modal}
-        {aboutVisible}
-        {APP_VERSION}
-        {settingsMenu}
-        {langSubmenu}
-        {showLineNumbers}
-        {wordWrap}
-        largeFile={snapshot.large_file}
-        {editorBg}
-        {contextMenu}
-        {diffSubmenu}
-        {barContextMenu}
-        {editorContextMenu}
-        tabTitles={snapshot.tab_titles}
-        tabDirtyStates={snapshot.tab_dirty_states}
-        tabUnnamedStates={snapshot.tab_unnamed_states}
-        {mod}
-        onCloseModal={closeModal}
-        onCloseAbout={() => (aboutVisible = false)}
-        onOpenGitHub={openGitHub}
-        onCloseSettings={closeSettingsMenu}
-        onToggleLineNumbers={toggleShowLineNumbers}
-        onToggleWordWrap={toggleWordWrapFromSettings}
-        onSetTheme={setTheme}
-        onToggleLangSubmenu={toggleLangSubmenu}
-        onCloseLangSubmenu={() => (langSubmenu.visible = false)}
-        onSelectLanguage={selectLanguage}
-        onCheckUpdate={checkForUpdates}
-        onShowAbout={() => {
-            closeSettingsMenu();
-            aboutVisible = true;
-        }}
-        onCloseContextMenu={closeContextMenu}
-        onMenuSave={menuSave}
-        onMenuSaveAs={menuSaveAs}
-        onShowDiffSubmenu={showDiffSubmenu}
-        onScheduleCloseDiffSubmenu={scheduleCloseDiffSubmenu}
-        onMenuCloseSingle={menuCloseSingle}
-        onMenuCloseOthers={menuCloseOthers}
-        onMenuCloseLeft={menuCloseLeft}
-        onMenuCloseRight={menuCloseRight}
-        onTriggerRename={(idx) => {
-            closeContextMenu();
-            renamingIndex = idx;
-        }}
-        onMenuCopyPath={menuCopyPath}
-        onMenuRevealInExplorer={menuRevealInExplorer}
-        onCloseDiffSubmenu={closeDiffSubmenu}
-        onCancelCloseDiffSubmenu={cancelCloseDiffSubmenu}
-        onSelectDiffTarget={selectDiffTarget}
-        onCloseBarContextMenu={closeBarContextMenu}
-        onBarMenuNew={barMenuNew}
-        onBarMenuOpen={barMenuOpen}
-        onCloseEditorContextMenu={closeEditorContextMenu}
-        onRunEditorAction={runEditorAction}
-        onShowLangSubmenu={showLangSubmenu}
-        onScheduleCloseLangSubmenu={scheduleCloseLangSubmenu}
-        onCancelCloseLangSubmenu={cancelCloseLangSubmenu}
-    />
-</main>
+    </main>
+{/if}
 
 <style>
     :global(body) {

@@ -21,6 +21,36 @@
     let dirLoading = false;
     let dirError = false;
 
+    let recentFileError = ""; // 记录失效文件的提示
+    let errorTimer: any;
+
+    // ★ 新增：专门处理点击最近文件的逻辑
+    async function handleRecentClick(path: string) {
+        try {
+            const exists = await api.checkFileExists(path);
+            if (!exists) {
+                recentFiles = recentFiles.filter((f) => f !== path);
+                await api.removeRecentFile(path);
+
+                // ★ 改为触发内联提示
+                recentFileError = t(
+                    "sidebar.file_not_found",
+                    { path },
+                    $resolvedLocale,
+                );
+                clearTimeout(errorTimer);
+                errorTimer = setTimeout(() => {
+                    recentFileError = "";
+                }, 3000);
+
+                return;
+            }
+            onOpenFile(path);
+        } catch (e) {
+            console.error("校验文件失败:", e);
+        }
+    }
+
     const isMac =
         typeof navigator !== "undefined" &&
         /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -194,20 +224,17 @@
             {#if mode === "recent"}
                 <!-- ★ 新增：悬浮置顶工具栏 -->
                 <div class="recent-toolbar">
-                    <!-- 记录历史按钮 -->
+                    <!-- 记录历史按钮，完全对齐状态栏的样式 -->
                     <button
                         class="record-btn"
                         onclick={() =>
                             onToggleRecordRecentFiles(!recordRecentFiles)}
                     >
-                        <span style="transform: translateY(-0.5px);">
-                            {t(
-                                "sidebar.record_history",
-                                undefined,
-                                $resolvedLocale,
-                            )}
-                        </span>
-
+                        {t(
+                            "sidebar.record_history",
+                            undefined,
+                            $resolvedLocale,
+                        )}
                         <Toggle
                             checked={recordRecentFiles}
                             onChange={onToggleRecordRecentFiles}
@@ -221,6 +248,13 @@
 
                 <!-- 最近文件列表 -->
                 <div class="sidebar-list">
+                    <!-- ★ 新增：内联错误横幅 -->
+                    {#if recentFileError}
+                        <div class="recent-error-hint">
+                            ⚠️ {recentFileError}
+                        </div>
+                    {/if}
+
                     {#if recentFiles.length === 0}
                         <div
                             class="empty-hint"
@@ -236,9 +270,10 @@
                         {#each recentFiles as file}
                             <div
                                 class="sidebar-item recent-item"
-                                onclick={() => onOpenFile(file)}
+                                onclick={() => handleRecentClick(file)}
                                 onkeydown={(e) =>
-                                    e.key === "Enter" && onOpenFile(file)}
+                                    e.key === "Enter" &&
+                                    handleRecentClick(file)}
                                 use:tooltip={file}
                                 role="button"
                                 tabindex="0"
@@ -574,20 +609,6 @@
         color: var(--accent);
     }
 
-    .clear-btn {
-        background: none;
-        border: none;
-        font-size: 12px;
-        color: var(--accent);
-        cursor: pointer;
-        padding: 2px 4px;
-        border-radius: 4px;
-    }
-
-    .clear-btn:hover {
-        background: var(--overlay-hover-background);
-    }
-
     /* 单条记录悬停与删除按钮 */
     .recent-item {
         position: relative;
@@ -668,5 +689,32 @@
     /* 隐藏原生的上下小箭头 */
     .sidebar-body::-webkit-scrollbar-button {
         display: none;
+    }
+
+    /* ★ 新增：最近文件失效内联提示 */
+    .recent-error-hint {
+        margin: 8px;
+        padding: 10px 12px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--warning-strong);
+        background: color-mix(in srgb, var(--warning-strong) 10%, transparent);
+        border: 1px solid
+            color-mix(in srgb, var(--warning-strong) 30%, transparent);
+        border-radius: 4px;
+        line-height: 1.5;
+        word-break: break-all;
+        animation: bannerFadeIn 0.2s ease-out;
+    }
+
+    @keyframes bannerFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
