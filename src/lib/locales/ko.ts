@@ -29,6 +29,7 @@ export const ko: Record<string, string> = {
   "tab_menu.close_others": "다른 탭 닫기",
   "tab_menu.close_left": "왼쪽 탭 닫기",
   "tab_menu.close_right": "오른쪽 탭 닫기",
+  "tab_menu.close_all": "모두 닫기",
   "tab_menu.copy_path": "파일 경로 복사",
   "tab_menu.reveal_in_explorer": "탐색기에서 열기",
   "tab_menu.diff": "비교",

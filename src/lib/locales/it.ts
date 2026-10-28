@@ -29,6 +29,7 @@ export const it: Record<string, string> = {
   "tab_menu.close_others": "Chiudi altre schede",
   "tab_menu.close_left": "Chiudi schede a sinistra",
   "tab_menu.close_right": "Chiudi schede a destra",
+  "tab_menu.close_all": "Chiudi tutto",
   "tab_menu.copy_path": "Copia percorso file",
   "tab_menu.reveal_in_explorer": "Mostra in Esplora risorse",
   "tab_menu.diff": "Confronta",

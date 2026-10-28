@@ -29,6 +29,7 @@ export const de: Record<string, string> = {
   "tab_menu.close_others": "Andere Tabs schließen",
   "tab_menu.close_left": "Tabs links schließen",
   "tab_menu.close_right": "Tabs rechts schließen",
+  "tab_menu.close_all": "Alle schließen",
   "tab_menu.copy_path": "Dateipfad kopieren",
   "tab_menu.reveal_in_explorer": "Im Explorer anzeigen",
   "tab_menu.diff": "Vergleichen",

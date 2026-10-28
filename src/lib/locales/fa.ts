@@ -29,6 +29,7 @@ export const faIR: Record<string, string> = {
   "tab_menu.close_others": "بستن سایر زبانه‌ها",
   "tab_menu.close_left": "بستن زبانه‌های سمت چپ",
   "tab_menu.close_right": "بستن زبانه‌های سمت راست",
+  "tab_menu.close_all": "بستن همه",
   "tab_menu.copy_path": "کپی مسیر فایل",
   "tab_menu.reveal_in_explorer": "نمایش در Explorer",
   "tab_menu.diff": "مقایسه",

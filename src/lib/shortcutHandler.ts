@@ -27,6 +27,10 @@ export type ShortcutContext = {
     applyZoomDelta: (delta: number) => void;
     setZoomValue: (val: number) => void;
     onToggleSidebarShortcut: () => void;
+    mouseY: number;
+    onRenameRequest: () => void;
+    onCopyPath: () => void;
+    onReopenTab: () => void;
 };
 
 export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
@@ -44,11 +48,16 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         return;
     }
 
-    // 屏蔽 F2 键，防止触发浏览器的默认聚焦行为
+    // 重命名F2
     if (e.key === "F2") {
         e.preventDefault();
+        e.stopPropagation();
+        if (ctx.mouseY < 60) {
+            ctx.onRenameRequest();
+        }
         return;
     }
+
 
     // ==========================================
     // ★ 第一优先级：强制仅限 Ctrl 的快捷键
@@ -96,10 +105,22 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         return;
     }
 
+    // ★ 新增：拦截 Ctrl+Shift+C（复制文件路径）
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        e.stopPropagation();
+        ctx.onCopyPath();
+        return;
+    }
+
     // 文件操作
     if ((key === "n" || key === "t") && !e.shiftKey) {
         e.preventDefault();
         ctx.handleNew();
+    } else if (key === "t" && e.shiftKey) {
+        // ★ 新增：恢复标签
+        e.preventDefault();
+        ctx.onReopenTab();
     } else if (key === "o" && !e.shiftKey) {
         e.preventDefault();
         ctx.handleOpen();

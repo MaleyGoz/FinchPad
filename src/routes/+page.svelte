@@ -103,6 +103,7 @@
         large_file: false,
         tab_dirty_states: [],
         tab_unnamed_states: [],
+        tab_pending_states: [],
         tab_ids: [],
         tab_paths: [],
         disk_state: "normal",
@@ -113,6 +114,7 @@
         editor_bg: "white",
         last_used_path: "",
         record_recent_files: true,
+        has_closed_tabs: false,
     };
 
     async function handleToggleRecordRecentFiles(value: boolean) {
@@ -177,6 +179,7 @@
     let editorBg = "white";
     let closeQueueTabIds: string[] = [];
     let renamingIndex = -1;
+    let mouseY = 0; // 记录鼠标 Y 坐标，用于 F2 快捷键判断
     let isWindowFocused = true;
     let isSaving = false; // 防止保存过程中的自动检测覆盖状态
 
@@ -495,6 +498,18 @@
         renamingIndex = -1;
     }
 
+    // 重新打开标签
+    async function handleReopenTab() {
+        try {
+            // 成功恢复，Svelte 的响应式会自动刷新界面，把标签弹出来
+            snapshot = await api.reopenClosedTab();
+        } catch (e) {
+            // ★ 极简静默处理：栈空了或文件全被删了，按快捷键没反应是符合直觉的。
+            // 只在控制台留个记录方便你调试，绝不弹窗打扰用户。
+            console.log("无可恢复标签:", e);
+        }
+    }
+
     async function handleClose(i: number) {
         // ★ 方案 A：如果目标标签不是激活标签，先切过去（让用户看清冲突）
         if (i !== snapshot.active_index) {
@@ -622,6 +637,16 @@
         setTimeout(handleOpen, 0);
     }
 
+    function menuOpenFromTab() {
+        closeContextMenu(); // 关闭标签菜单
+        setTimeout(handleOpen, 0);
+    }
+
+    function menuNewFromTab() {
+        closeContextMenu(); // 关闭标签菜单
+        handleNew();
+    }
+
     async function handleReorder(from: number, to: number) {
         try {
             await api.reorderTabs(from, to);
@@ -651,6 +676,12 @@
         closeContextMenu();
         const ids = snapshot.tab_ids.slice(idx + 1);
         startCloseQueue(ids);
+    }
+
+    function menuCloseAll() {
+        closeContextMenu();
+        // 复用现有的关闭队列，它会自动处理未保存弹窗，保证安全
+        startCloseQueue(snapshot.tab_ids);
     }
 
     function menuCloseSingle() {
@@ -1996,6 +2027,12 @@
         };
         window.addEventListener("mousedown", handleGlobalClick);
 
+        // 6.2 鼠标位置监听，用于标签重命名
+        const handleMouseMove = (e: MouseEvent) => {
+            mouseY = e.clientY;
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+
         // 7. 清理函数（必须放最后）
         return () => {
             window.removeEventListener("focus", handleDetect);
@@ -2044,6 +2081,16 @@
             applyZoomDelta,
             setZoomValue,
             onToggleSidebarShortcut: handleSidebarShortcut,
+            onReopenTab: handleReopenTab,
+            // ★ 新增这三个
+            mouseY: mouseY,
+            onRenameRequest: () => {
+                if (renamingIndex === -1) renamingIndex = snapshot.active_index;
+            },
+            onCopyPath: () => {
+                const activePath = snapshot.tab_paths[snapshot.active_index];
+                if (activePath) writeText(activePath).catch(console.error);
+            },
         });
     }}
 />
@@ -2203,6 +2250,7 @@
             onMenuCloseOthers={menuCloseOthers}
             onMenuCloseLeft={menuCloseLeft}
             onMenuCloseRight={menuCloseRight}
+            onMenuCloseAll={menuCloseAll}
             onTriggerRename={(idx) => {
                 closeContextMenu();
                 renamingIndex = idx;
@@ -2215,12 +2263,16 @@
             onCloseBarContextMenu={closeBarContextMenu}
             onBarMenuNew={barMenuNew}
             onBarMenuOpen={barMenuOpen}
+            onMenuNewFromTab={menuNewFromTab}
+            onMenuOpenFromTab={menuOpenFromTab}
             onCloseEditorContextMenu={closeEditorContextMenu}
             onRunEditorAction={runEditorAction}
             onShowLangSubmenu={showLangSubmenu}
             onScheduleCloseLangSubmenu={scheduleCloseLangSubmenu}
             onCancelCloseLangSubmenu={cancelCloseLangSubmenu}
-            isPendingLoad={snapshot.is_pending_load}
+            tabPendingStates={snapshot.tab_pending_states}
+            hasClosedTabs={snapshot.has_closed_tabs}
+            onReopenClosedTab={handleReopenTab}
         />
     </main>
 {/if}

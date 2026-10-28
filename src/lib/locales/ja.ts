@@ -29,6 +29,7 @@ export const ja: Record<string, string> = {
   "tab_menu.close_others": "他のタブを閉じる",
   "tab_menu.close_left": "左のタブを閉じる",
   "tab_menu.close_right": "右のタブを閉じる",
+  "tab_menu.close_all": "すべてを閉じる",
   "tab_menu.copy_path": "ファイルパスをコピー",
   "tab_menu.reveal_in_explorer": "エクスプローラーで表示",
   "tab_menu.diff": "比較",

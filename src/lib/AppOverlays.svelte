@@ -26,6 +26,8 @@
     export let onCloseModal: () => void;
     export let onCloseAbout: () => void;
     export let onOpenGitHub: () => void;
+    export let onMenuNewFromTab: () => void;
+    export let onMenuOpenFromTab: () => void;
 
     // 设置与语言菜单的回调
     export let onCloseSettings: () => void;
@@ -47,6 +49,7 @@
     export let tabTitles: string[];
     export let tabDirtyStates: boolean[];
     export let tabUnnamedStates: boolean[];
+    export let onMenuCloseAll: () => void;
 
     // 空白处右键菜单
     export let barContextMenu: any;
@@ -70,7 +73,8 @@
     export let onTriggerRename: (index: number) => void;
     export let onMenuCopyPath: () => void;
     export let onMenuRevealInExplorer: () => void;
-
+    export let hasClosedTabs: boolean;
+    export let onReopenClosedTab: () => void;
     // 对比二级菜单事件回调
     export let onCloseDiffSubmenu: () => void;
     export let onCancelCloseDiffSubmenu: () => void;
@@ -81,8 +85,7 @@
     export let onBarMenuNew: () => void;
     export let onBarMenuOpen: () => void;
 
-    export let isPendingLoad: boolean = false; // ★ 新增：接收大文件占位状态
-
+    export let tabPendingStates: boolean[] = []; // ★ 接收所有标签的 pending 状态
     // 编辑器右键菜单事件回调
     export let onCloseEditorContextMenu: () => void;
     export let onRunEditorAction: (action: string) => void;
@@ -325,15 +328,19 @@
     {@const cmTabCount = tabTitles.length}
     {@const cmIsDirty = tabDirtyStates[cmIndex] ?? false}
     {@const cmIsUnnamed = tabUnnamedStates[cmIndex] ?? false}
+    {@const cmIsPending = tabPendingStates[cmIndex] ?? false}
     {@const cmCanCloseOthers = cmTabCount > 1}
-    {@const cmCanCloseLeft = cmIndex > 0}
     {@const cmCanCloseRight = cmIndex < cmTabCount - 1}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    {@const cmHasValidDiffTargets = tabTitles.some(
+        (_, i) => i !== cmIndex && !tabPendingStates[i],
+    )}
+
+    <!-- 遮罩层 -->
     <div
         class="context-overlay"
         onclick={() => {
             onCloseContextMenu();
-            onCloseDiffSubmenu(); // 顺带关闭对比子菜单
+            onCloseDiffSubmenu();
         }}
         oncontextmenu={(e) => {
             e.preventDefault();
@@ -342,6 +349,9 @@
         }}
         role="presentation"
     >
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- 菜单主体 -->
         <div
             class="context-menu"
             style="{contextMenu.left !== null
@@ -352,55 +362,10 @@
             role="menu"
             tabindex="-1"
         >
-            <button
-                class="context-item"
-                class:disabled={!cmIsDirty || isPendingLoad}
-                disabled={!cmIsDirty || isPendingLoad}
-                onclick={onMenuSave}
-            >
-                <span>{t("tab_menu.save", undefined, $resolvedLocale)}</span
-                ><span class="shortcut">{mod}+S</span>
-            </button>
-            <button
-                class="context-item"
-                class:disabled={(cmIsUnnamed && !cmIsDirty) || isPendingLoad}
-                disabled={(cmIsUnnamed && !cmIsDirty) || isPendingLoad}
-                onclick={onMenuSaveAs}
-            >
-                <span>{t("tab_menu.save_as", undefined, $resolvedLocale)}</span
-                ><span class="shortcut">{mod}+Shift+S</span>
-            </button>
-
-            <div class="context-divider"></div>
-
-            <button
-                class="context-item"
-                class:disabled={cmTabCount <= 1}
-                disabled={cmTabCount <= 1}
-                onmouseenter={onShowDiffSubmenu}
-                onmouseleave={onScheduleCloseDiffSubmenu}
-            >
-                <span>{t("tab_menu.diff", undefined, $resolvedLocale)}</span>
-                <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    style="margin-left: auto; color: var(--overlay-foreground);"
-                >
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
-
-            <div class="context-divider"></div>
-
+            <!-- 区块 1：关闭操作 -->
             <button class="context-item" onclick={onMenuCloseSingle}>
-                <span>{t("tab_menu.close", undefined, $resolvedLocale)}</span
-                ><span class="shortcut">{mod}+W</span>
+                <span>{t("tab_menu.close", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+W</span>
             </button>
             <button
                 class="context-item"
@@ -411,20 +376,6 @@
                 <span
                     >{t(
                         "tab_menu.close_others",
-                        undefined,
-                        $resolvedLocale,
-                    )}</span
-                >
-            </button>
-            <button
-                class="context-item"
-                class:disabled={!cmCanCloseLeft}
-                disabled={!cmCanCloseLeft}
-                onclick={onMenuCloseLeft}
-            >
-                <span
-                    >{t(
-                        "tab_menu.close_left",
                         undefined,
                         $resolvedLocale,
                     )}</span
@@ -444,9 +395,81 @@
                     )}</span
                 >
             </button>
+            <button class="context-item" onclick={onMenuCloseAll}>
+                <span
+                    >{t("tab_menu.close_all", undefined, $resolvedLocale)}</span
+                >
+            </button>
+            <button
+                class="context-item"
+                class:disabled={!hasClosedTabs}
+                disabled={!hasClosedTabs}
+                onclick={onReopenClosedTab}
+            >
+                <span>{t("tab_menu.reopen", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+Shift+T</span>
+            </button>
 
             <div class="context-divider"></div>
 
+            <!-- 区块 2：保存与对比 -->
+            <button
+                class="context-item"
+                class:disabled={!cmIsDirty || cmIsPending}
+                disabled={!cmIsDirty || cmIsPending}
+                onclick={onMenuSave}
+            >
+                <span>{t("tab_menu.save", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+S</span>
+            </button>
+            <button
+                class="context-item"
+                class:disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
+                disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
+                onclick={onMenuSaveAs}
+            >
+                <span>{t("tab_menu.save_as", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+Shift+S</span>
+            </button>
+
+            <button
+                class="context-item"
+                class:disabled={cmTabCount <= 1 ||
+                    cmIsPending ||
+                    !cmHasValidDiffTargets}
+                disabled={cmTabCount <= 1 ||
+                    cmIsPending ||
+                    !cmHasValidDiffTargets}
+                onmouseenter={(e) => {
+                    if (
+                        cmTabCount > 1 &&
+                        !cmIsPending &&
+                        cmHasValidDiffTargets
+                    ) {
+                        onShowDiffSubmenu(e);
+                    }
+                }}
+                onmouseleave={onScheduleCloseDiffSubmenu}
+            >
+                <span>{t("tab_menu.diff", undefined, $resolvedLocale)}</span>
+                <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="margin-left: auto;"
+                >
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
+            <div class="context-divider"></div>
+
+            <!-- 区块 3：文件操作 -->
             <button
                 class="context-item"
                 class:disabled={cmIsUnnamed}
@@ -454,8 +477,8 @@
                 onclick={() => onTriggerRename(cmIndex)}
             >
                 <span>{t("tab_menu.rename", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">F2</span>
             </button>
-
             <button
                 class="context-item"
                 class:disabled={cmIsUnnamed}
@@ -465,6 +488,7 @@
                 <span
                     >{t("tab_menu.copy_path", undefined, $resolvedLocale)}</span
                 >
+                <span class="shortcut">{mod}+Shift+C</span>
             </button>
             <button
                 class="context-item"
@@ -479,6 +503,18 @@
                         $resolvedLocale,
                     )}</span
                 >
+            </button>
+
+            <div class="context-divider"></div>
+
+            <!-- 区块 4：新建与打开 -->
+            <button class="context-item" onclick={onMenuNewFromTab}>
+                <span>{t("bar_menu.new", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+N</span>
+            </button>
+            <button class="context-item" onclick={onMenuOpenFromTab}>
+                <span>{t("bar_menu.open", undefined, $resolvedLocale)}</span>
+                <span class="shortcut">{mod}+O</span>
             </button>
         </div>
     </div>
@@ -559,7 +595,7 @@
             tabindex="-1"
         >
             {#each tabTitles as title, idx}
-                {#if idx !== contextMenu.index}
+                {#if idx !== contextMenu.index && !tabPendingStates[idx]}
                     <button
                         class="context-item diff-item-btn"
                         onclick={() => onSelectDiffTarget(idx)}

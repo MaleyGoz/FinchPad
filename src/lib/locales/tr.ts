@@ -29,6 +29,7 @@ export const trTR: Record<string, string> = {
   "tab_menu.close_others": "Diğer Sekmeleri Kapat",
   "tab_menu.close_left": "Soldaki Sekmeleri Kapat",
   "tab_menu.close_right": "Sağdaki Sekmeleri Kapat",
+  "tab_menu.close_all": "Tümünü Kapat",
   "tab_menu.copy_path": "Dosya Yolunu Kopyala",
   "tab_menu.reveal_in_explorer": "Dosya Gezgini'nde Göster",
   "tab_menu.diff": "Karşılaştır",

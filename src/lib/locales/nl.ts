@@ -29,6 +29,7 @@ export const nlNL: Record<string, string> = {
   "tab_menu.close_others": "Andere tabbladen sluiten",
   "tab_menu.close_left": "Tabbladen links sluiten",
   "tab_menu.close_right": "Tabbladen rechts sluiten",
+  "tab_menu.close_all": "Alles sluiten",
   "tab_menu.copy_path": "Bestandspad kopiëren",
   "tab_menu.reveal_in_explorer": "Weergeven in Verkenner",
   "tab_menu.diff": "Vergelijken",

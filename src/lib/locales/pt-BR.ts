@@ -29,6 +29,7 @@ export const pt: Record<string, string> = {
   "tab_menu.close_others": "Fechar outras guias",
   "tab_menu.close_left": "Fechar guias à esquerda",
   "tab_menu.close_right": "Fechar guias à direita",
+  "tab_menu.close_all": "Fechar tudo",
   "tab_menu.copy_path": "Copiar caminho do arquivo",
   "tab_menu.reveal_in_explorer": "Revelar no Explorador",
   "tab_menu.diff": "Comparar",

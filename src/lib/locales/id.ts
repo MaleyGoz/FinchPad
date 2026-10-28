@@ -29,6 +29,7 @@ export const idID: Record<string, string> = {
   "tab_menu.close_others": "Tutup Tab Lainnya",
   "tab_menu.close_left": "Tutup Tab di Kiri",
   "tab_menu.close_right": "Tutup Tab di Kanan",
+  "tab_menu.close_all": "Tutup Semua",
   "tab_menu.copy_path": "Salin Jalur File",
   "tab_menu.reveal_in_explorer": "Tampilkan di Explorer",
   "tab_menu.diff": "Bandingkan",

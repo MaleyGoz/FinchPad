@@ -12,10 +12,10 @@ use app::{
     clear_recent_files, close_diff_window, close_tab, discard_tab_changes, get_diff_payload,
     get_disk_content, get_large_dirty_tabs, get_recent_files, get_tab_content, get_tab_path,
     get_workspace_state, get_zoom, load_pending_tab, new_tab, open_diff_window, open_files,
-    read_dir, reload_tab, remove_recent_file, rename_tab_file, reorder_tabs, restore_session,
-    save_active_file, save_active_file_as, save_and_prepare_exit, set_editor_bg, set_locale,
-    set_record_recent_files, set_show_line_numbers, set_word_wrap, set_zoom, show_window,
-    switch_tab, take_startup_files, tick_autosave, update_active_text, AppState,
+    read_dir, reload_tab, remove_recent_file, rename_tab_file, reopen_closed_tab, reorder_tabs,
+    restore_session, save_active_file, save_active_file_as, save_and_prepare_exit, set_editor_bg,
+    set_locale, set_record_recent_files, set_show_line_numbers, set_word_wrap, set_zoom,
+    show_window, switch_tab, take_startup_files, tick_autosave, update_active_text, AppState,
 };
 use model::Workspace;
 use std::sync::Mutex;
@@ -209,6 +209,7 @@ pub fn run() {
             get_file_encoding,
             count_large_file_lines,
             check_file_exists,
+            reopen_closed_tab,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

@@ -29,6 +29,7 @@ export const thTH: Record<string, string> = {
   "tab_menu.close_others": "ปิดแท็บอื่น",
   "tab_menu.close_left": "ปิดแท็บด้านซ้าย",
   "tab_menu.close_right": "ปิดแท็บด้านขวา",
+  "tab_menu.close_all": "ปิดทั้งหมด",
   "tab_menu.copy_path": "คัดลอกที่อยู่ไฟล์",
   "tab_menu.reveal_in_explorer": "เปิดใน Explorer",
   "tab_menu.diff": "เปรียบเทียบ",

@@ -30,6 +30,7 @@ export type Snapshot = {
     large_file: boolean;
     tab_dirty_states: boolean[];
     tab_unnamed_states: boolean[];
+    tab_pending_states: boolean[];
     tab_ids: string[];
     tab_paths: string[];
     disk_state: string;
@@ -40,6 +41,7 @@ export type Snapshot = {
     editor_bg: string;
     last_used_path: string;
     record_recent_files: boolean;
+    has_closed_tabs: boolean;
 };
 
 export type DiffPayload = {
@@ -135,4 +137,5 @@ export const api = {
         invoke<SearchResponse>("search_in_large_file", { path, keyword, encoding }),
     countLargeFileLines: (path: string) => invoke<number>("count_large_file_lines", { path }),
     checkFileExists: (path: string) => invoke<boolean>("check_file_exists", { path }),
+    reopenClosedTab: () => invoke<Snapshot>("reopen_closed_tab"),
 };

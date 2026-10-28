@@ -29,6 +29,7 @@ export const zhTW: Record<string, string> = {
   "tab_menu.close_others": "關閉其他標籤",
   "tab_menu.close_left": "關閉左側標籤",
   "tab_menu.close_right": "關閉右側標籤",
+  "tab_menu.close_all": "全部關閉",
   "tab_menu.copy_path": "複製檔案路徑",
   "tab_menu.reveal_in_explorer": "開啟所在資料夾",
   "tab_menu.diff": "比對",

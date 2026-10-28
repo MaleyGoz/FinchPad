@@ -29,6 +29,7 @@ export const fr: Record<string, string> = {
   "tab_menu.close_others": "Fermer les autres onglets",
   "tab_menu.close_left": "Fermer les onglets à gauche",
   "tab_menu.close_right": "Fermer les onglets à droite",
+  "tab_menu.close_all": "Tout fermer",
   "tab_menu.copy_path": "Copier le chemin du fichier",
   "tab_menu.reveal_in_explorer": "Ouvrir dans l'explorateur",
   "tab_menu.diff": "Comparer",

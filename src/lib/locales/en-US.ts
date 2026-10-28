@@ -28,11 +28,12 @@ export const enUS: Record<string, string> = {
     "tab_menu.close_others": "Close Other Tabs",
     "tab_menu.close_left": "Close Tabs to the Left",
     "tab_menu.close_right": "Close Tabs to the Right",
+    "tab_menu.close_all": "Close All Tabs",
+    "tab_menu.reopen": "Reopen Closed Tab",
     "tab_menu.copy_path": "Copy File Path",
     "tab_menu.reveal_in_explorer": "Reveal in Explorer",
     "tab_menu.diff": "Compare",
     "tab_menu.rename": "Rename",
-
     "diff.window_title": "Compare",
     "diff.left_disk": "Disk",
     "diff.right_editor": "Editor",

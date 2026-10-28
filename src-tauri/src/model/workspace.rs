@@ -36,6 +36,7 @@ pub struct Workspace {
     /// 最近打开的文件路径
     recent_files: Vec<String>,
     pub record_recent_files: bool,
+    pub closed_tab_paths: Vec<String>,
 }
 
 impl Workspace {
@@ -85,10 +86,26 @@ impl Workspace {
             last_used_path: None,
             recent_files: Vec::new(),
             record_recent_files: true,
+            closed_tab_paths: Vec::new(),
         };
         let first = ws.make_blank_tab();
         ws.tabs.push(first);
         ws
+    }
+
+    pub fn add_closed_tab(&mut self, path: String) {
+        self.closed_tab_paths.push(path);
+        if self.closed_tab_paths.len() > 20 {
+            self.closed_tab_paths.remove(0);
+        }
+    }
+
+    pub fn pop_closed_tab(&mut self) -> Option<String> {
+        self.closed_tab_paths.pop()
+    }
+
+    pub fn has_closed_tabs(&self) -> bool {
+        !self.closed_tab_paths.is_empty()
     }
 
     pub fn open_file(

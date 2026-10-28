@@ -29,6 +29,7 @@ export const plPL: Record<string, string> = {
   "tab_menu.close_others": "Zamknij pozostałe karty",
   "tab_menu.close_left": "Zamknij karty po lewej",
   "tab_menu.close_right": "Zamknij karty po prawej",
+  "tab_menu.close_all": "Zamknij wszystko",
   "tab_menu.copy_path": "Kopiuj ścieżkę pliku",
   "tab_menu.reveal_in_explorer": "Pokaż w Eksploratorze",
   "tab_menu.diff": "Porównaj",

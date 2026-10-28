@@ -29,6 +29,7 @@ export const hiIN: Record<string, string> = {
   "tab_menu.close_others": "अन्य टैब बंद करें",
   "tab_menu.close_left": "बाईं ओर के टैब बंद करें",
   "tab_menu.close_right": "दाईं ओर के टैब बंद करें",
+  "tab_menu.close_all": "सभी बंद करें",
   "tab_menu.copy_path": "फ़ाइल पथ कॉपी करें",
   "tab_menu.reveal_in_explorer": "Explorer में दिखाएं",
   "tab_menu.diff": "तुलना करें",

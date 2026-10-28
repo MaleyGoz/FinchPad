@@ -29,6 +29,7 @@ export const ru: Record<string, string> = {
   "tab_menu.close_others": "Закрыть другие вкладки",
   "tab_menu.close_left": "Закрыть вкладки слева",
   "tab_menu.close_right": "Закрыть вкладки справа",
+  "tab_menu.close_all": "Закрыть все",
   "tab_menu.copy_path": "Копировать путь к файлу",
   "tab_menu.reveal_in_explorer": "Показать в проводнике",
   "tab_menu.diff": "Сравнить",

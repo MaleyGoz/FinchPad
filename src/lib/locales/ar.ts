@@ -29,6 +29,7 @@ export const ar: Record<string, string> = {
   "tab_menu.close_others": "إغلاق التبويبات الأخرى",
   "tab_menu.close_left": "إغلاق التبويبات على اليسار",
   "tab_menu.close_right": "إغلاق التبويبات على اليمين",
+  "tab_menu.close_all": "إغلاق الكل",
   "tab_menu.copy_path": "نسخ مسار الملف",
   "tab_menu.reveal_in_explorer": "إظهار في مستكشف الملفات",
   "tab_menu.diff": "مقارنة",

@@ -54,6 +54,8 @@ pub struct WorkspaceSnapshot {
     pub is_pending_load: bool,
     pub tab_dirty_states: Vec<bool>,
     pub tab_unnamed_states: Vec<bool>,
+    // 是否是pending状态
+    pub tab_pending_states: Vec<bool>,
     /// 每个标签的唯一 id（用于前端记录"已问过"状态）
     pub tab_ids: Vec<String>,
     /// 每个标签的完整文件路径（未命名标签为空字符串）
@@ -73,6 +75,7 @@ pub struct WorkspaceSnapshot {
     /// 最近使用的目录（用于打开/另存为对话框的默认目录）
     pub last_used_path: String,
     pub record_recent_files: bool,
+    pub has_closed_tabs: bool,
 }
 
 // 编辑区域
@@ -131,20 +134,22 @@ pub fn close_tab(state: tauri::State<AppState>, index: i32) -> Result<(), String
     }
     let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
 
-    // ★ 关闭前先拿到 tab_id，用于清理对应缓存
+    // ★ 核心修改：推入 Workspace 的栈中
+    if let Some(tab) = ws.tab(index as usize) {
+        if let Some(path) = &tab.file_path {
+            let path_str = path.to_string_lossy().into_owned();
+            ws.add_closed_tab(path_str);
+        }
+    }
+
     let tab_id = ws.tab(index as usize).map(|t| t.id.clone());
-
     ws.close_tab(index as usize);
-
-    // ★ 关闭成功后，立即删除该标签的缓存文件（只删 cache/<id>.data，不碰 session.json）
     if let Some(id) = tab_id {
         crate::io::session::remove_cache(&id);
     }
-
     state.mark_session_dirty();
     Ok(())
 }
-
 // ============ 打开 / 保存 ============
 fn default_save_path_for(ws: &crate::model::Workspace, index: usize) -> String {
     if let Some(tab) = ws.tab(index) {
@@ -251,6 +256,7 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
         is_pending_load: tab.is_pending_load,
         tab_dirty_states: ws.tabs().iter().map(|t| t.is_content_dirty()).collect(),
         tab_unnamed_states: ws.tabs().iter().map(|t| t.file_path.is_none()).collect(),
+        tab_pending_states: ws.tabs().iter().map(|t| t.is_pending_load).collect(),
         tab_ids: ws.tabs().iter().map(|t| t.id.clone()).collect(),
         tab_paths: ws
             .tabs()
@@ -279,6 +285,7 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
             .map(|p| p.to_string_lossy().into_owned())
             .unwrap_or_default(),
         record_recent_files: ws.record_recent_files(),
+        has_closed_tabs: ws.has_closed_tabs(),
     }
 }
 
@@ -1543,4 +1550,36 @@ pub fn remove_recent_file(state: tauri::State<AppState>, path: String) -> Result
 #[tauri::command]
 pub fn check_file_exists(path: String) -> Result<bool, String> {
     Ok(std::path::Path::new(&path).exists())
+}
+
+#[tauri::command]
+pub fn reopen_closed_tab(state: tauri::State<AppState>) -> Result<WorkspaceSnapshot, String> {
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+
+    while let Some(path) = ws.pop_closed_tab() {
+        let file_path = std::path::PathBuf::from(&path);
+        if file_path.exists() {
+            // ★ 核心修复：判断文件大小
+            if let Ok(metadata) = std::fs::metadata(&file_path) {
+                let size = metadata.len();
+                if size >= LARGE_FILE_THRESHOLD {
+                    // 大文件：恢复为 Pending 占位标签
+                    ws.open_file_lazy(file_path, size);
+                    state.mark_session_dirty();
+                    return Ok(snapshot_from_workspace(&ws));
+                }
+            }
+
+            // 小文件：尝试读取
+            if let Ok((content, encoding, line_ending, mtime)) =
+                crate::io::file::read_file(&file_path)
+            {
+                ws.open_file(file_path, &content, encoding, line_ending, mtime);
+                state.mark_session_dirty();
+                return Ok(snapshot_from_workspace(&ws));
+            }
+            // ★ 注意：如果 read_file 失败（比如权限被拒），循环会自动继续去找下一个文件
+        }
+    }
+    Err("NoValidTabsToReopen".to_string())
 }

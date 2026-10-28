@@ -27,11 +27,12 @@ export const zhCN: Record<string, string> = {
     "tab_menu.close_others": "关闭其它标签",
     "tab_menu.close_left": "关闭左侧标签",
     "tab_menu.close_right": "关闭右侧标签",
+    "tab_menu.close_all": "关闭全部标签",
+    "tab_menu.reopen": "恢复关闭的标签",
     "tab_menu.copy_path": "复制文件路径",
     "tab_menu.reveal_in_explorer": "打开所在文件夹",
     "tab_menu.diff": "对比",
     "tab_menu.rename": "重命名",
-
     "diff.window_title": "对比",
     "diff.left_disk": "磁盘版本",
     "diff.right_editor": "编辑器版本",

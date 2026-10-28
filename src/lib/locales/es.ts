@@ -29,6 +29,7 @@ export const es: Record<string, string> = {
   "tab_menu.close_others": "Cerrar otras pestañas",
   "tab_menu.close_left": "Cerrar pestañas a la izquierda",
   "tab_menu.close_right": "Cerrar pestañas a la derecha",
+  "tab_menu.close_all": "Cerrar todo",
   "tab_menu.copy_path": "Copiar ruta del archivo",
   "tab_menu.reveal_in_explorer": "Mostrar en el explorador",
   "tab_menu.diff": "Comparar",

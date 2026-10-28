@@ -26,7 +26,8 @@ LangString CTX_MENU_NAME ${LANG_INDONESIAN} "Edit dengan FinchPad"
 ; =====================================================================
 !macro NSIS_HOOK_POSTINSTALL
   WriteRegStr HKCU "Software\Classes\*\shell\FinchPad" "" "$(CTX_MENU_NAME)"
-  WriteRegStr HKCU "Software\Classes\*\shell\FinchPad" "Icon" "$INSTDIR\FinchPad.exe"
+  ; 加上 ",0" 可以确保 Windows 稳定加载主程序内置的图标
+  WriteRegStr HKCU "Software\Classes\*\shell\FinchPad" "Icon" "$INSTDIR\FinchPad.exe,0"
   WriteRegStr HKCU "Software\Classes\*\shell\FinchPad\command" "" '"$INSTDIR\FinchPad.exe" "%1"'
 !macroend
 

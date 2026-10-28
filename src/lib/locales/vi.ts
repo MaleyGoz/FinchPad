@@ -29,6 +29,7 @@ export const viVN: Record<string, string> = {
   "tab_menu.close_others": "Đóng các thẻ khác",
   "tab_menu.close_left": "Đóng thẻ bên trái",
   "tab_menu.close_right": "Đóng thẻ bên phải",
+  "tab_menu.close_all": "Đóng tất cả",
   "tab_menu.copy_path": "Sao chép đường dẫn tệp",
   "tab_menu.reveal_in_explorer": "Mở trong Explorer",
   "tab_menu.diff": "So sánh",
