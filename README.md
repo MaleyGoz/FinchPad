@@ -34,7 +34,7 @@ FinchPad is not meant to replace heavy IDEs, but to provide the perfect experien
 * 📝 **Everyday Plain Text Editing**: A perfect replacement for the default system notepad. Distraction-free, multi-tab supported, focused purely on text.
 * 💻 **Quick Code & Script Editing**: Supports syntax highlighting and code folding for 80+ languages. When you need to quickly tweak a Python script, JSON, or config file without waiting for a heavy IDE to load, FinchPad opens instantly. (For deep development, VS Code is still recommended).
 * 📖 **Markdown / HTML Live Preview**: Built-in split-screen live preview. Draft a quick webpage or preview a document effortlessly without opening a browser.
-* 📜 **Large Log File Viewer (WIP)**: For massive logs ranging from tens of MBs to GBs, skip the loading screen. Our upcoming standalone ultra-fast viewer will provide instant opening and rapid global search.
+* 📜 **Large Log File Viewer**: For massive logs ranging from tens of MBs to GBs, skip the loading screen. Our upcoming standalone ultra-fast viewer will provide instant opening and rapid global search.
 
 #### Core Features
 
@@ -99,7 +99,11 @@ FinchPad abandons the bloat of modern software to deliver an ultimate underlying
   <span style="color: gray; font-size: 14px;">More modern UI, smaller footprint, and lower memory usage.</span><br><br>
   <img src="assets/8-FinchPad VS Notepad++.png" width="90%" alt="FinchPad vs Notepad++">
 </p>
-
+<p align="center">
+  <b>9. Instant Large File Opening: Open Hundreds of GB of Log Files in Seconds</b><br>
+  <span style="color: gray; font-size: 14px;">Fast search, jump to specific lines, and change encoding. Editing not supported yet.</span><br><br>
+  <img src="assets/9-En-大文件极速查看.png" width="90%" alt="大文件秒开">
+</p>
 
 ## Shortcuts
 
@@ -108,6 +112,7 @@ FinchPad abandons the bloat of modern software to deliver an ultimate underlying
 | New / Open / Save | `Ctrl` + `N` or `T` / `O` / `S` | `Cmd` + `N` or `T` / `O` / `S` |
 | Save As | `Ctrl` + `Shift` + `S` | `Cmd` + `Shift` + `S` |
 | Close Current Tab | `Ctrl` + `W` | `Cmd` + `W` |
+| Reopen Closed Tab | `Ctrl` + `Shift` + `T` | `Cmd` + `Shift` + `T` |
 | Switch Tab / Sidebar | `Ctrl` + `Tab` / `Ctrl` + `B` / `Ctrl` + `1~9` | `Ctrl` + `Tab` / `Cmd` + `B` / `Cmd` + `1~9` |
 | Find / Replace | `Ctrl` + `F` / `H` | `Cmd` + `F` / `H` |
 | Zoom | `Ctrl` + `+` / `-` / `0` | `Cmd` + `+` / `-` / `0` |
