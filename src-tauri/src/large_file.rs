@@ -83,12 +83,18 @@ pub async fn open_large_file_window(
             Some(tauri::Theme::Light)
         })
         .background_color(parse_hex_color(&theme_background_color))
-        .visible(false)
-        .decorations(false); // ★ 核心：去掉系统原生边框（Win/Linux/Mac 都会执行）
+        .visible(false);
 
-    // 6.2 只有 Mac 编译时，才会执行这个大括号里的专属配置
+    // ★ Windows/Linux：彻底无边框
+    #[cfg(not(target_os = "macos"))]
+    {
+        builder = builder.decorations(false);
+    }
+
+    // 6.2 ★ macOS：恢复原生装饰（必须为 true，红绿灯才会出来），并悬浮在内容上
     #[cfg(target_os = "macos")]
     {
+        builder = builder.decorations(true);
         builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
         builder = builder.hidden_title(true);
     }

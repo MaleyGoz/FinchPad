@@ -1394,12 +1394,18 @@ pub async fn open_diff_window(
             Some(tauri::Theme::Dark)
         } else {
             Some(tauri::Theme::Light)
-        })
-        .decorations(false);
+        });
 
-    // 3.2 只有 Mac 编译时，才会执行这个大括号里的代码
+    // ★ Windows/Linux：彻底无边框
+    #[cfg(not(target_os = "macos"))]
+    {
+        builder = builder.decorations(false);
+    }
+
+    // 3.2 ★ macOS：恢复原生装饰（必须为 true，红绿灯才会出来），并悬浮在内容上
     #[cfg(target_os = "macos")]
     {
+        builder = builder.decorations(true);
         builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
         builder = builder.hidden_title(true);
     }
