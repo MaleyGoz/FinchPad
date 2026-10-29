@@ -1,4 +1,6 @@
 // 主题文件：统一颜色规范，优化辅助文字可读性与交互反馈
+// 支持平台：Windows、Linux、macOS
+// 白色、灰色主题的标签栏统一采用原 macOS 配色，不再区分操作系统。
 
 import { writable } from "svelte/store";
 
@@ -59,9 +61,9 @@ export const THEMES: Record<string, Theme> = {
         gutter_foreground: "#8A8A8A",
         gutter_foreground_active: "#666666",
 
-        // 标签栏
-        tab_bar_background: "#c9dfec",
-        tab_bar_background_inactive: "#e8e8e8",
+        // 标签栏：统一采用原 macOS 配色
+        tab_bar_background: "#E5E5EA",
+        tab_bar_background_inactive: "#F2F2F2",
         tab_background_active: "#FFFFFF",
 
         tab_foreground: "#333333",
@@ -106,14 +108,14 @@ export const THEMES: Record<string, Theme> = {
         gutter_foreground: "#777777",
         gutter_foreground_active: "#444444",
 
-        // 标签栏
-        tab_bar_background: "#c9dfec",
-        tab_bar_background_inactive: "#e8e8e8",
-        tab_background_active: "#ffffff",
+        // 标签栏：统一采用原 macOS 配色
+        tab_bar_background: "#B8B8B8",
+        tab_bar_background_inactive: "#C8C8C8",
+        tab_background_active: "#D9D9D9",
 
         tab_foreground: "#333333",
         tab_foreground_active: "#000000",
-        tab_border: "#C0C5CC",
+        tab_border: "#A0A0A0",
 
         // 状态栏
         status_bar_background: "#e4e4e4",
@@ -305,42 +307,3 @@ export function isDarkTheme(name: string): boolean {
 
 /** 当前主题名（响应式 store） */
 export const currentTheme = writable<string>("white");
-
-// ==========================================
-// 平台专属主题色覆盖
-// ==========================================
-
-// 统一的平台检测
-const userAgent =
-    typeof navigator !== "undefined" ? navigator.userAgent : "";
-
-const isMac = /Mac|iPhone|iPad/.test(userAgent);
-const isLinux = /Linux/.test(userAgent) && !/Android/.test(userAgent);
-
-if (isMac) {
-    // macOS：原生高级灰
-
-    // 白色主题
-    THEMES.white.tab_bar_background = "#E5E5EA";
-    THEMES.white.tab_bar_background_inactive = "#F2F2F2";
-    THEMES.white.tab_background_active = "#FFFFFF";
-
-    // 灰色主题
-    THEMES.gray.tab_bar_background = "#B8B8B8";
-    THEMES.gray.tab_bar_background_inactive = "#C8C8C8";
-    THEMES.gray.tab_background_active = "#D9D9D9";
-} else if (isLinux) {
-    // Linux：Ubuntu Yaru 风格
-
-    // 白色主题
-    THEMES.white.tab_bar_background = "#EBE6E6";
-    THEMES.white.tab_bar_background_inactive = "#F2F1F0";
-    THEMES.white.tab_background_active = "#FFFFFF";
-
-    // 灰色主题
-    THEMES.gray.tab_bar_background = "#B0B0B0";
-    THEMES.gray.tab_bar_background_inactive = "#C0C0C0";
-    THEMES.gray.tab_background_active = "#D9D9D9";
-} else {
-    // Windows：保留原有浅蓝色标签栏配色
-}

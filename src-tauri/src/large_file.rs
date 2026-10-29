@@ -82,8 +82,15 @@ pub async fn open_large_file_window(
         })
         .background_color(parse_hex_color(&theme_background_color))
         .visible(false)
+        .decorations(false) // ★ 核心新增：去掉系统原生边框
         .build()
         .map_err(|e| e.to_string())?;
+
+    // ★ 核心新增：如果是 macOS，恢复原生红绿灯
+    #[cfg(target_os = "macos")]
+    {
+        let _ = window.set_decorations(true);
+    }
 
     // ==========================================
     // 7. 窗口销毁时的清理逻辑

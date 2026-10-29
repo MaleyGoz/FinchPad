@@ -1,16 +1,48 @@
 <script lang="ts">
     import { onMount, onDestroy, tick } from "svelte";
     import { api } from "$lib/api";
+    import { tooltip } from "$lib/tooltip";
     import type { SearchResult } from "$lib/api";
     import * as monaco from "monaco-editor";
     // import editorWorker from "monaco-editor/editor/editor.worker?worker";
-    import { THEMES } from "$lib/themes";
+    import { THEMES, currentTheme as themeStore } from "$lib/themes";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import Toggle from "$lib/Toggle.svelte"; // ★ 新增
     import { t, resolvedLocale } from "$lib/i18n"; // 确保有这两项
     import { listen } from "@tauri-apps/api/event";
     import { setLocaleChoice, type LocaleChoice } from "$lib/i18n"; // 确保有这些
     const appWindow = getCurrentWindow();
+    // ==========================================
+    // 无边框设计
+    // ==========================================
+    const isMac =
+        typeof navigator !== "undefined" &&
+        /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    let isMaximized = false;
+    // ★ 新增：拖拽逻辑
+    function handleDragStart(e: MouseEvent) {
+        if (e.button !== 0) return;
+        const target = e.target as HTMLElement;
+        // 过滤掉可交互元素，防止拖拽误触
+        if (target.closest("button, input, select, .tool-item, .toggle"))
+            return;
+        appWindow.startDragging().catch(console.error);
+    }
+    // ★ 新增：窗口按钮逻辑
+    async function handleMinimize() {
+        await appWindow.minimize();
+    }
+    async function handleToggleMaximize() {
+        await appWindow.toggleMaximize();
+        isMaximized = await appWindow.isMaximized();
+    }
+    async function handleClose() {
+        await appWindow.close();
+    }
+    // ★ 新增：获取纯文件名（用于左侧显示）
+    $: fileName = filePath
+        ? filePath.split(/[\\/]/).pop() || filePath
+        : "大文件";
 
     // self.MonacoEnvironment = {
     //     getWorker: () => new editorWorker(),
@@ -188,6 +220,12 @@
     let unlistenTheme: (() => void) | null = null;
 
     onMount(async () => {
+        // ★ 新增：监听窗口最大化状态
+        appWindow.isMaximized().then((v) => (isMaximized = v));
+        const unlistenResize = appWindow.onResized(async () => {
+            isMaximized = await appWindow.isMaximized();
+        });
+
         // ==========================================
         // 1. 启动事件监听（用于主界面实时切换同步）
         // ==========================================
@@ -207,6 +245,7 @@
                 document.body.style.backgroundColor =
                     THEMES[currentTheme]?.editor_background || "#ffffff";
                 themeForceUpdate += 1;
+                themeStore.set(currentTheme); // ★ 核心新增：通知全局更新 CSS 变量
             });
         } catch (e) {
             console.error("监听事件注册失败:", e);
@@ -222,6 +261,8 @@
 
             // 应用 URL 里的主题和语言（解决初始语言和主题不对的问题）
             currentTheme = params.get("theme") || "white";
+            themeStore.set(currentTheme); // ★ 核心新增：第一帧就同步给全局，让 Tooltip 一开始颜色就对
+
             if (urlLocale) {
                 setLocaleChoice(urlLocale as LocaleChoice);
             }
@@ -665,109 +706,206 @@
         </div>
     {/if}
 
-    <!-- 顶部工具栏 -->
-    <div class="tools-area">
-        <!-- 1. 自动换行 (加入 nowrap 防止折行) -->
-        <div class="tool-item">
-            <span class="tool-label">
-                {t("settings.word_wrap", undefined, $resolvedLocale)}
-            </span>
-            <Toggle checked={wordWrap} onChange={handleToggleWordWrap} />
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- 2. 跳转区 -->
-        <div class="tool-group">
-            <input
-                type="text"
-                bind:this={jumpInputEl}
-                placeholder="#"
-                bind:value={jumpLineInput}
-                onkeydown={(e) => e.key === "Enter" && handleJumpInput()}
-                oninput={() => (isJumpError = false)}
-                class="tool-input jump-input"
-                class:input-error={isJumpError}
-            />
-            <!-- 总行数显示，与前面输入框连在一起 -->
-            {#if totalLines > 0}
-                <span
-                    style="font-size: 12px; color: var(--tab-foreground); opacity: 1; font-weight: 500; white-space: nowrap; margin-left: 1px;"
-                >
-                    / {totalLines}
-                </span>
+    <!-- ★ 全新改造的顶部工具栏 (无边框拖拽 + 方案B布局) -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="tools-area"
+        onmousedown={handleDragStart}
+        data-tauri-drag-region
+    >
+        <!-- 1. 左侧区域：Mac红绿灯占位 + 文件名 -->
+        <div class="tools-left" data-tauri-drag-region>
+            {#if isMac}
+                <div class="mac-traffic-spacer"></div>
             {/if}
+            <span class="file-name-text" use:tooltip={filePath}>
+                {fileName}
+            </span>
         </div>
 
-        <div class="divider"></div>
+        <!-- 2. 中间区域：原有的各种工具组 -->
+        <!-- 注意：必须加上 data-tauri-drag-region="false"，防止点输入框时把窗口拖飞 -->
+        <div class="tools-center" data-tauri-drag-region="false">
+            <!-- 1. 自动换行 -->
+            <div class="tool-item">
+                <span class="tool-label">
+                    {t("settings.word_wrap", undefined, $resolvedLocale)}
+                </span>
+                <Toggle checked={wordWrap} onChange={handleToggleWordWrap} />
+            </div>
 
-        <!-- 3. 编码 -->
-        <select
-            class="tool-select"
-            value={currentEncoding}
-            onchange={handleEncodingChange}
-        >
-            {#each ENCODINGS as enc}
-                <option value={enc}>
-                    {enc === "AutoDetect"
-                        ? t(
-                              "large_file.auto_detect",
-                              undefined,
-                              $resolvedLocale,
-                          )
-                        : enc}
-                </option>
-            {/each}
-        </select>
+            <div class="divider"></div>
 
-        <div class="divider"></div>
-
-        <!-- 4. 搜索区 (纯图标按钮) -->
-        <div class="tool-group">
-            <!-- ★ 新增：包裹层，用于定位 X 按钮 -->
-            <div class="search-input-wrapper">
+            <!-- 2. 跳转区 -->
+            <div class="tool-group">
                 <input
                     type="text"
-                    bind:this={searchInputEl}
-                    bind:value={searchKeyword}
-                    onkeydown={(e) => e.key === "Enter" && handleSearch()}
-                    class="tool-input search-input"
-                    placeholder={t(
-                        "large_file.search_placeholder",
-                        undefined,
-                        $resolvedLocale,
-                    )}
+                    bind:this={jumpInputEl}
+                    placeholder="#"
+                    bind:value={jumpLineInput}
+                    onkeydown={(e) => e.key === "Enter" && handleJumpInput()}
+                    oninput={() => (isJumpError = false)}
+                    class="tool-input jump-input"
+                    class:input-error={isJumpError}
                 />
-                <!-- ★ 新增：只有有文字时才显示 X -->
-                {#if searchKeyword.length > 0}
-                    <button
-                        class="clear-icon"
-                        onclick={clearSearch}
-                        aria-label="清空搜索"
-                    >
-                        ✕
-                    </button>
+                {#if totalLines > 0}
+                    <span class="total-lines">
+                        / {totalLines}
+                    </span>
                 {/if}
             </div>
 
-            <button class="icon-btn" onclick={handleSearch} aria-label="Search">
-                {#if isSearching}
-                    <span style="font-size: 11px;">...</span>
-                {:else}
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                {/if}
-            </button>
+            <div class="divider"></div>
+
+            <!-- 3. 编码 -->
+            <select
+                class="tool-select"
+                value={currentEncoding}
+                onchange={handleEncodingChange}
+            >
+                {#each ENCODINGS as enc}
+                    <option value={enc}>
+                        {enc === "AutoDetect"
+                            ? t(
+                                  "large_file.auto_detect",
+                                  undefined,
+                                  $resolvedLocale,
+                              )
+                            : enc}
+                    </option>
+                {/each}
+            </select>
+
+            <div class="divider"></div>
+
+            <!-- 4. 搜索区 -->
+            <div class="tool-group">
+                <div class="search-input-wrapper">
+                    <input
+                        type="text"
+                        bind:this={searchInputEl}
+                        bind:value={searchKeyword}
+                        onkeydown={(e) => e.key === "Enter" && handleSearch()}
+                        class="tool-input search-input"
+                        placeholder={t(
+                            "large_file.search_placeholder",
+                            undefined,
+                            $resolvedLocale,
+                        )}
+                    />
+                    {#if searchKeyword.length > 0}
+                        <button
+                            class="clear-icon"
+                            onclick={clearSearch}
+                            aria-label="清空搜索">✕</button
+                        >
+                    {/if}
+                </div>
+
+                <button
+                    class="icon-btn"
+                    onclick={handleSearch}
+                    aria-label="Search"
+                >
+                    {#if isSearching}
+                        <span style="font-size: 11px;">...</span>
+                    {:else}
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    {/if}
+                </button>
+            </div>
         </div>
+
+        <!-- 3. 右侧区域：窗口控制按钮 (仅非Mac) -->
+        {#if !isMac}
+            <div class="tools-right" data-tauri-drag-region="false">
+                <button
+                    class="window-btn"
+                    onclick={handleMinimize}
+                    aria-label="最小化"
+                >
+                    <svg width="10" height="10" viewBox="0 0 10 10"
+                        ><line
+                            x1="0"
+                            y1="5"
+                            x2="10"
+                            y2="5"
+                            stroke="currentColor"
+                            stroke-width="1"
+                        /></svg
+                    >
+                </button>
+                <button
+                    class="window-btn"
+                    onclick={handleToggleMaximize}
+                    aria-label={isMaximized ? "还原" : "最大化"}
+                >
+                    {#if isMaximized}
+                        <svg width="10" height="10" viewBox="0 0 10 10"
+                            ><rect
+                                x="0"
+                                y="2"
+                                width="8"
+                                height="8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1"
+                            /><polyline
+                                points="2,2 2,0 10,0 10,8 8,8"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1"
+                            /></svg
+                        >
+                    {:else}
+                        <svg width="10" height="10" viewBox="0 0 10 10"
+                            ><rect
+                                x="0.5"
+                                y="0.5"
+                                width="9"
+                                height="9"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1"
+                            /></svg
+                        >
+                    {/if}
+                </button>
+                <button
+                    class="window-btn window-btn-close"
+                    onclick={handleClose}
+                    aria-label="关闭"
+                >
+                    <svg width="10" height="10" viewBox="0 0 10 10"
+                        ><line
+                            x1="0"
+                            y1="0"
+                            x2="10"
+                            y2="10"
+                            stroke="currentColor"
+                            stroke-width="1"
+                        /><line
+                            x1="10"
+                            y1="0"
+                            x2="0"
+                            y2="10"
+                            stroke="currentColor"
+                            stroke-width="1"
+                        /></svg
+                    >
+                </button>
+            </div>
+        {/if}
     </div>
 
     <!-- 搜索结果下拉框 -->
@@ -837,7 +975,7 @@
     }
 
     /* ==========================================
-       2. 顶部工具栏 (整体与分组)
+       2. 顶部工具栏 (方案B布局)
        ========================================== */
     .tools-area {
         height: 38px;
@@ -845,11 +983,79 @@
         border-bottom: 1px solid var(--overlay-divider);
         display: flex;
         align-items: center;
-        justify-content: center; /* 整体居中 */
-        padding: 0 16px;
+        justify-content: space-between; /* ★ 改为两端对齐 */
+        padding: 0;
         user-select: none;
         flex-shrink: 0;
-        gap: 10px; /* 组与组的间距 */
+    }
+
+    /* 左侧文件名区 */
+    .tools-left {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0; /* 允许文字截断 */
+        padding: 0 12px;
+        height: 100%;
+    }
+    .mac-traffic-spacer {
+        width: 70px;
+        flex-shrink: 0;
+    }
+    .file-name-text {
+        font-size: 12px;
+        color: var(--tab-foreground);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    /* 中间工具区 */
+    .tools-center {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    /* 右侧控制按钮区 */
+    .tools-right {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        justify-content: flex-end; /* 靠右对齐 */
+        height: 100%;
+    }
+
+    /* 按钮基础样式 */
+    .window-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--tab-foreground);
+        width: 46px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.1s;
+    }
+    .window-btn:hover {
+        background: color-mix(in srgb, var(--tab-foreground) 15%, transparent);
+    }
+    .window-btn-close:hover {
+        background: #e81123;
+        color: white;
+    }
+
+    .total-lines {
+        font-size: 12px;
+        color: var(--tab-foreground);
+        opacity: 1;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: 1px;
     }
 
     .tool-item {
