@@ -737,87 +737,171 @@
     .modal-overlay {
         position: fixed;
         inset: 0;
+        /* ★ 保持你喜欢的遮罩颜色不变 */
         background: rgba(0, 0, 0, 0.35);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        animation: fadeIn 0.15s ease-out;
     }
+
     .modal {
         background: var(--overlay-background);
         color: var(--overlay-foreground);
-        border-radius: 8px;
-        padding: 16px 20px;
-        min-width: 300px;
-        max-width: 400px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        font-family: sans-serif;
+        /* ★ 优化 1：加大圆角和内边距，让空间更宽裕、更现代化 */
+        border-radius: 12px;
+        padding: 24px 28px;
+        min-width: 320px;
+        max-width: 480px;
+        /* ★ 优化 2：更柔和、更高阶的阴影（与主题搭配的深色系） */
+        box-shadow:
+            0 12px 32px rgba(0, 0, 0, 0.18),
+            0 2px 8px rgba(0, 0, 0, 0.08);
+        /* ★ 优化 3：应用系统原生无衬线字体栈，更接近桌面软件质感 */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            Helvetica, Arial, sans-serif;
+        animation: scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid var(--overlay-border);
     }
+
     .modal-title {
-        font-size: 13px;
+        /* ★ 优化 4：标题（实际上是核心询问文字）加大字号和行高，更加清晰 */
+        font-size: 15px;
+        font-weight: 500;
         color: var(--overlay-foreground);
-        margin-bottom: 12px;
+        margin-bottom: 24px; /* 加大与按钮的间距 */
         word-wrap: break-word;
-        line-height: 1.5;
+        line-height: 1.6;
         white-space: pre-line;
     }
+
     .modal-row {
         display: flex;
-        gap: 8px;
-        margin-top: 8px;
+        /* ★ 优化 5：加大按钮间距，防止误触 */
+        gap: 12px;
+        margin-top: 10px;
         width: 100%;
+        align-items: center;
+        justify-content: center; /* 居中排布 */
     }
-    .modal-btn {
+
+    /* ===================================================
+       ★ 针对大按钮（第一排：覆盖磁盘、重新加载等）的现代设计
+       =================================================== */
+    .modal-btn.large {
         flex: 1;
-        padding: 6px 8px;
-        font-size: 12px;
+        /* 饱满的内边距和字号 */
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
         background: var(--overlay-hover-background);
         border: 1px solid var(--overlay-border);
         color: var(--overlay-foreground);
-        border-radius: 5px;
+        border-radius: 8px;
         cursor: pointer;
-        white-space: nowrap;
         font-family: inherit;
-        transition:
-            filter 0.1s,
-            background-color 0.1s;
+        transition: all 0.15s ease;
+        user-select: none;
     }
+
+    /* 大按钮的主按钮色（如：覆盖磁盘） */
+    .modal-btn.large.primary {
+        background: var(--accent);
+        color: #ffffff;
+        border-color: transparent;
+        /* 增加一点点主色的光晕，让主按钮浮起来 */
+        box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    /* 大按钮的悬停反馈：绝不改变文字颜色，只改变背景 */
+    .modal-btn.large:hover {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 8%,
+            var(--overlay-background)
+        );
+    }
+    .modal-btn.large.primary:hover {
+        background: color-mix(in srgb, var(--accent) 90%, black);
+    }
+    .modal-btn.large:active {
+        transform: scale(0.98);
+    }
+
+    /* ===================================================
+       ★ 针对小按钮（第二排：对比差异、另存为、取消）的文字链接设计
+       =================================================== */
+    .modal-btn.small {
+        flex: none; /* 不强制平分空间，根据文字长度自适应 */
+        padding: 6px 12px;
+        font-size: 13px;
+        /* 纯净无背景无边框 */
+        background: transparent;
+        border: none;
+        /* 文字用次要颜色弱化，不抢主按钮风头 */
+        color: var(--status-bar-foreground-muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    /* 悬停时变成主题强调色（如青色/蓝色），提示可点击 */
+    .modal-btn.small:hover {
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .modal-btn.small:active {
+        transform: scale(0.96);
+    }
+
+    /* 针对只有 1 个按钮或 2 个按钮的普通弹窗（如“未保存是否关闭”） */
+    /* 此时未传入 size="large"，走默认样式 */
+    .modal-btn:not(.large):not(.small) {
+        flex: 1;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        background: var(--overlay-hover-background);
+        border: 1px solid var(--overlay-border);
+        color: var(--overlay-foreground);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .modal-btn:not(.large):not(.small):hover {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 8%,
+            var(--overlay-background)
+        );
+    }
+    .modal-btn:not(.large):not(.small).primary {
+        background: var(--accent);
+        color: #ffffff;
+        border-color: transparent;
+    }
+    .modal-btn:not(.large):not(.small).primary:hover {
+        background: color-mix(in srgb, var(--accent) 90%, black);
+    }
+
+    /* 保证只有单个按钮时，按钮不会被拉得太长，始终居中 */
     .modal-row > .modal-btn:only-child {
         flex: none;
-        min-width: 100px;
+        min-width: 120px;
         padding-left: 24px;
         padding-right: 24px;
         margin: 0 auto;
     }
-    /* ★ 针对只有两个按钮的弹窗（如检查更新），限制宽度并居中 */
+
     .modal-row.narrow-btns {
         justify-content: center;
     }
     .modal-row.narrow-btns .modal-btn {
-        flex: none; /* 不再强制平分 */
-        min-width: 100px; /* 保证最小宽度 */
-        padding: 6px 24px; /* 左右留足内边距，看起来更精致 */
-    }
-    .modal-btn:hover {
-        filter: brightness(0.95);
-    }
-    .modal-btn.primary {
-        background: var(--accent);
-        color: white;
-        border-color: var(--accent);
-    }
-    .modal-btn.primary:hover {
-        filter: brightness(0.95);
-    }
-    .modal-btn.large {
-        padding: 9px 8px;
-        font-size: 13px;
-        font-weight: 500;
-    }
-    .modal-btn.small {
-        padding: 5px 8px;
-        font-size: 12px;
-        font-weight: 400;
+        flex: none;
+        min-width: 120px;
     }
 
     /* 关于弹窗样式 */
