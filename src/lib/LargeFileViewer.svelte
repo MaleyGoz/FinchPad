@@ -839,8 +839,8 @@
         </div>
 
         <!-- 3. 右侧区域：窗口控制按钮 (仅非Mac) -->
-        {#if !isMac}
-            <div class="tools-right" data-tauri-drag-region="false">
+        <div class="tools-right" data-tauri-drag-region="false">
+            {#if !isMac}
                 <button
                     class="window-btn"
                     onclick={handleMinimize}
@@ -916,8 +916,8 @@
                         /></svg
                     >
                 </button>
-            </div>
-        {/if}
+            {/if}
+        </div>
     </div>
 
     <!-- 搜索结果下拉框 -->
@@ -1035,7 +1035,8 @@
     .tools-right {
         display: flex;
         align-items: center;
-        flex: 1;
+        flex: 1; /* ★ 右边也占一份空间（在Mac下即使没按钮也占空间） */
+        min-width: 0;
         justify-content: flex-end; /* 靠右对齐 */
         height: 100%;
     }
