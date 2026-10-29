@@ -143,4 +143,23 @@ export const idID: Record<string, string> = {
   "large_file.file_not_found": "File telah dihapus atau dipindahkan secara eksternal dan tidak dapat dibuka.",
   "sidebar.delete_record": "Hapus Catatan",
   "sidebar.clear_history": "Hapus Riwayat",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Cari",
+    "editor.find.replace_placeholder": "Ganti",
+    "editor.find.show_replace": "Tampilkan Ganti",
+    "editor.find.hide_replace": "Sembunyikan Ganti",
+    "editor.find.close": "Tutup (Esc)",
+    "editor.find.find_in_selection": "Cari dalam Pilihan",
+    "editor.find.match_case": "Cocokkan Huruf Besar/Kecil",
+    "editor.find.match_whole_word": "Cocokkan Seluruh Kata",
+    "editor.find.use_regex": "Gunakan Ekspresi Reguler",
+    "editor.find.preserve_case": "Pertahankan Huruf Besar/Kecil",
+    "editor.find.replace": "Ganti",
+    "editor.find.replace_all": "Ganti Semua",
+    "editor.find.prev_match": "Kecocokan Sebelumnya",
+    "editor.find.next_match": "Kecocokan Berikutnya",
+    "editor.find.no_results": "Tidak ada hasil",
+    "editor.find.match_count": "{current} dari {total}",
+
 };

@@ -140,4 +140,23 @@ export const zhTW: Record<string, string> = {
   "large_file.file_not_found": "檔案已被外部刪除或移動，無法開啟。",
   "sidebar.delete_record": "刪除記錄",
   "sidebar.clear_history": "清空歷史",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "尋找",
+    "editor.find.replace_placeholder": "取代",
+    "editor.find.show_replace": "展開取代",
+    "editor.find.hide_replace": "收起取代",
+    "editor.find.close": "關閉 (Esc)",
+    "editor.find.find_in_selection": "在選取範圍中尋找",
+    "editor.find.match_case": "區分大小寫",
+    "editor.find.match_whole_word": "全字拼寫須相符",
+    "editor.find.use_regex": "使用規則運算式",
+    "editor.find.preserve_case": "保留大小寫",
+    "editor.find.replace": "取代",
+    "editor.find.replace_all": "全部取代",
+    "editor.find.prev_match": "上一個相符項",
+    "editor.find.next_match": "下一個相符項",
+    "editor.find.no_results": "無結果",
+    "editor.find.match_count": "第 {current} 項，共 {total} 項",
+
 };

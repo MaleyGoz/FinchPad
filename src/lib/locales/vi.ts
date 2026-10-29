@@ -142,4 +142,23 @@ export const viVN: Record<string, string> = {
   "large_file.file_not_found": "Tệp đã bị xóa hoặc di chuyển bên ngoài và không thể mở.",
   "sidebar.delete_record": "Xóa bản ghi",
   "sidebar.clear_history": "Xóa lịch sử",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Tìm kiếm",
+    "editor.find.replace_placeholder": "Thay thế",
+    "editor.find.show_replace": "Hiện Thay thế",
+    "editor.find.hide_replace": "Ẩn Thay thế",
+    "editor.find.close": "Đóng (Esc)",
+    "editor.find.find_in_selection": "Tìm trong vùng chọn",
+    "editor.find.match_case": "Phân biệt chữ hoa/thường",
+    "editor.find.match_whole_word": "Khớp toàn bộ từ",
+    "editor.find.use_regex": "Dùng biểu thức chính quy",
+    "editor.find.preserve_case": "Giữ nguyên chữ hoa/thường",
+    "editor.find.replace": "Thay thế",
+    "editor.find.replace_all": "Thay thế tất cả",
+    "editor.find.prev_match": "Kết quả trước",
+    "editor.find.next_match": "Kết quả tiếp theo",
+    "editor.find.no_results": "Không có kết quả",
+    "editor.find.match_count": "{current} trên {total}",
+
 };

@@ -3,7 +3,7 @@
     import { api } from "$lib/api";
     import type { SearchResult } from "$lib/api";
     import * as monaco from "monaco-editor";
-    import editorWorker from "monaco-editor/editor/editor.worker?worker";
+    // import editorWorker from "monaco-editor/editor/editor.worker?worker";
     import { THEMES } from "$lib/themes";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import Toggle from "$lib/Toggle.svelte"; // ★ 新增
@@ -12,9 +12,9 @@
     import { setLocaleChoice, type LocaleChoice } from "$lib/i18n"; // 确保有这些
     const appWindow = getCurrentWindow();
 
-    self.MonacoEnvironment = {
-        getWorker: () => new editorWorker(),
-    };
+    // self.MonacoEnvironment = {
+    //     getWorker: () => new editorWorker(),
+    // };
 
     let isLimitReached = false; // ★ 搜索是否达到上限
     let themeForceUpdate = 0; // ★ 用于强制触发 Svelte 重绘

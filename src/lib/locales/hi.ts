@@ -143,4 +143,23 @@ export const hiIN: Record<string, string> = {
   "large_file.file_not_found": "फ़ाइल बाहरी रूप से हटा दी गई है या स्थानांतरित कर दी गई है और खोली नहीं जा सकती।",
   "sidebar.delete_record": "रिकॉर्ड हटाएं",
   "sidebar.clear_history": "इतिहास साफ़ करें",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "खोजें",
+    "editor.find.replace_placeholder": "बदलें",
+    "editor.find.show_replace": "बदलें दिखाएं",
+    "editor.find.hide_replace": "बदलें छिपाएं",
+    "editor.find.close": "बंद करें (Esc)",
+    "editor.find.find_in_selection": "चयन में खोजें",
+    "editor.find.match_case": "मिलान कास",
+    "editor.find.match_whole_word": "पूरा शब्द मिलाएं",
+    "editor.find.use_regex": "रेगुलर एक्सप्रेशन का उपयोग करें",
+    "editor.find.preserve_case": "केस सुरक्षित रखें",
+    "editor.find.replace": "बदलें",
+    "editor.find.replace_all": "सभी बदलें",
+    "editor.find.prev_match": "पिछला मिलान",
+    "editor.find.next_match": "अगला मिलान",
+    "editor.find.no_results": "कोई परिणाम नहीं",
+    "editor.find.match_count": "{current} में से {total}",
+
 };

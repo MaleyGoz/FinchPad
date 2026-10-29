@@ -142,4 +142,22 @@ export const enUS: Record<string, string> = {
     "large_file.load_failed": "Read failed. The file may have been modified or deleted externally.",
     "large_file.search_placeholder": "Search...",
     "large_file.auto_detect": "🔄 Auto Detect",
+
+    // ===== Find Replace =====
+    "editor.find.placeholder": "Find",
+    "editor.find.replace_placeholder": "Replace",
+    "editor.find.show_replace": "Show Replace",
+    "editor.find.hide_replace": "Hide Replace",
+    "editor.find.close": "Close (Esc)",
+    "editor.find.find_in_selection": "Find in Selection",
+    "editor.find.match_case": "Match Case",
+    "editor.find.match_whole_word": "Match Whole Word",
+    "editor.find.use_regex": "Use Regular Expression",
+    "editor.find.preserve_case": "Preserve Case",
+    "editor.find.replace": "Replace",
+    "editor.find.replace_all": "Replace All",
+    "editor.find.prev_match": "Previous Match",
+    "editor.find.next_match": "Next Match",
+    "editor.find.no_results": "No results",
+    "editor.find.match_count": "{current} of {total}",
 };

@@ -143,4 +143,23 @@ export const trTR: Record<string, string> = {
   "large_file.file_not_found": "Dosya harici olarak silinmiş veya taşınmış, açılamıyor.",
   "sidebar.delete_record": "Kaydı Sil",
   "sidebar.clear_history": "Geçmişi Temizle",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Bul",
+    "editor.find.replace_placeholder": "Değiştir",
+    "editor.find.show_replace": "Değiştirmeyi Göster",
+    "editor.find.hide_replace": "Değiştirmeyi Gizle",
+    "editor.find.close": "Kapat (Esc)",
+    "editor.find.find_in_selection": "Seçimde Bul",
+    "editor.find.match_case": "Büyük/Küçük Harf Eşleştir",
+    "editor.find.match_whole_word": "Tam Kelime Eşleştir",
+    "editor.find.use_regex": "Normal İfade Kullan",
+    "editor.find.preserve_case": "Büyük/Küçük Harf Koru",
+    "editor.find.replace": "Değiştir",
+    "editor.find.replace_all": "Tümünü Değiştir",
+    "editor.find.prev_match": "Önceki Eşleşme",
+    "editor.find.next_match": "Sonraki Eşleşme",
+    "editor.find.no_results": "Sonuç yok",
+    "editor.find.match_count": "{current} / {total}",
+
 };

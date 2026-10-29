@@ -141,4 +141,23 @@ export const ko: Record<string, string> = {
   "large_file.file_not_found": "파일이 외부에서 삭제되거나 이동되어 열 수 없습니다.",
   "sidebar.delete_record": "기록 삭제",
   "sidebar.clear_history": "기록 지우기",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "찾기",
+    "editor.find.replace_placeholder": "바꾸기",
+    "editor.find.show_replace": "바꾸기 표시",
+    "editor.find.hide_replace": "바꾸기 숨기기",
+    "editor.find.close": "닫기 (Esc)",
+    "editor.find.find_in_selection": "선택 영역에서 찾기",
+    "editor.find.match_case": "대/소문자 구분",
+    "editor.find.match_whole_word": "단어 단위로",
+    "editor.find.use_regex": "정규식 사용",
+    "editor.find.preserve_case": "대/소문자 유지",
+    "editor.find.replace": "바꾸기",
+    "editor.find.replace_all": "모두 바꾸기",
+    "editor.find.prev_match": "이전 일치 항목",
+    "editor.find.next_match": "다음 일치 항목",
+    "editor.find.no_results": "결과 없음",
+    "editor.find.match_count": "{current} / {total}",
+
 };

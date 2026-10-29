@@ -143,4 +143,23 @@ export const ja: Record<string, string> = {
   "large_file.file_not_found": "ファイルが外部で削除または移動されたため、開くことができません。",
   "sidebar.delete_record": "レコードを削除",
   "sidebar.clear_history": "履歴を消去",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "検索",
+    "editor.find.replace_placeholder": "置換",
+    "editor.find.show_replace": "置換を表示",
+    "editor.find.hide_replace": "置換を非表示",
+    "editor.find.close": "閉じる (Esc)",
+    "editor.find.find_in_selection": "選択範囲内を検索",
+    "editor.find.match_case": "大文字と小文字を区別",
+    "editor.find.match_whole_word": "単語単位で検索",
+    "editor.find.use_regex": "正規表現を使用",
+    "editor.find.preserve_case": "大文字と小文字を保持",
+    "editor.find.replace": "置換",
+    "editor.find.replace_all": "すべて置換",
+    "editor.find.prev_match": "前へ",
+    "editor.find.next_match": "次へ",
+    "editor.find.no_results": "結果なし",
+    "editor.find.match_count": "{current} / {total}",
+
 };

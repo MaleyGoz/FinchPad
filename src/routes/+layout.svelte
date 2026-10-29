@@ -68,6 +68,8 @@
         );
         root.style.setProperty("--overlay-divider", theme.overlay_divider);
         root.style.setProperty("--accent", theme.accent);
+        // ★ 新增这一行：把光标颜色注入为全局 CSS 变量
+        root.style.setProperty("--editor-cursor", theme.editor_cursor);
         root.style.setProperty("--warning", theme.warning);
         root.style.setProperty("--warning-strong", theme.warning_strong);
     }
@@ -85,16 +87,17 @@
     <DiffWindowApp />
 {:else}
     <slot />
+{/if}
 
-    {#if $tooltipStore.visible}
-        <div
-            class="global-tooltip"
-            class:above={$tooltipStore.placeAbove}
-            style="left: {$tooltipStore.x}px; top: {$tooltipStore.y}px;"
-        >
-            {$tooltipStore.text}
-        </div>
-    {/if}
+<!-- ★ 核心修改：把全局 Tooltip 移出 else 分支，让对比窗口也能使用它 -->
+{#if $tooltipStore.visible}
+    <div
+        class="global-tooltip"
+        class:above={$tooltipStore.placeAbove}
+        style="left: {$tooltipStore.x}px; top: {$tooltipStore.y}px;"
+    >
+        {$tooltipStore.text}
+    </div>
 {/if}
 
 <style>

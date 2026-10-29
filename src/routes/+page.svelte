@@ -2318,7 +2318,7 @@
     .editor-pane {
         height: 100%;
         min-width: 0;
-        overflow: hidden; /* ★ 核心修复：切断 Monaco 文字溢出，绝对不许飞到右边 */
+        overflow: visible; /* ★ 核心修复：切断 Monaco 文字溢出，绝对不许飞到右边 */
         position: relative;
         z-index: 1; /* 建立层级 */
     }

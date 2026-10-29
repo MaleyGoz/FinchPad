@@ -141,4 +141,23 @@ export const fr: Record<string, string> = {
   "large_file.file_not_found": "Le fichier a été supprimé ou déplacé en externe et ne peut pas être ouvert.",
   "sidebar.delete_record": "Supprimer l'enregistrement",
   "sidebar.clear_history": "Effacer l'historique",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Rechercher",
+    "editor.find.replace_placeholder": "Remplacer",
+    "editor.find.show_replace": "Afficher Remplacer",
+    "editor.find.hide_replace": "Masquer Remplacer",
+    "editor.find.close": "Fermer (Esc)",
+    "editor.find.find_in_selection": "Rechercher dans la sélection",
+    "editor.find.match_case": "Respecter la casse",
+    "editor.find.match_whole_word": "Mot entier",
+    "editor.find.use_regex": "Utiliser une expression régulière",
+    "editor.find.preserve_case": "Conserver la casse",
+    "editor.find.replace": "Remplacer",
+    "editor.find.replace_all": "Tout remplacer",
+    "editor.find.prev_match": "Correspondance précédente",
+    "editor.find.next_match": "Correspondance suivante",
+    "editor.find.no_results": "Aucun résultat",
+    "editor.find.match_count": "{current} sur {total}",
+
 };

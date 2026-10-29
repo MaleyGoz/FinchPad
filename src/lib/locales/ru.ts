@@ -141,4 +141,23 @@ export const ru: Record<string, string> = {
   "large_file.file_not_found": "Файл был удален или перемещен извне, невозможно открыть.",
   "sidebar.delete_record": "Удалить запись",
   "sidebar.clear_history": "Очистить историю",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Найти",
+    "editor.find.replace_placeholder": "Заменить",
+    "editor.find.show_replace": "Показать Заменить",
+    "editor.find.hide_replace": "Скрыть Заменить",
+    "editor.find.close": "Закрыть (Esc)",
+    "editor.find.find_in_selection": "Искать в выделенном",
+    "editor.find.match_case": "Учитывать регистр",
+    "editor.find.match_whole_word": "Слово целиком",
+    "editor.find.use_regex": "Использовать регулярное выражение",
+    "editor.find.preserve_case": "Сохранить регистр",
+    "editor.find.replace": "Заменить",
+    "editor.find.replace_all": "Заменить все",
+    "editor.find.prev_match": "Предыдущее совпадение",
+    "editor.find.next_match": "Следующее совпадение",
+    "editor.find.no_results": "Нет результатов",
+    "editor.find.match_count": "{current} из {total}",
+
 };

@@ -138,4 +138,22 @@ export const zhCN: Record<string, string> = {
     "large_file.load_failed": "读取失败，文件可能已被外部修改或删除。",
     "large_file.search_placeholder": "搜索...",
     "large_file.auto_detect": "🔄 自动识别",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "查找",
+    "editor.find.replace_placeholder": "替换",
+    "editor.find.show_replace": "展开替换",
+    "editor.find.hide_replace": "收起替换",
+    "editor.find.close": "关闭 (Esc)",
+    "editor.find.find_in_selection": "在选定内容中查找",
+    "editor.find.match_case": "区分大小写",
+    "editor.find.match_whole_word": "全字匹配",
+    "editor.find.use_regex": "使用正则表达式",
+    "editor.find.preserve_case": "保留大小写",
+    "editor.find.replace": "替换",
+    "editor.find.replace_all": "全部替换",
+    "editor.find.prev_match": "上一个匹配项",
+    "editor.find.next_match": "下一个匹配项",
+    "editor.find.no_results": "无结果",
+    "editor.find.match_count": "第 {current} 项，共 {total} 项",
 };

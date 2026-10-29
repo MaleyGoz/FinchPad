@@ -142,4 +142,23 @@ export const ar: Record<string, string> = {
   "large_file.file_not_found": "تم حذف الملف أو نقله خارجيًا ولا يمكن فتحه.",
   "sidebar.delete_record": "حذف السجل",
   "sidebar.clear_history": "مسح السجل",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "بحث",
+    "editor.find.replace_placeholder": "استبدال",
+    "editor.find.show_replace": "إظهار الاستبدال",
+    "editor.find.hide_replace": "إخفاء الاستبدال",
+    "editor.find.close": "إغلاق (Esc)",
+    "editor.find.find_in_selection": "بحث في التحديد",
+    "editor.find.match_case": "مطابقة حالة الأحرف",
+    "editor.find.match_whole_word": "مطابقة الكلمة بأكملها",
+    "editor.find.use_regex": "استخدام التعبير النمطي",
+    "editor.find.preserve_case": "الحفاظ على حالة الأحرف",
+    "editor.find.replace": "استبدال",
+    "editor.find.replace_all": "استبدال الكل",
+    "editor.find.prev_match": "التطابق السابق",
+    "editor.find.next_match": "التطابق التالي",
+    "editor.find.no_results": "لا توجد نتائج",
+    "editor.find.match_count": "{current} من {total}",
+
 };

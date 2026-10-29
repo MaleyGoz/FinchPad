@@ -143,4 +143,23 @@ export const faIR: Record<string, string> = {
   "large_file.file_not_found": "فایل به صورت خارجی حذف یا منتقل شده است و قابل باز شدن نیست.",
   "sidebar.delete_record": "حذف رکورد",
   "sidebar.clear_history": "پاک کردن تاریخچه",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "جستجو",
+    "editor.find.replace_placeholder": "جایگزینی",
+    "editor.find.show_replace": "نمایش جایگزینی",
+    "editor.find.hide_replace": "پنهان کردن جایگزینی",
+    "editor.find.close": "بستن (Esc)",
+    "editor.find.find_in_selection": "جستجو در انتخاب",
+    "editor.find.match_case": "تطبیق حروف بزرگ/کوچک",
+    "editor.find.match_whole_word": "تطبیق کل کلمه",
+    "editor.find.use_regex": "استفاده از عبارت منظم",
+    "editor.find.preserve_case": "حفظ حروف بزرگ/کوچک",
+    "editor.find.replace": "جایگزینی",
+    "editor.find.replace_all": "جایگزینی همه",
+    "editor.find.prev_match": "تطابق قبلی",
+    "editor.find.next_match": "تطابق بعدی",
+    "editor.find.no_results": "بدون نتیجه",
+    "editor.find.match_count": "{current} از {total}",
+
 };

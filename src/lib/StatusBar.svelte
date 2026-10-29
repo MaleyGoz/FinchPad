@@ -289,7 +289,7 @@
         display: flex;
         align-items: center;
         padding-left: 12px;
-        padding-right: 22px;
+        padding-right: 18px;
         font-size: 12px;
         color: var(--status-bar-foreground);
         user-select: none;

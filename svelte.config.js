@@ -1,18 +1,17 @@
-// Tauri doesn't have a Node.js server to do proper SSR
-// so we use adapter-static with a fallback to index.html to put the site in SPA mode
-// See: https://svelte.dev/docs/kit/single-page-apps
-// See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
+// svelte.config.js
 import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  preprocess: vitePreprocess(),
-  kit: {
-    adapter: adapter({
-      fallback: "index.html",
-    }),
-  },
+    preprocess: vitePreprocess(),
+    kit: {
+        adapter: adapter({
+            fallback: "index.html",
+        }),
+        // ★ 已移除 paths 配置。因为 vite-plugin-monaco-editor 会接管 Worker 路径，
+        // 不需要在 SvelteKit 层面硬改 base 路径，保持默认即可。
+    },
 };
 
 export default config;

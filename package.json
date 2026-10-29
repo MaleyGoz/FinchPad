@@ -1,6 +1,6 @@
 {
   "name": "finchpad",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "A modern, lightweight, multi-tab plain-text editor designed to replace the default editors on Windows, Linux, and macOS.",
   "type": "module",
   "scripts": {
@@ -23,10 +23,12 @@
     "monaco-editor": "^0.57.0"
   },
   "devDependencies": {
+    "@dvaji/vite-plugin-monaco-editor": "^2.0.0",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.65.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tauri-apps/cli": "^2",
+    "monaco-editor-nls-adapter": "^2.3.1",
     "svelte": "^5.56.3",
     "svelte-check": "^4.6.0",
     "typescript": "~6.0.3",

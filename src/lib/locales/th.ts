@@ -143,4 +143,23 @@ export const thTH: Record<string, string> = {
   "large_file.file_not_found": "ไฟล์ถูกลบหรือย้ายจากภายนอกและไม่สามารถเปิดได้",
   "sidebar.delete_record": "ลบระเบียน",
   "sidebar.clear_history": "ล้างประวัติ",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "ค้นหา",
+    "editor.find.replace_placeholder": "แทนที่",
+    "editor.find.show_replace": "แสดงการแทนที่",
+    "editor.find.hide_replace": "ซ่อนการแทนที่",
+    "editor.find.close": "ปิด (Esc)",
+    "editor.find.find_in_selection": "ค้นหาในส่วนที่เลือก",
+    "editor.find.match_case": "ตรงตามตัวพิมพ์เล็ก-ใหญ่",
+    "editor.find.match_whole_word": "ตรงทั้งคำ",
+    "editor.find.use_regex": "ใช้นิพจน์ทั่วไป",
+    "editor.find.preserve_case": "คงรูปแบบตัวพิมพ์",
+    "editor.find.replace": "แทนที่",
+    "editor.find.replace_all": "แทนที่ทั้งหมด",
+    "editor.find.prev_match": "รายการที่ตรงกันก่อนหน้า",
+    "editor.find.next_match": "รายการที่ตรงกันถัดไป",
+    "editor.find.no_results": "ไม่พบผลลัพธ์",
+    "editor.find.match_count": "{current} จาก {total}",
+
 };

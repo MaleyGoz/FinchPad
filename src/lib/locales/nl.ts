@@ -143,4 +143,23 @@ export const nlNL: Record<string, string> = {
   "large_file.file_not_found": "Het bestand is extern verwijderd of verplaatst en kan niet worden geopend.",
   "sidebar.delete_record": "Record verwijderen",
   "sidebar.clear_history": "Geschiedenis wissen",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Zoeken",
+    "editor.find.replace_placeholder": "Vervangen",
+    "editor.find.show_replace": "Vervangen tonen",
+    "editor.find.hide_replace": "Vervangen verbergen",
+    "editor.find.close": "Sluiten (Esc)",
+    "editor.find.find_in_selection": "Zoeken in selectie",
+    "editor.find.match_case": "Hoofdlettergevoelig",
+    "editor.find.match_whole_word": "Heel woord",
+    "editor.find.use_regex": "Reguliere expressie gebruiken",
+    "editor.find.preserve_case": "Hoofdletters behouden",
+    "editor.find.replace": "Vervangen",
+    "editor.find.replace_all": "Alles vervangen",
+    "editor.find.prev_match": "Vorige overeenkomst",
+    "editor.find.next_match": "Volgende overeenkomst",
+    "editor.find.no_results": "Geen resultaten",
+    "editor.find.match_count": "{current} van {total}",
+
 };

@@ -1,14 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import * as monaco from "monaco-editor";
-    import editorWorker from "monaco-editor/editor/editor.worker?worker";
+    import { get } from "svelte/store";
     import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
     import { THEMES } from "$lib/themes";
-    import { t, resolvedLocale } from "$lib/i18n";
-
-    self.MonacoEnvironment = {
-        getWorker: () => new editorWorker(),
-    };
+    import { t, resolvedLocale, localeChoice } from "$lib/i18n";
 
     // 压制 Monaco 内部未实现的 Worker handler 报错（不影响功能）
     if (typeof window !== "undefined") {
@@ -54,11 +50,22 @@
     let editor: monaco.editor.IStandaloneCodeEditor | null = null;
     let suppressChange = false;
 
-    // ★ 拦截并删除 Monaco 折叠图标的原生 title 属性，消灭系统的黑框提示
+    // ★ 查找框专用的局部 Tooltip 状态
+    let localTooltipVisible = false;
+    let localTooltipText = "";
+    let localTooltipX = 0;
+    let localTooltipY = 0;
+
+    // 仅删除 Monaco 折叠图标的 title，避免影响其他按钮的 Tooltip
     const removeTitleHandler = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (target && target.title) {
-            target.removeAttribute("title");
+        const foldingIcon = target.closest(
+            ".codicon-folding-expanded, .codicon-folding-collapsed",
+        );
+        if (!foldingIcon) return;
+        const titledElement = foldingIcon.closest<HTMLElement>("[title]");
+        if (titledElement) {
+            titledElement.removeAttribute("title");
         }
     };
 
@@ -240,6 +247,282 @@
         }
     }
 
+    // ==========================================
+    // 函数 1：查找框自定义 Tooltip（局部浮层版）
+    // ==========================================
+    function setupFindWidgetTooltip(container: HTMLElement) {
+        let titleUpdateTimeout: any;
+
+        const findWidgetObserver = new MutationObserver(() => {
+            clearTimeout(titleUpdateTimeout);
+            titleUpdateTimeout = setTimeout(() => {
+                const findWidget = container.querySelector(".find-widget");
+                if (!findWidget) return;
+
+                // 通用绑定函数，增加 closeOnClick 参数
+                const bind = (
+                    el: Element | null,
+                    i18nKey: string,
+                    fallbackText: string,
+                    closeOnClick = false, // ★ 默认不响应点击隐藏
+                ) => {
+                    if (!el || (el as any).__local_tooltip_bound) return;
+                    (el as any).__local_tooltip_bound = true;
+
+                    el.addEventListener("mouseenter", (e) => {
+                        const rect = (
+                            e.currentTarget as HTMLElement
+                        ).getBoundingClientRect();
+
+                        // 悬浮瞬间获取当前语言
+                        try {
+                            localTooltipText =
+                                t(i18nKey, undefined, get(resolvedLocale)) ||
+                                fallbackText;
+                        } catch {
+                            localTooltipText = fallbackText;
+                        }
+
+                        localTooltipX = rect.left + rect.width / 2;
+                        localTooltipY = rect.bottom + 8;
+                        localTooltipVisible = true;
+                    });
+
+                    el.addEventListener("mouseleave", () => {
+                        localTooltipVisible = false;
+                    });
+
+                    // 只有在明确要求时才添加点击隐藏
+                    if (closeOnClick) {
+                        el.addEventListener("click", () => {
+                            localTooltipVisible = false;
+                        });
+                    }
+                };
+
+                // 绑定普通按钮（不传第4个参数，保持原本的移出消失逻辑）
+                bind(
+                    findWidget.querySelector(".codicon-find-selection"),
+                    "editor.find.find_in_selection",
+                    "Find in Selection",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-case-sensitive"),
+                    "editor.find.match_case",
+                    "Match Case",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-whole-word"),
+                    "editor.find.match_whole_word",
+                    "Match Whole Word",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-regex"),
+                    "editor.find.use_regex",
+                    "Use Regular Expression",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-find-previous-match"),
+                    "editor.find.prev_match",
+                    "Previous Match",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-find-next-match"),
+                    "editor.find.next_match",
+                    "Next Match",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-preserve-case"),
+                    "editor.find.preserve_case",
+                    "Preserve Case",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-find-replace"),
+                    "editor.find.replace",
+                    "Replace",
+                );
+                bind(
+                    findWidget.querySelector(".codicon-find-replace-all"),
+                    "editor.find.replace_all",
+                    "Replace All",
+                );
+
+                // ★ 关闭按钮：传入 true，点击立即消失
+                bind(
+                    findWidget.querySelector(".codicon-widget-close"),
+                    "editor.find.close",
+                    "Close (Esc)",
+                    true,
+                );
+
+                // ★ 核心逻辑：针对“展开/收起”按钮的动态状态绑定
+                const toggleReplaceBtn = findWidget.querySelector(
+                    ".codicon-find-expanded, .codicon-find-collapsed",
+                );
+
+                if (
+                    toggleReplaceBtn &&
+                    !(toggleReplaceBtn as any).__toggle_replace_bound
+                ) {
+                    (toggleReplaceBtn as any).__toggle_replace_bound = true;
+
+                    toggleReplaceBtn.addEventListener("mouseenter", (e) => {
+                        const rect = (
+                            e.currentTarget as HTMLElement
+                        ).getBoundingClientRect();
+                        const currentEl = e.currentTarget as HTMLElement;
+
+                        // 动态判断当前是展开还是收起
+                        let text = "";
+                        if (
+                            currentEl.classList.contains(
+                                "codicon-find-expanded",
+                            )
+                        ) {
+                            text =
+                                t(
+                                    "editor.find.hide_replace",
+                                    undefined,
+                                    get(resolvedLocale),
+                                ) || "Hide Replace";
+                        } else {
+                            text =
+                                t(
+                                    "editor.find.show_replace",
+                                    undefined,
+                                    get(resolvedLocale),
+                                ) || "Show Replace";
+                        }
+
+                        localTooltipText = text;
+                        localTooltipX = rect.left + rect.width / 2;
+                        localTooltipY = rect.bottom + 8;
+                        localTooltipVisible = true;
+                    });
+
+                    toggleReplaceBtn.addEventListener("mouseleave", () => {
+                        localTooltipVisible = false;
+                    });
+
+                    // ★ 展开/收起按钮：点击立即消失
+                    toggleReplaceBtn.addEventListener("click", () => {
+                        localTooltipVisible = false;
+                    });
+                }
+            }, 50);
+        });
+        findWidgetObserver.observe(container, {
+            childList: true,
+            subtree: true,
+        });
+
+        // 拦截并移除 Monaco 原生 Tooltip 的大杀器
+        const destroyTooltipObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node instanceof HTMLElement) {
+                        if (node.classList.contains("context-view"))
+                            node.remove();
+                        else
+                            node
+                                .querySelectorAll?.(".context-view")
+                                .forEach((t) => t.remove());
+                    }
+                });
+            });
+        });
+        destroyTooltipObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+
+        return { findWidgetObserver, destroyTooltipObserver };
+    }
+
+    // ==========================================
+    // 函数 2：监听模块（i18n 实时更新版）
+    // ==========================================
+    function setupFindWidgetI18n(container: HTMLElement) {
+        const i18nObserver = new MutationObserver(() => {
+            const findWidget = container.querySelector(".find-widget");
+            if (!findWidget) return;
+            applyFindWidgetI18n(findWidget as HTMLElement);
+        });
+
+        i18nObserver.observe(container, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+        });
+        return i18nObserver;
+    }
+
+    // ==========================================
+    // 函数 3：响应式：当语言变化时，强制刷新查找框
+    // ==========================================
+    $: if (editor && $resolvedLocale) {
+        setTimeout(() => {
+            const findWidget = container?.querySelector(".find-widget");
+            if (findWidget) {
+                // ★ 直接调用强刷函数，不要再去手动改 "Find" 了
+                applyFindWidgetI18n(findWidget as HTMLElement);
+            }
+        }, 100);
+    }
+
+    // ==========================================
+    // 函数4：强制应用翻译（根据 Index 暴力覆盖）
+    // ==========================================
+    function applyFindWidgetI18n(findWidget: HTMLElement) {
+        const isMacPlatform =
+            typeof navigator !== "undefined" &&
+            /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+        const modKey = isMacPlatform ? "Cmd" : "Ctrl";
+
+        const tr = (key: string, fallback: string, params?: any) => {
+            try {
+                return t(key, params, get(resolvedLocale)) || fallback;
+            } catch {
+                return fallback;
+            }
+        };
+
+        const targetFindText = `${tr("editor.find.placeholder", "Find")} (${modKey}+F)`;
+        const targetReplaceText = `${tr("editor.find.replace_placeholder", "Replace")} (${modKey}+H)`;
+
+        // ★ 核心修复：直接根据索引强行覆盖，无视它之前是什么语言
+        const inputs = findWidget.querySelectorAll(".monaco-inputbox .input");
+        inputs.forEach((input, index) => {
+            const el = input as HTMLInputElement;
+            if (index === 0 && el.placeholder !== targetFindText) {
+                el.placeholder = targetFindText;
+            } else if (index === 1 && el.placeholder !== targetReplaceText) {
+                el.placeholder = targetReplaceText;
+            }
+        });
+
+        // 处理结果计数
+        const matchesCount = findWidget.querySelector(".matchesCount");
+        if (matchesCount && matchesCount.textContent) {
+            const text = matchesCount.textContent;
+            if (text === "No results" || text === "无结果") {
+                const noRes = tr("editor.find.no_results", "No results");
+                if (text !== noRes) matchesCount.textContent = noRes;
+            } else if (text.includes(" of ") || text.includes("项")) {
+                const match = text.match(/(\d+)\s+(?:of|项，共)\s+(\d+\+?)/);
+                if (match) {
+                    const countText = tr(
+                        "editor.find.match_count",
+                        "{current} of {total}",
+                        { current: match[1], total: match[2] },
+                    );
+                    if (text !== countText)
+                        matchesCount.textContent = countText;
+                }
+            }
+        }
+    }
+
     onMount(() => {
         // 从 THEMES 注册所有编辑区主题
         for (const [key, t] of Object.entries(THEMES)) {
@@ -256,7 +539,6 @@
                         t.gutter_foreground_active,
                     "editorCursor.foreground": t.editor_cursor,
                     "editor.selectionBackground": t.editor_selection,
-                    // ★ 新增：通过 Monaco 原生主题配置滚动条颜色
                     "scrollbarSlider.background": t.scrollbar_slider,
                     "scrollbarSlider.hoverBackground": t.scrollbar_slider_hover,
                     "scrollbarSlider.activeBackground":
@@ -264,7 +546,6 @@
                 },
             });
         }
-
         // Ctrl+滚轮 → 缩放（capture 模式，抢在 Monaco 前拦截）
         const wheelHandler = (e: WheelEvent) => {
             if (!e.ctrlKey) return;
@@ -368,9 +649,18 @@
             selectionHighlight: false,
             renderWhitespace: "none",
             guides: { bracketPairs: false, indentation: false },
-            hover: { enabled: "off" as const },
+            hover: { enabled: "off" },
             contextmenu: false,
+
+            useShadowDOM: false,
+            find: {
+                addExtraSpaceOnTop: false,
+            },
         });
+
+        // ★ 查找框修改
+        const tooltipObservers = setupFindWidgetTooltip(container);
+        const i18nObserver = setupFindWidgetI18n(container);
 
         // 打字内容变化时
         editor.onDidChangeModelContent(() => {
@@ -388,6 +678,13 @@
 
         // 清理函数（onDestroy 里用）
         (container as any).__wheelHandler = wheelHandler;
+        // 保存到 container 上以便在 onDestroy 清理
+        (container as any).__findWidgetObserver =
+            tooltipObservers.findWidgetObserver;
+        // ★ 加回这一行
+        (container as any).__destroyTooltipObserver =
+            tooltipObservers.destroyTooltipObserver;
+        (container as any).__i18nObserver = i18nObserver;
     });
 
     //   切换标签
@@ -459,6 +756,7 @@
         monaco.editor.setTheme(`txt-${editorBg}`);
     }
 
+    // 清理函数
     onDestroy(() => {
         if (container) {
             container.removeEventListener("mouseover", removeTitleHandler);
@@ -475,6 +773,17 @@
         if (kh) {
             container.removeEventListener("keydown", kh, { capture: true });
         }
+
+        // 清理查找框相关的 Observer（合并为一组，绝不重复）
+        const fob = (container as any).__findWidgetObserver;
+        if (fob) fob.disconnect();
+
+        const dtob = (container as any).__destroyTooltipObserver;
+        if (dtob) dtob.disconnect();
+
+        const iob = (container as any).__i18nObserver;
+        if (iob) iob.disconnect();
+
         editor?.dispose();
     });
 </script>
@@ -483,8 +792,19 @@
     class="editor-container"
     class:is-plaintext={language === "plaintext"}
     class:no-lines={!showLineNumbers}
+    data-theme={editorBg}
     style="position: relative; width: 100%; height: 100%;"
 >
+    <!-- ★ 查找框专用的局部 Tooltip 浮层 -->
+    {#if localTooltipVisible}
+        <div
+            class="editor-local-tooltip"
+            style="left: {localTooltipX}px; top: {localTooltipY}px;"
+        >
+            {localTooltipText}
+        </div>
+    {/if}
+
     <div bind:this={container} style="width: 100%; height: 100%;"></div>
 
     <!-- 大文件提示 -->
@@ -525,6 +845,59 @@
 </div>
 
 <style>
+    /* ======================================================
+       ★ 终极原生双色指针（外圈文字色 + 内芯背景色）
+       ====================================================== */
+
+    /* 白色主题：外黑内白 */
+    .editor-container[data-theme="white"]
+        :global(.monaco-editor .monaco-mouse-cursor-text),
+    .editor-container[data-theme="white"] :global(.monaco-editor .view-lines) {
+        cursor:
+            url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"%3E%3Cg stroke="%23000000" stroke-width="2" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3Cg stroke="%23FFFFFF" stroke-width="0.8" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3C/svg%3E')
+                8 2,
+            text !important;
+    }
+
+    /* 灰色主题：外黑内灰 */
+    .editor-container[data-theme="gray"]
+        :global(.monaco-editor .monaco-mouse-cursor-text),
+    .editor-container[data-theme="gray"] :global(.monaco-editor .view-lines) {
+        cursor:
+            url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"%3E%3Cg stroke="%23000000" stroke-width="2" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3Cg stroke="%23C0C0C0" stroke-width="0.8" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3C/svg%3E')
+                8 2,
+            text !important;
+    }
+
+    /* 米黄主题：外深青内米黄 */
+    .editor-container[data-theme="sepia"]
+        :global(.monaco-editor .monaco-mouse-cursor-text),
+    .editor-container[data-theme="sepia"] :global(.monaco-editor .view-lines) {
+        cursor:
+            url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"%3E%3Cg stroke="%233A4A52" stroke-width="2" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3Cg stroke="%23FDF6E3" stroke-width="0.8" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3C/svg%3E')
+                8 2,
+            text !important;
+    }
+
+    /* 护眼绿主题：外深绿内浅绿 */
+    .editor-container[data-theme="green"]
+        :global(.monaco-editor .monaco-mouse-cursor-text),
+    .editor-container[data-theme="green"] :global(.monaco-editor .view-lines) {
+        cursor:
+            url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"%3E%3Cg stroke="%231A3A1A" stroke-width="2" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3Cg stroke="%23CCE8CF" stroke-width="0.8" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3C/svg%3E')
+                8 2,
+            text !important;
+    }
+
+    /* 深色主题：外浅灰内深黑 */
+    .editor-container[data-theme="dark"]
+        :global(.monaco-editor .monaco-mouse-cursor-text),
+    .editor-container[data-theme="dark"] :global(.monaco-editor .view-lines) {
+        cursor:
+            url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"%3E%3Cg stroke="%23D4D4D4" stroke-width="2" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3Cg stroke="%231E1E1E" stroke-width="0.8" fill="none" stroke-linecap="round"%3E%3Cpath d="M8 2v12M5 2h6M5 14h6"/%3E%3C/g%3E%3C/svg%3E')
+                8 2,
+            text !important;
+    }
     /* ==========================================================================
      行号与折叠区样式配置
      ========================================================================== */
@@ -623,5 +996,115 @@
         border-radius: 4px;
         text-align: center;
         max-width: 90%;
+    }
+
+    /* ======================================================
+       Monaco 查找替换弹窗 (Find Widget) 纯净美化版
+       ====================================================== */
+
+    /* 1. 整体容器：只做主题换肤，不碰任何定位属性 */
+    :global(.monaco-editor .find-widget) {
+        background-color: var(--overlay-background) !important;
+        border: 1px solid var(--overlay-border) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        border-radius: 8px !important;
+        color: var(--overlay-foreground) !important;
+    }
+
+    /* 2. 终极隐藏防御：只要它关闭，立刻物理消灭，杜绝残影 */
+    :global(.monaco-editor .find-widget.hiddenEditor) {
+        display: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        background-color: transparent !important;
+    }
+
+    /* 3. 输入框及文字颜色 */
+    :global(.monaco-editor .find-widget .monaco-inputbox) {
+        background-color: var(--editor-background) !important;
+        border: 1px solid var(--overlay-border) !important;
+        border-radius: 4px !important;
+        color: var(--tab-foreground) !important;
+    }
+    :global(.monaco-editor .find-widget .monaco-inputbox .input) {
+        color: var(--tab-foreground) !important;
+    }
+
+    /* 4. 查找/替换按钮的悬停效果 */
+    :global(.monaco-editor .find-widget .button) {
+        border-radius: 4px !important;
+        transition: background-color 0.15s !important;
+    }
+    :global(.monaco-editor .find-widget .button:hover) {
+        background-color: var(--overlay-hover-background) !important;
+    }
+
+    /* 5. 匹配数量文字 */
+    :global(.monaco-editor .find-widget .matchesCount) {
+        color: var(--status-bar-foreground-muted) !important;
+    }
+
+    /* 6. 开关激活状态（如开启大小写匹配） */
+    :global(.monaco-editor .find-widget .button.toggle.checked) {
+        background-color: var(--accent) !important;
+        color: #ffffff !important;
+    }
+    :global(.monaco-editor .find-widget .button.toggle.checked::before) {
+        color: #ffffff !important;
+    }
+
+    /* 7. 左侧拖拽条的透明化与悬停变色 */
+    :global(.monaco-editor .find-widget > .monaco-sash) {
+        background-color: transparent !important;
+        width: 4px !important;
+    }
+    :global(.monaco-editor .find-widget > .monaco-sash:hover) {
+        background-color: var(--accent) !important;
+    }
+
+    /* 8. 正则报错时的圆角红框 */
+    :global(.monaco-editor .find-widget .monaco-inputbox .message) {
+        border-radius: 4px !important;
+        margin-top: 4px !important;
+        padding: 2px 6px !important;
+        background-color: color-mix(
+            in srgb,
+            var(--warning-strong) 15%,
+            transparent
+        ) !important;
+        color: var(--warning-strong) !important;
+        border: 1px solid var(--warning-strong) !important;
+    }
+    /* ======================================================
+       ★ 查找框专属轻量级 Tooltip（完全隔离，不污染全局）
+       ====================================================== */
+    .editor-local-tooltip {
+        position: fixed;
+        transform: translateX(-50%); /* 水平居中 */
+        background: var(--overlay-background);
+        color: var(--overlay-foreground);
+        border: 1px solid var(--overlay-border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        padding: 4px 10px 6px;
+        font-size: 11px;
+
+        /* 强制单行 */
+        white-space: nowrap !important;
+        word-break: normal !important;
+
+        z-index: 99999;
+        pointer-events: none; /* 不阻挡鼠标事件 */
+        font-family: sans-serif;
+        line-height: 1.4;
+    }
+    /* ======================================================
+       ★ 终极防御：从 CSS 层面彻底抹杀 Monaco 原生 Tooltip
+       ====================================================== */
+    :global(.monaco-hover),
+    :global(.monaco-editor .context-view) {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 </style>

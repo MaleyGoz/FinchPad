@@ -143,4 +143,23 @@ export const plPL: Record<string, string> = {
   "large_file.file_not_found": "Plik został zewnętrznie usunięty lub przeniesiony i nie można go otworzyć.",
   "sidebar.delete_record": "Usuń wpis",
   "sidebar.clear_history": "Wyczyść historię",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Znajdź",
+    "editor.find.replace_placeholder": "Zamień",
+    "editor.find.show_replace": "Pokaż Zamień",
+    "editor.find.hide_replace": "Ukryj Zamień",
+    "editor.find.close": "Zamknij (Esc)",
+    "editor.find.find_in_selection": "Znajdź w zaznaczeniu",
+    "editor.find.match_case": "Uwzględnij wielkość liter",
+    "editor.find.match_whole_word": "Całe wyrazy",
+    "editor.find.use_regex": "Użyj wyrażenia regularnego",
+    "editor.find.preserve_case": "Zachowaj wielkość liter",
+    "editor.find.replace": "Zamień",
+    "editor.find.replace_all": "Zamień wszystko",
+    "editor.find.prev_match": "Poprzednie dopasowanie",
+    "editor.find.next_match": "Następne dopasowanie",
+    "editor.find.no_results": "Brak wyników",
+    "editor.find.match_count": "{current} z {total}",
+
 };

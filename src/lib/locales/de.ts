@@ -141,4 +141,23 @@ export const de: Record<string, string> = {
   "large_file.file_not_found": "Die Datei wurde extern gelöscht oder verschoben und kann nicht geöffnet werden.",
   "sidebar.delete_record": "Eintrag löschen",
   "sidebar.clear_history": "Verlauf löschen",
+
+    // ===== 查找替换 =====
+    "editor.find.placeholder": "Suchen",
+    "editor.find.replace_placeholder": "Ersetzen",
+    "editor.find.show_replace": "Ersetzen einblenden",
+    "editor.find.hide_replace": "Ersetzen ausblenden",
+    "editor.find.close": "Schließen (Esc)",
+    "editor.find.find_in_selection": "In Auswahl suchen",
+    "editor.find.match_case": "Groß-/Kleinschreibung beachten",
+    "editor.find.match_whole_word": "Ganzes Wort",
+    "editor.find.use_regex": "Regulären Ausdruck verwenden",
+    "editor.find.preserve_case": "Schreibweise beibehalten",
+    "editor.find.replace": "Ersetzen",
+    "editor.find.replace_all": "Alle ersetzen",
+    "editor.find.prev_match": "Vorheriger Treffer",
+    "editor.find.next_match": "Nächster Treffer",
+    "editor.find.no_results": "Keine Treffer",
+    "editor.find.match_count": "{current} von {total}",
+
 };
