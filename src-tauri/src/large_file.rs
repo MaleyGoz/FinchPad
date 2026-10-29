@@ -71,7 +71,9 @@ pub async fn open_large_file_window(
     // ==========================================
     // 6. 创建窗口（隐藏状态，防止白屏）
     // ==========================================
-    let window = WebviewWindowBuilder::new(&app, &window_label, WebviewUrl::App(url.into()))
+    // 6.1 先创建 builder，保留所有公共配置（绝对不影响 Win/Linux）
+    #[allow(unused_mut)]
+    let mut builder = WebviewWindowBuilder::new(&app, &window_label, WebviewUrl::App(url.into()))
         .title(window_title)
         .inner_size(1000.0, 700.0)
         .min_inner_size(600.0, 400.0)
@@ -82,15 +84,17 @@ pub async fn open_large_file_window(
         })
         .background_color(parse_hex_color(&theme_background_color))
         .visible(false)
-        .decorations(false) // ★ 核心新增：去掉系统原生边框
-        .build()
-        .map_err(|e| e.to_string())?;
+        .decorations(false); // ★ 核心：去掉系统原生边框（Win/Linux/Mac 都会执行）
 
-    // ★ 核心新增：如果是 macOS，恢复原生红绿灯
+    // 6.2 只有 Mac 编译时，才会执行这个大括号里的专属配置
     #[cfg(target_os = "macos")]
     {
-        let _ = window.set_decorations(true);
+        builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+        builder = builder.hidden_title(true);
     }
+
+    // 6.3 最后构建并显示窗口
+    let window = builder.build().map_err(|e| e.to_string())?;
 
     // ==========================================
     // 7. 窗口销毁时的清理逻辑

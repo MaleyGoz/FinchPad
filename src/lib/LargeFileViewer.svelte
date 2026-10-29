@@ -1,10 +1,12 @@
 <script lang="ts">
+    import * as monaco from "monaco-editor";
+    // ★ 核心新增：显式引入 Worker，由 Vite 处理其打包路径
+    // @ts-ignore
+    import editorWorker from "monaco-editor/editor/editor.worker?worker";
     import { onMount, onDestroy, tick } from "svelte";
     import { api } from "$lib/api";
     import { tooltip } from "$lib/tooltip";
     import type { SearchResult } from "$lib/api";
-    import * as monaco from "monaco-editor";
-    // import editorWorker from "monaco-editor/editor/editor.worker?worker";
     import { THEMES, currentTheme as themeStore } from "$lib/themes";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import Toggle from "$lib/Toggle.svelte"; // ★ 新增
@@ -18,6 +20,16 @@
     const isMac =
         typeof navigator !== "undefined" &&
         /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    // ★ 核心新增：绝密隔离！
+    // 这段代码在 Windows/Linux 下完全不会执行，所以 100% 不影响你现有的任何功能。
+    if (isMac && import.meta.env.PROD && typeof window !== "undefined") {
+        (window as any).MonacoEnvironment = {
+            getWorker: function (_workerId: string, _label: string) {
+                return new editorWorker();
+            },
+        };
+    }
+
     let isMaximized = false;
     // ★ 新增：拖拽逻辑
     function handleDragStart(e: MouseEvent) {

@@ -1384,25 +1384,28 @@ pub async fn open_diff_window(
 
     let url = format!("/?mode=diff&theme={}&locale={}", theme, locale);
     let app_clone = app.clone();
-    let window = WebviewWindowBuilder::new(&app, "diff", WebviewUrl::App(url.into()))
+    // 3.1 先创建 builder，保留所有公共配置
+    #[allow(unused_mut)]
+    let mut builder = WebviewWindowBuilder::new(&app, "diff", WebviewUrl::App(url.into()))
         .title("Compare")
         .inner_size(1200.0, 700.0)
         .min_inner_size(600.0, 400.0)
-        // 根据当前主题强制切换原生标题栏颜色
         .theme(if theme == "dark" {
             Some(tauri::Theme::Dark)
         } else {
             Some(tauri::Theme::Light)
         })
-        .decorations(false) // ★ 核心新增：去掉系统原生标题栏（Windows/Linux 彻底无边框）
-        .build()
-        .map_err(|e| e.to_string())?;
+        .decorations(false);
 
-    // ★ 核心保留：如果是 macOS，恢复原生红绿灯，完美复刻主界面的沉浸体验
+    // 3.2 只有 Mac 编译时，才会执行这个大括号里的代码
     #[cfg(target_os = "macos")]
     {
-        let _ = window.set_decorations(true);
+        builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+        builder = builder.hidden_title(true);
     }
+
+    // 3.3 最后构建窗口
+    let window = builder.build().map_err(|e| e.to_string())?;
 
     // 4. 窗口关闭时清除 payload
     window.on_window_event(move |event| {

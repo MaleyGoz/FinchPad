@@ -1,6 +1,9 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import * as monaco from "monaco-editor";
+    // ★ 核心新增：显式引入 Worker，由 Vite 处理其打包路径
+    // @ts-ignore
+    import editorWorker from "monaco-editor/editor/editor.worker?worker";
     import { listen } from "@tauri-apps/api/event";
     import { api, type DiffPayload } from "$lib/api";
     import { get } from "svelte/store";
@@ -197,9 +200,24 @@
     // ==========================================
     // 1. 窗口状态与平台判断 (★ 新增)
     // ==========================================
+
     const isMac =
         typeof navigator !== "undefined" &&
         /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+    // ★ 核心新增：绝密隔离！
+    // 1. 只有是 Mac 系统
+    // 2. 只有是打包后的生产环境 (import.meta.env.PROD)
+    // 同时满足时，才强制使用 Vite 正确打包出的 Worker，覆盖插件在 Mac 下失效的路径。
+    // Windows/Linux 下，这段代码连进都不会进，100% 保持原状！
+    if (isMac && import.meta.env.PROD && typeof window !== "undefined") {
+        (window as any).MonacoEnvironment = {
+            getWorker: function (_workerId: string, _label: string) {
+                return new editorWorker();
+            },
+        };
+    }
+
     let isMaximized = false;
 
     async function handleMinimize() {
