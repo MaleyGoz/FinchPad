@@ -210,13 +210,24 @@
     // 2. 只有是打包后的生产环境 (import.meta.env.PROD)
     // 同时满足时，才强制使用 Vite 正确打包出的 Worker，覆盖插件在 Mac 下失效的路径。
     // Windows/Linux 下，这段代码连进都不会进，100% 保持原状！
-    if (isMac && import.meta.env.PROD && typeof window !== "undefined") {
+
+    // ★ 核心修复：去掉所有条件限制，让 Windows 和 Mac 在 build 之后都能拿到正确的 Worker
+    if (typeof window !== "undefined") {
         (window as any).MonacoEnvironment = {
-            getWorker: function (_workerId: string, _label: string) {
+            getWorker: function () {
                 return new editorWorker();
             },
         };
     }
+
+    // 下面是macOS生效的版本，如果mac对比功能没有差异高亮，则换下面的代码
+    // if (isMac && import.meta.env.PROD && typeof window !== "undefined") {
+    //     (window as any).MonacoEnvironment = {
+    //         getWorker: function (_workerId: string, _label: string) {
+    //             return new editorWorker();
+    //         },
+    //     };
+    // }
 
     let isMaximized = false;
 
@@ -314,7 +325,7 @@
             lineDecorationsWidth: 12,
 
             // ★ 核心修复 1：开启高级算法，专治各种不相关文件比对罢工
-            diffAlgorithm: "advanced",
+            // diffAlgorithm: "advanced",
             // ★ 核心修复 2：开启空白行折叠（之前丢了，加上体验更好）
             hideUnchangedRegions: {
                 enabled: true,
