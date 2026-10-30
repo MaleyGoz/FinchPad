@@ -413,7 +413,7 @@
 
         const btnR = dropdownButtonEl.getBoundingClientRect();
         const menuW = dropdownMenuEl.offsetWidth;
-        const menuH = dropdownMenuEl.offsetHeight;
+        const menuContentH = dropdownMenuEl.scrollHeight;
         const winW = window.innerWidth;
         const winH = window.innerHeight;
         const margin = 8;
@@ -430,12 +430,18 @@
             left = winW - menuW - margin;
         }
 
-        // 4. 垂直位置：默认 ▼ 按钮下方
+        // 4. 垂直位置：默认向下展开
         let top = btnR.bottom + 2;
-        // 5. 下方空间不足 → 向上展开
-        if (top + menuH + margin > winH) {
-            top = btnR.top - menuH - 2;
-            if (top < margin) top = margin;
+        const spaceBelow = winH - btnR.bottom - margin;
+
+        // ★ 如果下方空间不足以显示完整菜单，并且上方空间比下方大，则向上翻转
+        if (menuContentH > spaceBelow) {
+            const spaceAbove = btnR.top - margin;
+            if (spaceAbove > spaceBelow) {
+                // 向上展开（利用 CSS 的 max-height 截断，保证不会飞出屏幕）
+                top = btnR.top - Math.min(menuContentH, spaceAbove) - 2;
+                if (top < margin) top = margin;
+            }
         }
 
         dropdownLeft = left;
@@ -1159,7 +1165,7 @@
         border-radius: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         min-width: 140px;
-        max-width: 400px;
+        max-height: calc(100vh - 60px);
         max-height: 400px;
         overflow-y: auto;
         z-index: 500;

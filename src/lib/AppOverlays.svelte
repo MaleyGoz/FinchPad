@@ -147,7 +147,8 @@
             class="context-menu settings-menu"
             style="right: {window.innerWidth -
                 settingsMenu.anchorRight}px; top: {settingsMenu.anchorBottom +
-                4}px;"
+                4}px; max-height: calc(100vh - {settingsMenu.anchorBottom +
+                12}px); overflow-y: auto;"
             onclick={(e) => e.stopPropagation()}
             oncontextmenu={(e) => e.stopPropagation()}
             role="menu"
@@ -285,7 +286,9 @@
 <!-- 语言二级菜单 -->
 {#if langSubmenu.visible}
     {@const ddW = 180}
-    {@const ddH = Math.min(LOCALE_OPTIONS.length * 32 + 8, 400)}
+    <!-- ★ 动态计算可用高度 -->
+    {@const maxMenuHeight = window.innerHeight - 16}
+    {@const ddH = Math.min(LOCALE_OPTIONS.length * 32 + 8, maxMenuHeight)}
     {@const hasLeft = langSubmenu.anchorLeft - ddW - 8 >= 0}
     {@const ddLeft = hasLeft
         ? langSubmenu.anchorLeft - ddW - 4
@@ -297,10 +300,10 @@
 
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
-        class="context-menu"
+        class="context-menu lang-submenu"
         class:bridge-right={!hasLeft}
         class:bridge-left={hasLeft}
-        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: 400px; overflow-y: auto;"
+        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: {maxMenuHeight}px; overflow-y: auto;"
         onclick={(e) => e.stopPropagation()}
         oncontextmenu={(e) => e.stopPropagation()}
         onmouseenter={onCancelCloseLangSubmenu}
@@ -368,7 +371,10 @@
             class="context-menu"
             style="{contextMenu.left !== null
                 ? `left: ${contextMenu.left}px;`
-                : `right: ${contextMenu.right}px;`} top: {contextMenu.top}px;"
+                : `right: ${contextMenu.right}px;`} {contextMenu.top >
+            window.innerHeight / 2
+                ? `bottom: ${window.innerHeight - contextMenu.top}px;`
+                : `top: ${contextMenu.top}px;`} max-height: calc(100vh - 16px); overflow-y: auto;"
             onclick={(e) => e.stopPropagation()}
             oncontextmenu={(e) => e.stopPropagation()}
             role="menu"
@@ -569,7 +575,9 @@
 <!-- 对比子菜单 -->
 {#if diffSubmenu.visible}
     {@const ddW = 220}
-    {@const ddH = Math.min((tabTitles.length - 1) * 32 + 8, 300)}
+    <!-- ★ 动态计算可用高度 -->
+    {@const maxMenuHeight = window.innerHeight - 16}
+    {@const ddH = Math.min((tabTitles.length - 1) * 32 + 8, maxMenuHeight)}
     {@const hasRight = diffSubmenu.anchorRight + ddW + 8 <= window.innerWidth}
     {@const ddLeft = hasRight
         ? diffSubmenu.anchorRight + 4
@@ -581,7 +589,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
         class="context-menu"
-        style="width: {ddW}px; max-width: {ddW}px; box-sizing: border-box; left: {ddLeft}px; top: {ddTop}px; max-height: 300px; overflow-y: auto; overflow-x: hidden; z-index: 950;"
+        style="width: {ddW}px; max-width: {ddW}px; box-sizing: border-box; left: {ddLeft}px; top: {ddTop}px; max-height: {maxMenuHeight}px; overflow-y: auto; overflow-x: hidden; z-index: 950;"
         onclick={(e) => e.stopPropagation()}
         oncontextmenu={(e) => e.stopPropagation()}
         onmouseenter={onCancelCloseDiffSubmenu}
@@ -737,9 +745,9 @@
                     >
                 </div>
             </div>
-            <button class="about-btn" onclick={onCloseAbout}
-                >{t("about.ok", undefined, $resolvedLocale)}</button
-            >
+            <button class="modal-btn primary about-btn" onclick={onCloseAbout}>
+                {t("about.ok", undefined, $resolvedLocale)}
+            </button>
         </div>
     </div>
 {/if}
@@ -1005,18 +1013,8 @@
         text-decoration: underline;
     }
     .about-btn {
-        margin-top: 20px;
-        padding: 6px 24px;
-        font-size: 13px;
-        background: var(--accent);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: inherit;
-    }
-    .about-btn:hover {
-        filter: brightness(0.9);
+        margin-top: 24px;
+        min-width: 90px;
     }
 
     /* ==========================================
@@ -1142,6 +1140,7 @@
     /* ==========================================
      极简超细滚动条定制
      ========================================== */
+    /* 1. 通用菜单滚动条优化（修复 opacity 不生效问题） */
     .context-menu::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -1150,15 +1149,57 @@
         background: transparent;
     }
     .context-menu::-webkit-scrollbar-thumb {
-        background: var(--overlay-foreground-muted);
-        opacity: 0.5;
+        /* 使用 30% 透明度的灰色，替代无效的 opacity 属性 */
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 30%,
+            transparent
+        );
         border-radius: 4px;
     }
     .context-menu::-webkit-scrollbar-thumb:hover {
-        background: var(--overlay-foreground);
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 60%,
+            transparent
+        );
     }
     .context-menu::-webkit-scrollbar-button {
         display: none;
+    }
+
+    /* 2. 专门针对语言菜单强化滚动条样式，彻底干掉原生粗滚动条 */
+    .context-menu.lang-submenu::-webkit-scrollbar {
+        width: 6px;
+    }
+    .context-menu.lang-submenu::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .context-menu.lang-submenu::-webkit-scrollbar-thumb {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 30%,
+            transparent
+        );
+        border-radius: 4px;
+    }
+    .context-menu.lang-submenu::-webkit-scrollbar-thumb:hover {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 60%,
+            transparent
+        );
+    }
+
+    /* 3. 兼容 Firefox 浏览器的滚动条 */
+    .context-menu {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(
+                in srgb,
+                var(--overlay-foreground-muted) 30%,
+                transparent
+            )
+            transparent;
     }
     .context-menu.bridge-left::before {
         content: "";
