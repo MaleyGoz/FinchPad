@@ -143,7 +143,8 @@
     }
     // 重命名结束
 
-    const MIN_TAB_W = 80;
+    // const MIN_TAB_W = 100;
+    let minTabWidth = 100; // 动态最小宽度，默认给 100 兜底
     const MAX_TAB_W = 160;
     const ADD_BTN_W = 32; // + 新建
     const DD_BTN_W = 32; // ▼ 下拉
@@ -152,6 +153,20 @@
     const MIN_BLANK = 15; // 拖动区最小宽度（从 10 加大）
     const GAP = 1;
     const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
+
+    // ★ 动态计算最小宽度：确保能放下“未命名 1”及其它短名称，但不至于过宽
+    $: {
+        // 注意：请确保你的 i18n 文件里，关于“未命名”的 key 是这个。
+        // 如果你是用 t("tab.untitled") 或者其他的 key，请相应替换。
+        const untitledStr =
+            t("untitled", undefined, $resolvedLocale) || "未命名 1";
+        const textW = measureTextWidth(untitledStr);
+        const fixedOverhead =
+            TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
+
+        // 上下限约束：下限 80px 避免过于拥挤，上限 140px 避免因某些语言翻译太长导致标签栏溢出
+        minTabWidth = Math.max(80, Math.min(140, textW + fixedOverhead));
+    }
 
     // 标签宽度计算的固定开销（不含文字）
     const TAB_FONT =
@@ -243,7 +258,7 @@
 
             // 3. 理想宽度：优先满足最长文字，并限制在最大宽度内
             const idealWidth = Math.max(
-                MIN_TAB_W,
+                minTabWidth,
                 Math.min(MAX_TAB_W, maxTextW + fixedOverhead),
             );
 
@@ -275,7 +290,7 @@
                     (availAll - GAP * (count - 1)) / count,
                 );
 
-                if (squeezedWidth >= MIN_TAB_W) {
+                if (squeezedWidth >= minTabWidth) {
                     // 即使收缩后，每个标签依然 >= MIN_TAB_W，那就全部显示！
                     visibleCount = count;
                     tabWidth = squeezedWidth;
@@ -283,7 +298,7 @@
                 } else {
                     // 7. 阶段 3：极限溢出（必须触发下拉框）
                     hasOverflow = true;
-                    tabWidth = MIN_TAB_W; // 宽度定死在最小宽度
+                    tabWidth = minTabWidth; // 宽度定死在最小宽度
 
                     // 此时必须扣除右侧下拉按钮的宽度
                     const availWithDD = availAll - DD_BTN_W;
