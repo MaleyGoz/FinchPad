@@ -20,6 +20,11 @@ export const ar: Record<string, string> = {
   "dialog.update_confirm": "تنزيل",
   "dialog.update_cancel": "إلغاء",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "تبويب جديد",
+  "tab_bar.settings": "الإعدادات",
+  "tab_bar.preview": "معاينة",
+
   // ===== خيارات اللغة =====
 
   // ===== قائمة النقر بزر الماوس الأيمن على التبويب =====
@@ -30,6 +35,7 @@ export const ar: Record<string, string> = {
   "tab_menu.close_left": "إغلاق التبويبات على اليسار",
   "tab_menu.close_right": "إغلاق التبويبات على اليمين",
   "tab_menu.close_all": "إغلاق الكل",
+  "tab_menu.reopen": "إعادة فتح التبويب المغلق",
   "tab_menu.copy_path": "نسخ مسار الملف",
   "tab_menu.reveal_in_explorer": "إظهار في مستكشف الملفات",
   "tab_menu.diff": "مقارنة",
@@ -77,6 +83,8 @@ export const ar: Record<string, string> = {
   "status.selected_lines_and_chars": "تم تحديد {lines} سطرًا · {chars} حرفًا",
   "status.short_line_numbers": "أرقام الأسطر",
   "status.short_word_wrap": "التفاف النص",
+  "status.zoom_tooltip": "تكبير",
+  "status.scroll_wheel": "عجلة",
   "status.encoding_tooltip": "الترميز: {encoding}",
   "status.line_ending_lf": "نهاية سطر Unix (LF)",
   "status.line_ending_crlf": "نهاية سطر Windows (CRLF)",

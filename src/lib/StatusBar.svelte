@@ -12,6 +12,7 @@
     export let zoom: number = 100;
     export let wordWrap: boolean = true;
     export let showLineNumbers: boolean = true;
+    export let lineNumbersDisabled: boolean = false; // ★ 新增：行号禁用开关
     export let onToggleLineNumbers: () => void = () => {};
     export let wordWrapDisabled: boolean = false;
     export let onToggleWordWrap: () => void = () => {};
@@ -102,7 +103,7 @@
     </div>
 
     <!-- 当前目录 -->
-    <div class="tooltip-wrapper">
+    <div class="tooltip-wrapper tooltip-left">
         <button
             class="sidebar-btn"
             class:active={sidebarMode === "directory"}
@@ -198,8 +199,9 @@
     <!-- 显示行号 -->
     <button
         class="status-btn"
-        class:off={!showLineNumbers}
+        class:off={!showLineNumbers || lineNumbersDisabled}
         onclick={onToggleLineNumbers}
+        disabled={lineNumbersDisabled}
     >
         {t("settings.show_line_numbers", undefined, $resolvedLocale)}
     </button>
@@ -219,16 +221,36 @@
     <span class="sep">|</span>
 
     <!-- 缩放比列 -->
-    <div class="zoom-wrapper">
-        <span
-            class="status-btn zoom-trigger"
-            role="button"
-            tabindex="0"
-            onclick={toggleZoomMenu}
-            oncontextmenu={handleZoomRightClick}
-            >{zoom}%
-        </span>
-
+    <div class="zoom-wrapper" class:has-menu-open={zoomMenuOpen}>
+        <!-- 缩放比例按钮 -->
+        <div class="tooltip-wrapper">
+            <span
+                class="status-btn zoom-trigger"
+                role="button"
+                tabindex="0"
+                onclick={toggleZoomMenu}
+                oncontextmenu={handleZoomRightClick}
+                >{zoom}%
+            </span>
+            <!-- ★ 新增的 Tooltip 层 -->
+            <span class="tooltip">
+                <span
+                    >{t(
+                        "status.zoom_tooltip",
+                        undefined,
+                        $resolvedLocale,
+                    )}</span
+                >
+                <span class="shortcut"
+                    >{isMac ? "Cmd" : "Ctrl"} + {t(
+                        "status.scroll_wheel",
+                        undefined,
+                        $resolvedLocale,
+                    )} / +/-</span
+                >
+            </span>
+        </div>
+        <!-- 缩放比例弹窗 -->
         {#if zoomMenuOpen}
             <div class="zoom-menu">
                 {#each ZOOM_PRESETS as preset}
@@ -264,6 +286,7 @@
         {/if}
     </div>
 
+    <!-- 编码 -->
     <span class="sep">|</span>
     <span class="tooltip-wrapper">
         <span class="status-text">{encoding}</span>
@@ -271,7 +294,7 @@
         >
     </span>
     <span class="sep">|</span>
-
+    <!-- 换行符号 -->
     <span class="tooltip-wrapper tooltip-right">
         <span class="status-text">{lineEnding}</span>
         <span class="tooltip"
@@ -542,5 +565,12 @@
     .sidebar-btn:disabled {
         color: var(--overlay-foreground-muted);
         cursor: default;
+    }
+
+    /* ★ 核心新增：菜单打开时，强制隐藏悬停的 Tooltip，防止遮挡 */
+    .zoom-wrapper.has-menu-open .tooltip {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: none !important; /* 瞬间消失，不留残影 */
     }
 </style>

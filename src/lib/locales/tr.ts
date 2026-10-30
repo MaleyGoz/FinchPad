@@ -20,6 +20,11 @@ export const trTR: Record<string, string> = {
   "dialog.update_confirm": "İndir",
   "dialog.update_cancel": "İptal",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Yeni Sekme",
+  "tab_bar.settings": "Ayarlar",
+  "tab_bar.preview": "Önizleme",
+
   // ===== Dil Seçenekleri =====
 
   // ===== Sekme Bağlam Menüsü =====
@@ -30,6 +35,7 @@ export const trTR: Record<string, string> = {
   "tab_menu.close_left": "Soldaki Sekmeleri Kapat",
   "tab_menu.close_right": "Sağdaki Sekmeleri Kapat",
   "tab_menu.close_all": "Tümünü Kapat",
+  "tab_menu.reopen": "Kapatılan Sekmeyi Yeniden Aç",
   "tab_menu.copy_path": "Dosya Yolunu Kopyala",
   "tab_menu.reveal_in_explorer": "Dosya Gezgini'nde Göster",
   "tab_menu.diff": "Karşılaştır",
@@ -78,6 +84,8 @@ export const trTR: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} satır · {chars} karakter seçildi",
   "status.short_line_numbers": "Satırlar",
   "status.short_word_wrap": "Kaydırma",
+  "status.zoom_tooltip": "Yakınlaştırma Düzeyi",
+  "status.scroll_wheel": "Tekerlek",
   "status.encoding_tooltip": "Kodlama: {encoding}",
   "status.line_ending_lf": "Unix satır sonu (LF)",
   "status.line_ending_crlf": "Windows satır sonu (CRLF)",

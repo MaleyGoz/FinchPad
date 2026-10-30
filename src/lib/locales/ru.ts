@@ -20,6 +20,11 @@ export const ru: Record<string, string> = {
   "dialog.update_confirm": "Загрузить",
   "dialog.update_cancel": "Отмена",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Новая вкладка",
+  "tab_bar.settings": "Настройки",
+  "tab_bar.preview": "Предпросмотр",
+
   // ===== Языковые опции =====
 
   // ===== Контекстное меню вкладки =====
@@ -30,6 +35,7 @@ export const ru: Record<string, string> = {
   "tab_menu.close_left": "Закрыть вкладки слева",
   "tab_menu.close_right": "Закрыть вкладки справа",
   "tab_menu.close_all": "Закрыть все",
+  "tab_menu.reopen": "Открыть закрытую вкладку",
   "tab_menu.copy_path": "Копировать путь к файлу",
   "tab_menu.reveal_in_explorer": "Показать в проводнике",
   "tab_menu.diff": "Сравнить",
@@ -78,6 +84,8 @@ export const ru: Record<string, string> = {
   "status.selected_lines_and_chars": "Выбрано {lines} строк · {chars} символов",
   "status.short_line_numbers": "Строки",
   "status.short_word_wrap": "Перенос",
+  "status.zoom_tooltip": "Масштаб",
+  "status.scroll_wheel": "Колесо",
   "status.encoding_tooltip": "Кодировка: {encoding}",
   "status.line_ending_lf": "Концы строк Unix (LF)",
   "status.line_ending_crlf": "Концы строк Windows (CRLF)",

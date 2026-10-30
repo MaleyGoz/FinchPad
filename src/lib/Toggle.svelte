@@ -1,20 +1,27 @@
 <script lang="ts">
     export let checked: boolean = false;
     export let onChange: (value: boolean) => void = () => {};
+    export let disabled: boolean = false; // ★ 新增：接收禁用状态
 </script>
 
 <button
     class="toggle-capsule"
     class:on={checked}
     class:off={!checked}
+    class:disabled
+    // ★ 新增：禁用状态的样式
+    {disabled}
+    // ★ 新增：物理禁用
     onclick={(e) => {
-        e.stopPropagation(); // 防止冒泡
+        if (disabled) return; // ★ 防御：禁用时阻止点击
+        e.stopPropagation();
         onChange(!checked);
     }}
     role="switch"
     aria-checked={checked}
     tabindex="0"
     onkeydown={(e) => {
+        if (disabled) return;
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onChange(!checked);
@@ -86,5 +93,13 @@
 
     .toggle-capsule:hover {
         opacity: 0.8;
+    }
+
+    /* ★ 新增：禁用时的置灰样式 */
+    .toggle-capsule:disabled,
+    .toggle-capsule.disabled {
+        opacity: 0.4; /* 变灰 */
+        cursor: default;
+        pointer-events: none; /* 彻底切断鼠标交互 */
     }
 </style>

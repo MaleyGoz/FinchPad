@@ -20,6 +20,11 @@ export const hiIN: Record<string, string> = {
   "dialog.update_confirm": "डाउनलोड करें",
   "dialog.update_cancel": "रद्द करें",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "नया टैब",
+  "tab_bar.settings": "सेटिंग्स",
+  "tab_bar.preview": "पूर्वावलोकन",
+
   // ===== भाषा विकल्प =====
 
   // ===== टैब कॉन्टेक्स्ट मेनू =====
@@ -30,6 +35,7 @@ export const hiIN: Record<string, string> = {
   "tab_menu.close_left": "बाईं ओर के टैब बंद करें",
   "tab_menu.close_right": "दाईं ओर के टैब बंद करें",
   "tab_menu.close_all": "सभी बंद करें",
+  "tab_menu.reopen": "बंद टैब फिर से खोलें",
   "tab_menu.copy_path": "फ़ाइल पथ कॉपी करें",
   "tab_menu.reveal_in_explorer": "Explorer में दिखाएं",
   "tab_menu.diff": "तुलना करें",
@@ -78,6 +84,8 @@ export const hiIN: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} पंक्तियां · {chars} अक्षर चुने गए",
   "status.short_line_numbers": "पंक्तियां",
   "status.short_word_wrap": "रैपिंग",
+  "status.zoom_tooltip": "ज़ूम स्तर",
+  "status.scroll_wheel": "स्क्रॉल",
   "status.encoding_tooltip": "एन्कोडिंग: {encoding}",
   "status.line_ending_lf": "Unix लाइन एंडिंग (LF)",
   "status.line_ending_crlf": "Windows लाइन एंडिंग (CRLF)",

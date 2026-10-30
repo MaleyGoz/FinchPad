@@ -20,6 +20,11 @@ export const ja: Record<string, string> = {
   "dialog.update_confirm": "ダウンロード",
   "dialog.update_cancel": "キャンセル",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "新しいタブ",
+  "tab_bar.settings": "設定",
+  "tab_bar.preview": "プレビュー",
+
   // ===== 言語オプション =====
 
   // ===== タブ右クリックメニュー =====
@@ -30,6 +35,7 @@ export const ja: Record<string, string> = {
   "tab_menu.close_left": "左のタブを閉じる",
   "tab_menu.close_right": "右のタブを閉じる",
   "tab_menu.close_all": "すべてを閉じる",
+  "tab_menu.reopen": "閉じたタブを再度開く",
   "tab_menu.copy_path": "ファイルパスをコピー",
   "tab_menu.reveal_in_explorer": "エクスプローラーで表示",
   "tab_menu.diff": "比較",
@@ -78,6 +84,8 @@ export const ja: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} 行 · {chars} 文字選択中",
   "status.short_line_numbers": "行番号",
   "status.short_word_wrap": "折り返し",
+  "status.zoom_tooltip": "ズーム倍率",
+  "status.scroll_wheel": "ホイール",
   "status.encoding_tooltip": "エンコーディング: {encoding}",
   "status.line_ending_lf": "Unix 改行 (LF)",
   "status.line_ending_crlf": "Windows 改行 (CRLF)",

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import { tooltip } from "$lib/tooltip";
+    import { t, resolvedLocale } from "$lib/i18n";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     export let titles: string[];
     export let activeIndex: number;
@@ -35,6 +36,50 @@
     const isMac =
         typeof navigator !== "undefined" &&
         /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+    const mod = isMac ? "Cmd" : "Ctrl";
+
+    // ★ 新增：局部 Tooltip 状态与动态计算逻辑
+    let localTooltipVisible = false;
+    let localTooltipText = "";
+    let localTooltipShortcut = "";
+    let localTooltipStyle = "";
+
+    function showLocalTooltip(
+        e: MouseEvent,
+        text: string,
+        shortcut: string = "",
+    ) {
+        const target = e.currentTarget as HTMLElement;
+        const rect = target.getBoundingClientRect();
+
+        localTooltipText = text;
+        localTooltipShortcut = shortcut;
+
+        // ★ 核心防溢出算法：
+        // 默认居中，如果靠右太近，就右对齐；如果靠左太近，就左对齐
+        let left = rect.left + rect.width / 2;
+        let transform = "translateX(-50%)";
+
+        // 防右侧截断 (如果按钮右侧离屏幕边缘 < 100px)
+        if (rect.right > window.innerWidth - 100) {
+            left = rect.right;
+            transform = "translateX(-100%)";
+        }
+        // 防左侧截断
+        else if (rect.left < 100) {
+            left = rect.left;
+            transform = "translateX(0)";
+        }
+
+        // ★ 向下弹出：top 坐标加上按钮高度，并留 8px 空隙
+        localTooltipStyle = `top: ${rect.bottom + 8}px; left: ${left}px; transform: ${transform};`;
+        localTooltipVisible = true;
+    }
+
+    function hideLocalTooltip() {
+        localTooltipVisible = false;
+    }
 
     //重命名开始
     export let renamingIndex: number = -1;
@@ -98,23 +143,23 @@
     }
     // 重命名结束
 
-    const MIN_TAB_W = 100;
-    const MAX_TAB_W = 200;
+    const MIN_TAB_W = 80;
+    const MAX_TAB_W = 160;
     const ADD_BTN_W = 32; // + 新建
     const DD_BTN_W = 32; // ▼ 下拉
     const SETTINGS_BTN_W = 32; // ⚙ 设置
     const WINDOW_BTNS_W = 46 * 3; // ─ □ × 三个窗口按钮
-    const MIN_BLANK = 10; // 拖动区最小宽度（从 10 加大）
+    const MIN_BLANK = 15; // 拖动区最小宽度（从 10 加大）
     const GAP = 1;
     const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
     // 标签宽度计算的固定开销（不含文字）
     const TAB_FONT =
         '13px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'; // 与 .tab 的 font-size 一致
-    const TAB_PADDING_L = 10; // .tab 的 padding-left
+    const TAB_PADDING_L = 5; // .tab 的 padding-left
     const TAB_PADDING_R = 5; // .tab 的 padding-right
     const CLOSE_BTN_W = 24; // 关闭按钮 × / 脏标记 ● 的预留宽度
-    const TAB_BORDER_W = 1; // .tab 的 border-right
+    const TAB_BORDER_W = 5; // .tab 的 border-right
 
     // canvas 用于测量文字实际渲染宽度
     let measureCanvas: HTMLCanvasElement | null = null;
@@ -176,7 +221,7 @@
         (i) => i < visibleStart || i >= visibleEnd,
     );
 
-    // ============ 布局计算 ============
+    // ============ 布局计算 (全新三段式自适应算法) ============
     $: {
         const width = containerWidth;
         const count = totalCount;
@@ -189,47 +234,67 @@
             // 1. 计算所有标签名中，最长的那个文字宽度
             const maxTextW = Math.max(
                 ...titles.map((t) => measureTextWidth(t)),
-                0, // 保底，防止空数组报错
+                0,
             );
 
-            // 2. 固定开销：左边距 + 右边距 + 关闭按钮预留 + 边框
+            // 2. 固定开销
             const fixedOverhead =
                 TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
 
-            // 3. 核心公式：y (文字宽) + x (固定开销)，然后做 clamp 限制
-            const targetWidth = maxTextW + fixedOverhead;
-            tabWidth = Math.max(MIN_TAB_W, Math.min(MAX_TAB_W, targetWidth));
+            // 3. 理想宽度：优先满足最长文字，并限制在最大宽度内
+            const idealWidth = Math.max(
+                MIN_TAB_W,
+                Math.min(MAX_TAB_W, maxTextW + fixedOverhead),
+            );
 
-            // 4. 判断当前窗口能不能装下这么多固定宽度的标签，★ 新增：扣除左侧 Logo / Mac红绿灯 占用的宽度
+            // 4. 计算可用空间
             let leftSpacerW = 0;
             if (!sidebarMode) {
                 leftSpacerW = isMac ? 100 : 40;
             }
-            // ★ 新增：扣除右侧预览按钮的宽度（如果显示的话）
-            const previewBtnW = canPreview ? SETTINGS_BTN_W : 0;
-            // ★ 修正：把左侧占位和预览按钮扣除，并将右侧的预留空白从 80 缩小到 40
-            // 这样既能算准剩余空间，又能释放右侧的拖拽区宽度
-            const avail =
-                width - FIXED_WIDTH - leftSpacerW - previewBtnW - MIN_BLANK;
 
-            // 计算不加 ▼ 时，放得下所有的标签需要多宽
-            const totalNeeded = tabWidth * count + GAP * (count - 1);
+            // ★ 核心：无条件扣除预览按钮的宽度，让它永远占位
+            const fixedPreviewW = SETTINGS_BTN_W;
 
-            if (totalNeeded <= avail) {
-                // 空间充足，全部显示
+            // 总可用空间 = 总宽 - 右侧基础按钮 - 左侧占位 - 预览按钮预留 - 空白拖拽区
+            const availAll =
+                width - FIXED_WIDTH - leftSpacerW - fixedPreviewW - MIN_BLANK;
+
+            // 5. 阶段 1：尝试用“理想宽度”排下所有标签
+            const totalNeededIdeal = idealWidth * count + GAP * (count - 1);
+
+            if (totalNeededIdeal <= availAll) {
+                // 空间充足，所有标签使用理想宽度
                 visibleCount = count;
+                tabWidth = idealWidth;
                 hasOverflow = false;
             } else {
-                // 空间不足，必须溢出加 ▼
-                hasOverflow = true;
-                const availWithDD = avail - DD_BTN_W;
-
-                // 计算最多能放下几个
-                const maxVisible = Math.max(
-                    1,
-                    Math.floor((availWithDD + GAP) / (tabWidth + GAP)),
+                // 6. 阶段 2：平滑收缩（不隐藏，先挤一挤）
+                // 计算如果所有标签都显示，每个标签能分到多少宽度
+                const squeezedWidth = Math.floor(
+                    (availAll - GAP * (count - 1)) / count,
                 );
-                visibleCount = maxVisible;
+
+                if (squeezedWidth >= MIN_TAB_W) {
+                    // 即使收缩后，每个标签依然 >= MIN_TAB_W，那就全部显示！
+                    visibleCount = count;
+                    tabWidth = squeezedWidth;
+                    hasOverflow = false;
+                } else {
+                    // 7. 阶段 3：极限溢出（必须触发下拉框）
+                    hasOverflow = true;
+                    tabWidth = MIN_TAB_W; // 宽度定死在最小宽度
+
+                    // 此时必须扣除右侧下拉按钮的宽度
+                    const availWithDD = availAll - DD_BTN_W;
+
+                    // 计算在 MIN_TAB_W 下，最多能放几个
+                    const maxVisible = Math.max(
+                        1,
+                        Math.floor((availWithDD + GAP) / (tabWidth + GAP)),
+                    );
+                    visibleCount = maxVisible;
+                }
             }
         }
 
@@ -237,7 +302,6 @@
         const maxStart = Math.max(0, count - visibleCount);
         if (visibleStart > maxStart) visibleStart = maxStart;
     }
-
     // ============ activeIndex 变化时，自动滚动到可见区 ============
     $: {
         const idx = activeIndex;
@@ -461,6 +525,16 @@
     on:contextmenu|preventDefault={(e) =>
         onBarContextMenu(e.clientX, e.clientY)}
 >
+    <!-- ★ 新增：TabBar 局部 Tooltip 浮层 -->
+    {#if localTooltipVisible}
+        <div class="tab-local-tooltip" style={localTooltipStyle}>
+            <span>{localTooltipText}</span>
+            {#if localTooltipShortcut}
+                <span class="shortcut">{localTooltipShortcut}</span>
+            {/if}
+        </div>
+    {/if}
+
     <!-- 顶部留白：也是拖动区域 (仅在无侧边栏时) -->
     {#if !sidebarMode}
         <div class="drag-strip" data-tauri-drag-region></div>
@@ -593,13 +667,21 @@
         </div>
     {/if}
 
+    <!-- 新建标签按钮 -->
     <button
         class="new-tab"
         on:click={onNew}
+        on:mouseenter={(e) =>
+            showLocalTooltip(
+                e,
+                t("tab_bar.new_tab", undefined, $resolvedLocale) || "新建标签",
+                `${mod}+T`,
+            )}
+        on:mouseleave={hideLocalTooltip}
         on:contextmenu|preventDefault|stopPropagation
         aria-label="新建标签">+</button
     >
-
+    <!-- 空白拖拽区域 -->
     <div
         class="blank-area"
         data-tauri-drag-region
@@ -613,6 +695,12 @@
             class="settings-btn"
             class:active-preview={isPreviewOpen}
             on:click={onTogglePreview}
+            on:mouseenter={(e) =>
+                showLocalTooltip(
+                    e,
+                    t("tab_bar.preview", undefined, $resolvedLocale) || "预览",
+                )}
+            on:mouseleave={hideLocalTooltip}
             aria-label="预览"
         >
             <!-- 眼睛图标 -->
@@ -631,7 +719,7 @@
             </svg>
         </button>
     {/if}
-
+    <!-- 设置按钮 -->
     <button
         class="settings-btn"
         on:click={(e) => {
@@ -640,6 +728,12 @@
             ).getBoundingClientRect();
             onSettingsClick(rect.right, rect.bottom);
         }}
+        on:mouseenter={(e) =>
+            showLocalTooltip(
+                e,
+                t("tab_bar.settings", undefined, $resolvedLocale) || "设置",
+            )}
+        on:mouseleave={hideLocalTooltip}
         aria-label="设置"
     >
         <svg
@@ -803,11 +897,11 @@
     .tab {
         display: flex;
         align-items: center;
-        padding: 0 5px 0 10px;
+        padding: 0 10px;
         margin-top: 6px;
         height: 32px;
         background: var(--tab-background);
-        border-right: 1px solid var(--tab-border);
+        /* border-right: 1px solid var(--tab-border); */
         cursor: pointer;
         font-size: 13px;
         color: var(--tab-foreground);
@@ -845,11 +939,30 @@
         background: var(--tab-background-active);
         color: var(--tab-foreground-active);
         border-radius: 8px 8px 0 0;
-        border-right-color: transparent;
     }
-    /* ★ 新增：如果下一个标签是激活状态，隐藏当前标签的右边框，消除激活标签左侧的竖线 */
-    .tab.prev-is-active {
-        border-right-color: transparent;
+
+    /* ★ 新增：非激活标签之间的短分割线 */
+    .tab::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 7px; /* 距离顶部留白 */
+        bottom: 7px; /* 距离底部留白，配合 32px 高度，刚好留出一截短竖线 */
+        width: 1px;
+        background-color: var(
+            --status-bar-foreground-muted
+        ); /* 如果觉得不够明显，可以换成 var(--tab-foreground-muted) 并加一点透明度 */
+        pointer-events: none; /* 防止挡住鼠标事件 */
+    }
+
+    /* ★ 隐藏不需要分割线的特殊情况： */
+    /* 1. 激活标签自己不需要右边线（它有圆角背景） */
+    .tab.active::after {
+        display: none;
+    }
+    /* 2. 如果下一个标签是激活状态，当前标签也不需要右边线（消除激活标签左侧的竖线） */
+    .tab.prev-is-active::after {
+        display: none;
     }
     .tab.dragging {
         opacity: 0.5;
@@ -1140,5 +1253,34 @@
     /* 3. 给设置按钮右侧留出一点呼吸空间 */
     :global(.tab-bar.mac-platform) .settings-btn {
         margin-right: 10px;
+    }
+
+    /* ==========================================
+       TabBar 专属 Tooltip (完美融入主题)
+       ========================================== */
+    .tab-local-tooltip {
+        position: fixed;
+        background: var(--overlay-background);
+        color: var(--overlay-foreground);
+        border: 1px solid var(--overlay-border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+
+        /* 强制单行，绝对不换行 */
+        white-space: nowrap;
+        z-index: 99999;
+        pointer-events: none; /* 防止触发奇怪的 hover 闪烁 */
+        display: flex;
+        align-items: center;
+        font-family: sans-serif;
+    }
+
+    .tab-local-tooltip .shortcut {
+        margin-left: 8px;
+        /* 自动跟随主题：主色变淡的置灰效果 */
+        color: var(--status-bar-foreground-muted);
+        font-size: 11px;
     }
 </style>

@@ -20,6 +20,11 @@ export const nlNL: Record<string, string> = {
   "dialog.update_confirm": "Downloaden",
   "dialog.update_cancel": "Annuleren",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nieuw tabblad",
+  "tab_bar.settings": "Instellingen",
+  "tab_bar.preview": "Voorbeeld",
+
   // ===== Taalopties =====
 
   // ===== Tabblad-contextmenu =====
@@ -30,6 +35,7 @@ export const nlNL: Record<string, string> = {
   "tab_menu.close_left": "Tabbladen links sluiten",
   "tab_menu.close_right": "Tabbladen rechts sluiten",
   "tab_menu.close_all": "Alles sluiten",
+  "tab_menu.reopen": "Gesloten tabblad heropenen",
   "tab_menu.copy_path": "Bestandspad kopiëren",
   "tab_menu.reveal_in_explorer": "Weergeven in Verkenner",
   "tab_menu.diff": "Vergelijken",
@@ -78,6 +84,8 @@ export const nlNL: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} regels · {chars} tekens geselecteerd",
   "status.short_line_numbers": "Regels",
   "status.short_word_wrap": "Terugloop",
+  "status.zoom_tooltip": "Zoomniveau",
+  "status.scroll_wheel": "Muiswiel",
   "status.encoding_tooltip": "Codering: {encoding}",
   "status.line_ending_lf": "Unix regeleinde (LF)",
   "status.line_ending_crlf": "Windows regeleinde (CRLF)",

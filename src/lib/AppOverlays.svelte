@@ -103,6 +103,11 @@
             role="dialog"
             tabindex="-1"
         >
+            <!-- ★ 新增：如果有副标题（如文件路径），优先渲染副标题并弱化 -->
+            {#if modal.subtitle}
+                <div class="modal-subtitle">{modal.subtitle}</div>
+            {/if}
+            <!-- 主标题：显示核心提示语 -->
             <div class="modal-title">{modal.title}</div>
             {#each modal.rows as row}
                 <div class="modal-row" class:narrow-btns={row.length === 2}>
@@ -110,6 +115,7 @@
                         <button
                             class="modal-btn"
                             class:primary={btn.style === "primary"}
+                            class:secondary={btn.style === "secondary"}
                             class:large={btn.size === "large"}
                             class:small={btn.size === "small"}
                             onclick={btn.action}>{btn.label}</button
@@ -151,7 +157,12 @@
                 {t("settings.view", undefined, $resolvedLocale)}
             </div>
             <!-- 显示行号开关 -->
-            <button class="context-item" onclick={onToggleLineNumbers}>
+            <button
+                class="context-item"
+                class:disabled={largeFile}
+                disabled={largeFile}
+                onclick={onToggleLineNumbers}
+            >
                 <span
                     >{t(
                         "settings.show_line_numbers",
@@ -159,10 +170,10 @@
                         $resolvedLocale,
                     )}</span
                 >
-                <!-- ★ 替换为 Toggle 组件 -->
                 <Toggle
                     checked={showLineNumbers}
                     onChange={onToggleLineNumbers}
+                    disabled={largeFile}
                 />
             </button>
             <!-- 自动换行开关 -->
@@ -175,10 +186,11 @@
                 <span
                     >{t("settings.word_wrap", undefined, $resolvedLocale)}</span
                 >
-                <!-- ★ 替换为 Toggle 组件 -->
+
                 <Toggle
-                    checked={wordWrap && !largeFile}
+                    checked={wordWrap}
                     onChange={onToggleWordWrap}
+                    disabled={largeFile}
                 />
             </button>
 
@@ -733,178 +745,214 @@
 {/if}
 
 <style>
-    /* 通用弹窗样式 */
+    /* ==========================================
+     现代化弹窗基础
+     ========================================== */
+    /* ===== 遮罩层与毛玻璃背景 ===== */
     .modal-overlay {
         position: fixed;
         inset: 0;
-        /* ★ 保持你喜欢的遮罩颜色不变 */
-        background: rgba(0, 0, 0, 0.35);
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        animation: fadeIn 0.15s ease-out;
+        animation: fadeIn 0.2s ease-out;
     }
 
+    /* ===== 弹窗主体：参考图的玻璃质感 ===== */
     .modal {
-        background: var(--overlay-background);
-        color: var(--overlay-foreground);
-        /* ★ 优化 1：加大圆角和内边距，让空间更宽裕、更现代化 */
-        border-radius: 12px;
-        padding: 24px 28px;
-        min-width: 320px;
-        max-width: 480px;
-        /* ★ 优化 2：更柔和、更高阶的阴影（与主题搭配的深色系） */
+        width: 440px;
+        max-width: 90vw;
+        padding: 24px 28px 20px;
+        background: color-mix(
+            in srgb,
+            var(--overlay-background) 85%,
+            transparent
+        );
+        backdrop-filter: blur(30px) saturate(200%);
+        -webkit-backdrop-filter: blur(30px) saturate(200%);
+        border-radius: 18px;
         box-shadow:
-            0 12px 32px rgba(0, 0, 0, 0.18),
-            0 2px 8px rgba(0, 0, 0, 0.08);
-        /* ★ 优化 3：应用系统原生无衬线字体栈，更接近桌面软件质感 */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-            Helvetica, Arial, sans-serif;
-        animation: scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-        border: 1px solid var(--overlay-border);
-    }
-
-    .modal-title {
-        /* ★ 优化 4：标题（实际上是核心询问文字）加大字号和行高，更加清晰 */
-        font-size: 15px;
-        font-weight: 500;
+            0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+            0 0 0 0.5px rgba(0, 0, 0, 0.1),
+            0 20px 40px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+            "Helvetica Neue", sans-serif;
+        animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         color: var(--overlay-foreground);
-        margin-bottom: 24px; /* 加大与按钮的间距 */
-        word-wrap: break-word;
-        line-height: 1.6;
-        white-space: pre-line;
     }
 
+    /* ===== 主标题（核心提示语） ===== */
+    .modal-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--overlay-foreground);
+        line-height: 1.5;
+        margin-bottom: 24px;
+        white-space: pre-line;
+        word-break: break-all;
+    }
+
+    /* ===== 副标题（弱化的文件路径） ===== */
+    .modal-subtitle {
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--status-bar-foreground-muted);
+        line-height: 1.6;
+        margin-bottom: 8px;
+        word-break: break-all;
+    }
+
+    /* ==========================================
+     弹窗按钮系统
+     ========================================== */
     .modal-row {
         display: flex;
-        /* ★ 优化 5：加大按钮间距，防止误触 */
-        gap: 12px;
-        margin-top: 10px;
+        gap: 10px;
+        margin-top: 12px;
         width: 100%;
         align-items: center;
-        justify-content: center; /* 居中排布 */
+        justify-content: center;
     }
 
-    /* ===================================================
-       ★ 针对大按钮（第一排：覆盖磁盘、重新加载等）的现代设计
-       =================================================== */
-    .modal-btn.large {
-        flex: 1;
-        /* 饱满的内边距和字号 */
-        padding: 10px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        background: var(--overlay-hover-background);
-        border: 1px solid var(--overlay-border);
-        color: var(--overlay-foreground);
+    /* ===== 按钮基础瘦身统一样式 ===== */
+    .modal-btn {
+        height: 34px;
+        padding: 0 16px;
         border-radius: 8px;
+        border: none;
+        /* ★ 核心绝杀：摧毁浏览器原生按钮白底 */
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+
+        font-size: 13px;
+        font-weight: 500;
         cursor: pointer;
-        font-family: inherit;
         transition: all 0.15s ease;
-        user-select: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+        flex: none;
     }
 
-    /* 大按钮的主按钮色（如：覆盖磁盘） */
-    .modal-btn.large.primary {
-        background: var(--accent);
-        color: #ffffff;
-        border-color: transparent;
-        /* 增加一点点主色的光晕，让主按钮浮起来 */
-        box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 30%, transparent);
+    .modal-btn.large {
+        min-width: 130px;
+        flex: 0 1 130px;
     }
 
-    /* 大按钮的悬停反馈：绝不改变文字颜色，只改变背景 */
-    .modal-btn.large:hover {
+    /* ===== 第一排第一个按钮：Overwrite（主操作），保持主题色 ===== */
+    .modal-row:first-of-type .modal-btn.large:first-child {
+        background: #0db3db !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(13, 179, 219, 0.25) !important;
+    }
+    .modal-row:first-of-type .modal-btn.large:first-child:hover {
+        background: #0c9fbd !important;
+    }
+
+    /* ===== 第一排第二个按钮：Discard/Reload（回归正常的次级质感） ===== */
+    .modal-btn.secondary {
+        /* 背景：保持高级的“主题自适应灰” */
+        background: color-mix(
+            in srgb,
+            var(--overlay-background) 88%,
+            var(--overlay-foreground) 12%
+        ) !important;
+
+        /* 边框：稍深一点的灰色，勾勒轮廓 */
+        border: 1px solid
+            color-mix(
+                in srgb,
+                var(--overlay-background) 70%,
+                var(--overlay-foreground) 30%
+            ) !important;
+
+        /* ★ 核心修改：使用标准的弹窗文字颜色，绝对不突兀 */
+        color: var(--overlay-foreground) !important;
+
+        /* 稍微降低一点字重，和主按钮（500）拉开微小的差距 */
+        font-weight: 400;
+        box-shadow: none !important;
+        transition: all 0.2s ease;
+    }
+
+    /* 悬停状态：背景稍微加深，不再泛红 */
+    .modal-btn.secondary:hover {
+        background: color-mix(
+            in srgb,
+            var(--overlay-background) 80%,
+            var(--overlay-foreground) 20%
+        ) !important;
+        border-color: color-mix(
+            in srgb,
+            var(--overlay-background) 60%,
+            var(--overlay-foreground) 40%
+        ) !important;
+    }
+
+    /* ===== 第二排的三个小按钮 (Compare, Save As, Cancel) ===== */
+    .modal-btn.small {
+        background: transparent;
+        color: var(--overlay-foreground-muted);
+        padding: 0 12px;
+        font-weight: 400;
+    }
+    .modal-btn.small:hover {
         background: color-mix(
             in srgb,
             var(--overlay-foreground) 8%,
-            var(--overlay-background)
+            transparent
         );
-    }
-    .modal-btn.large.primary:hover {
-        background: color-mix(in srgb, var(--accent) 90%, black);
-    }
-    .modal-btn.large:active {
-        transform: scale(0.98);
-    }
-
-    /* ===================================================
-       ★ 针对小按钮（第二排：对比差异、另存为、取消）的文字链接设计
-       =================================================== */
-    .modal-btn.small {
-        flex: none; /* 不强制平分空间，根据文字长度自适应 */
-        padding: 6px 12px;
-        font-size: 13px;
-        /* 纯净无背景无边框 */
-        background: transparent;
-        border: none;
-        /* 文字用次要颜色弱化，不抢主按钮风头 */
-        color: var(--status-bar-foreground-muted);
-        border-radius: 6px;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.15s ease;
-        user-select: none;
-    }
-
-    /* 悬停时变成主题强调色（如青色/蓝色），提示可点击 */
-    .modal-btn.small:hover {
-        color: var(--accent);
-        background: color-mix(in srgb, var(--accent) 10%, transparent);
-    }
-    .modal-btn.small:active {
-        transform: scale(0.96);
-    }
-
-    /* 针对只有 1 个按钮或 2 个按钮的普通弹窗（如“未保存是否关闭”） */
-    /* 此时未传入 size="large"，走默认样式 */
-    .modal-btn:not(.large):not(.small) {
-        flex: 1;
-        padding: 8px 16px;
-        font-size: 13px;
-        font-weight: 500;
-        background: var(--overlay-hover-background);
-        border: 1px solid var(--overlay-border);
         color: var(--overlay-foreground);
         border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.15s ease;
+    }
+
+    /* ===== 普通按钮 (适用于图2的三个按钮：Yes / No / Cancel) ===== */
+    .modal-btn:not(.large):not(.small) {
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 8%,
+            transparent
+        );
+        color: var(--overlay-foreground);
+        min-width: 90px;
+        border: 0.5px solid
+            color-mix(in srgb, var(--overlay-foreground) 10%, transparent);
     }
     .modal-btn:not(.large):not(.small):hover {
         background: color-mix(
             in srgb,
-            var(--overlay-foreground) 8%,
-            var(--overlay-background)
+            var(--overlay-foreground) 12%,
+            transparent
         );
     }
-    .modal-btn:not(.large):not(.small).primary {
-        background: var(--accent);
-        color: #ffffff;
-        border-color: transparent;
+
+    /* 图2的 Yes (主操作) 依然是主题色 */
+    .modal-btn.primary {
+        background: #0db3db !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 2px 6px rgba(13, 179, 219, 0.25);
     }
-    .modal-btn:not(.large):not(.small).primary:hover {
-        background: color-mix(in srgb, var(--accent) 90%, black);
+    .modal-btn.primary:hover {
+        background: #0c9fbd !important;
     }
 
-    /* 保证只有单个按钮时，按钮不会被拉得太长，始终居中 */
+    /* 保证只有单个按钮时居中 */
     .modal-row > .modal-btn:only-child {
-        flex: none;
-        min-width: 120px;
-        padding-left: 24px;
-        padding-right: 24px;
         margin: 0 auto;
     }
 
-    .modal-row.narrow-btns {
-        justify-content: center;
-    }
-    .modal-row.narrow-btns .modal-btn {
-        flex: none;
-        min-width: 120px;
-    }
-
-    /* 关于弹窗样式 */
+    /* ==========================================
+     关于弹窗样式 
+     ========================================== */
     .about-card {
         background: var(--overlay-background);
         border: 1px solid var(--overlay-border);
@@ -971,7 +1019,9 @@
         filter: brightness(0.9);
     }
 
-    /* 通用菜单及设置菜单样式 */
+    /* ==========================================
+     通用菜单及设置菜单样式
+     ========================================== */
     .context-overlay {
         position: fixed;
         inset: 0;
@@ -989,6 +1039,7 @@
         flex-direction: column;
         font-family: sans-serif;
     }
+
     .settings-menu {
         min-width: 150px;
     }
@@ -1066,24 +1117,20 @@
         color: var(--overlay-foreground-muted);
     }
 
-    /* ★ 新增：对比菜单里的列表项 */
+    /* ==========================================
+     对比菜单里的列表项
+     ========================================== */
     .diff-item-btn {
         display: block;
         width: 100%;
-        min-width: 0; /* 允许文字截断 */
+        min-width: 0;
         text-align: left;
         overflow: hidden;
-
-        /* ★ 核心修复 1：拒绝被 Flex 挤压，保持原本的物理高度 */
         flex-shrink: 0;
-
-        /* ★ 核心修复 2：确保行高和内边距不被格式化工具删掉 */
         padding: 6px 12px;
         line-height: 1.5;
         box-sizing: border-box;
     }
-
-    /* ★ 新增：文字单行截断，显示省略号 */
     .diff-item-text {
         display: block;
         width: 100%;
@@ -1093,38 +1140,26 @@
     }
 
     /* ==========================================
-     极简超细滚动条定制 (让菜单和编辑器风格统一)
+     极简超细滚动条定制
      ========================================== */
-
-    /* 针对所有带有滚动条的右键菜单和二级菜单 */
     .context-menu::-webkit-scrollbar {
-        width: 6px; /* 宽度极细 */
-        height: 6px; /* 横向滚动条也变细 */
+        width: 6px;
+        height: 6px;
     }
-
-    /* 滚动条轨道（底色）保持透明，不占用视觉空间 */
     .context-menu::-webkit-scrollbar-track {
         background: transparent;
     }
-
-    /* 滚动条滑块（那根可以拖动的条） */
     .context-menu::-webkit-scrollbar-thumb {
         background: var(--overlay-foreground-muted);
         opacity: 0.5;
-        border-radius: 4px; /* 圆角显得更柔和 */
+        border-radius: 4px;
     }
-
-    /* 鼠标悬停在滑块上时，颜色加深，提示用户 */
     .context-menu::-webkit-scrollbar-thumb:hover {
         background: var(--overlay-foreground);
     }
-
-    /* 隐藏原生滚动条两端的上下小箭头（极其丑陋） */
     .context-menu::-webkit-scrollbar-button {
         display: none;
     }
-
-    /* 给靠右的子菜单加左侧隐形桥梁 */
     .context-menu.bridge-left::before {
         content: "";
         position: absolute;
@@ -1133,8 +1168,6 @@
         left: -8px;
         width: 8px;
     }
-
-    /* 给靠左的子菜单加右侧隐形桥梁 */
     .context-menu.bridge-right::before {
         content: "";
         position: absolute;
@@ -1142,5 +1175,27 @@
         bottom: 0;
         right: -8px;
         width: 8px;
+    }
+
+    /* ==========================================
+     弹窗动画
+     ========================================== */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 </style>

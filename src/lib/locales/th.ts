@@ -20,6 +20,11 @@ export const thTH: Record<string, string> = {
   "dialog.update_confirm": "ดาวน์โหลด",
   "dialog.update_cancel": "ยกเลิก",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "แท็บใหม่",
+  "tab_bar.settings": "การตั้งค่า",
+  "tab_bar.preview": "ตัวอย่าง",
+
   // ===== ตัวเลือกภาษา =====
 
   // ===== เมนูคลิกขวาที่แท็บ =====
@@ -30,6 +35,7 @@ export const thTH: Record<string, string> = {
   "tab_menu.close_left": "ปิดแท็บด้านซ้าย",
   "tab_menu.close_right": "ปิดแท็บด้านขวา",
   "tab_menu.close_all": "ปิดทั้งหมด",
+  "tab_menu.reopen": "เปิดแท็บที่ปิดไปแล้วอีกครั้ง",
   "tab_menu.copy_path": "คัดลอกที่อยู่ไฟล์",
   "tab_menu.reveal_in_explorer": "เปิดใน Explorer",
   "tab_menu.diff": "เปรียบเทียบ",
@@ -78,6 +84,8 @@ export const thTH: Record<string, string> = {
   "status.selected_lines_and_chars": "เลือก {lines} บรรทัด · {chars} ตัวอักษร",
   "status.short_line_numbers": "บรรทัด",
   "status.short_word_wrap": "ตัดบรรทัด",
+  "status.zoom_tooltip": "ระดับการซูม",
+  "status.scroll_wheel": "ล้อ",
   "status.encoding_tooltip": "การเข้ารหัส: {encoding}",
   "status.line_ending_lf": "ขึ้นบรรทัดใหม่แบบ Unix (LF)",
   "status.line_ending_crlf": "ขึ้นบรรทัดใหม่แบบ Windows (CRLF)",

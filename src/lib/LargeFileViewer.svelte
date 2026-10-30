@@ -380,6 +380,12 @@
                 horizontalScrollbarSize: 10,
                 useShadows: false,
             },
+            unicodeHighlight: {
+                ambiguousCharacters: false,
+                invisibleCharacters: false,
+            },
+            // ★ 核心终极杀招：彻底禁止渲染任何语法/语义校验的波浪线
+            renderValidationDecorations: "off",
         });
 
         // 屏蔽 Monaco 内部快捷键

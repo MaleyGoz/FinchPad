@@ -20,6 +20,11 @@ export const es: Record<string, string> = {
   "dialog.update_confirm": "Descargar",
   "dialog.update_cancel": "Cancelar",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nueva pestaña",
+  "tab_bar.settings": "Ajustes",
+  "tab_bar.preview": "Vista previa",
+
   // ===== Opciones de Idioma =====
 
   // ===== Menú Contextual de Pestaña =====
@@ -30,6 +35,7 @@ export const es: Record<string, string> = {
   "tab_menu.close_left": "Cerrar pestañas a la izquierda",
   "tab_menu.close_right": "Cerrar pestañas a la derecha",
   "tab_menu.close_all": "Cerrar todo",
+  "tab_menu.reopen": "Reabrir pestaña cerrada",
   "tab_menu.copy_path": "Copiar ruta del archivo",
   "tab_menu.reveal_in_explorer": "Mostrar en el explorador",
   "tab_menu.diff": "Comparar",
@@ -78,6 +84,8 @@ export const es: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} líneas · {chars} caracteres seleccionados",
   "status.short_line_numbers": "Líneas",
   "status.short_word_wrap": "Ajuste",
+  "status.zoom_tooltip": "Nivel de zoom",
+  "status.scroll_wheel": "Rueda",
   "status.encoding_tooltip": "Codificación: {encoding}",
   "status.line_ending_lf": "Final de línea Unix (LF)",
   "status.line_ending_crlf": "Final de línea Windows (CRLF)",

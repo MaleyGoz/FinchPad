@@ -20,6 +20,11 @@ export const ko: Record<string, string> = {
   "dialog.update_confirm": "다운로드",
   "dialog.update_cancel": "취소",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "새 탭",
+  "tab_bar.settings": "설정",
+  "tab_bar.preview": "미리보기",
+
   // ===== 언어 옵션 =====
 
   // ===== 탭 컨텍스트 메뉴 =====
@@ -30,6 +35,7 @@ export const ko: Record<string, string> = {
   "tab_menu.close_left": "왼쪽 탭 닫기",
   "tab_menu.close_right": "오른쪽 탭 닫기",
   "tab_menu.close_all": "모두 닫기",
+  "tab_menu.reopen": "닫힌 탭 다시 열기",
   "tab_menu.copy_path": "파일 경로 복사",
   "tab_menu.reveal_in_explorer": "탐색기에서 열기",
   "tab_menu.diff": "비교",
@@ -78,6 +84,8 @@ export const ko: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines}줄 · {chars}글자 선택됨",
   "status.short_line_numbers": "줄 번호",
   "status.short_word_wrap": "줄 바꿈",
+  "status.zoom_tooltip": "확대/축소 비율",
+  "status.scroll_wheel": "휠",
   "status.encoding_tooltip": "인코딩: {encoding}",
   "status.line_ending_lf": "Unix 줄 끝 (LF)",
   "status.line_ending_crlf": "Windows 줄 끝 (CRLF)",

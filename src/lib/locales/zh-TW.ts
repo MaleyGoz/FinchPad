@@ -20,6 +20,11 @@ export const zhTW: Record<string, string> = {
   "dialog.update_confirm": "前往下載",
   "dialog.update_cancel": "取消",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "新增分頁",
+  "tab_bar.settings": "設定",
+  "tab_bar.preview": "預覽",
+
   // ===== 語言選項 =====
 
   // ===== 標籤右鍵選單 =====
@@ -30,6 +35,7 @@ export const zhTW: Record<string, string> = {
   "tab_menu.close_left": "關閉左側標籤",
   "tab_menu.close_right": "關閉右側標籤",
   "tab_menu.close_all": "全部關閉",
+  "tab_menu.reopen": "重新開啟關閉的分頁",
   "tab_menu.copy_path": "複製檔案路徑",
   "tab_menu.reveal_in_explorer": "開啟所在資料夾",
   "tab_menu.diff": "比對",
@@ -77,6 +83,8 @@ export const zhTW: Record<string, string> = {
   "status.selected_lines_and_chars": "選中 {lines} 行 · {chars} 字元",
   "status.short_line_numbers": "行號",
   "status.short_word_wrap": "換行",
+  "status.zoom_tooltip": "縮放比例",
+  "status.scroll_wheel": "滾輪",
   "status.encoding_tooltip": "文字編碼：{encoding}",
   "status.line_ending_lf": "Unix 換行符（LF）",
   "status.line_ending_crlf": "Windows 換行符（CRLF）",

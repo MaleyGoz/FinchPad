@@ -20,6 +20,11 @@ export const faIR: Record<string, string> = {
   "dialog.update_confirm": "دانلود",
   "dialog.update_cancel": "انصراف",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "زبانه جدید",
+  "tab_bar.settings": "تنظیمات",
+  "tab_bar.preview": "پیش‌نمایش",
+
   // ===== گزینه‌های زبان =====
 
   // ===== منوی راست‌کلیک زبانه =====
@@ -30,6 +35,7 @@ export const faIR: Record<string, string> = {
   "tab_menu.close_left": "بستن زبانه‌های سمت چپ",
   "tab_menu.close_right": "بستن زبانه‌های سمت راست",
   "tab_menu.close_all": "بستن همه",
+  "tab_menu.reopen": "بازگشایی زبانه بسته شده",
   "tab_menu.copy_path": "کپی مسیر فایل",
   "tab_menu.reveal_in_explorer": "نمایش در Explorer",
   "tab_menu.diff": "مقایسه",
@@ -78,6 +84,8 @@ export const faIR: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} خط · {chars} نویسه انتخاب شد",
   "status.short_line_numbers": "خطوط",
   "status.short_word_wrap": "شکستن کلمه",
+  "status.zoom_tooltip": "میزان بزرگنمایی",
+  "status.scroll_wheel": "اسکرول",
   "status.encoding_tooltip": "رمزگذاری: {encoding}",
   "status.line_ending_lf": "پایان خط یونیکس (LF)",
   "status.line_ending_crlf": "پایان خط ویندوز (CRLF)",

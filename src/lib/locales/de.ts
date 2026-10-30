@@ -20,6 +20,11 @@ export const de: Record<string, string> = {
   "dialog.update_confirm": "Herunterladen",
   "dialog.update_cancel": "Abbrechen",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Neuer Tab",
+  "tab_bar.settings": "Einstellungen",
+  "tab_bar.preview": "Vorschau",
+
   // ===== Sprachoptionen =====
 
   // ===== Tab-Kontextmenü =====
@@ -30,6 +35,7 @@ export const de: Record<string, string> = {
   "tab_menu.close_left": "Tabs links schließen",
   "tab_menu.close_right": "Tabs rechts schließen",
   "tab_menu.close_all": "Alle schließen",
+  "tab_menu.reopen": "Geschlossenen Tab wieder öffnen",
   "tab_menu.copy_path": "Dateipfad kopieren",
   "tab_menu.reveal_in_explorer": "Im Explorer anzeigen",
   "tab_menu.diff": "Vergleichen",
@@ -78,6 +84,8 @@ export const de: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} Zeilen · {chars} Zeichen ausgewählt",
   "status.short_line_numbers": "Zeilen",
   "status.short_word_wrap": "Umbruch",
+  "status.zoom_tooltip": "Zoomstufe",
+  "status.scroll_wheel": "Mausrad",
   "status.encoding_tooltip": "Kodierung: {encoding}",
   "status.line_ending_lf": "Unix-Zeilenende (LF)",
   "status.line_ending_crlf": "Windows-Zeilenende (CRLF)",

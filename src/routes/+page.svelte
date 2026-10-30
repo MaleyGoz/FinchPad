@@ -76,6 +76,7 @@
     type ModalState = {
         visible: boolean;
         title: string;
+        subtitle?: string;
         rows: ModalButton[][];
         onAbort?: () => void;
     };
@@ -1380,14 +1381,23 @@
             ? t("dialog.conflict_discard_close")
             : t("dialog.conflict_discard");
 
-        // ★ 新增：从 snapshot 取路径（优先完整路径，回退到标题）
+        // 从 snapshot 取路径（优先完整路径，回退到标题）
         const filePath =
             snapshot.tab_paths[idx] || snapshot.tab_titles[idx] || "";
-        const modalTitle = t("dialog.conflict_title", { path: filePath });
+
+        // ★ 核心修改：获取原始多行字符串并拆分
+        const fullTitle = t("dialog.conflict_title", { path: filePath });
+        const parts = fullTitle.split("\n");
+
+        // 如果按换行符切分出了 2 段以上，说明包含路径和提示语
+        const sub = parts.length > 1 ? parts[0] : "";
+        const mainTitle =
+            parts.length > 1 ? parts.slice(1).join("\n").trim() : fullTitle;
 
         modal = {
             visible: true,
-            title: modalTitle,
+            subtitle: sub, // ★ 将路径传给新增的 subtitle 字段
+            title: mainTitle, // ★ 将剩余的主提示语传给 title
             rows: [
                 // 第一排：2 个大按钮
                 [
@@ -1402,7 +1412,7 @@
                     },
                     {
                         label: secondLabel,
-                        style: "primary",
+                        style: "secondary", // ★ 核心修改：打上次级标签
                         size: "large",
                         action: async () => {
                             if (isCloseMode) {
@@ -1442,7 +1452,7 @@
                     },
                 ],
             ],
-            onAbort, // ★ 存到 modal 对象里
+            onAbort, // 存到 modal 对象里
         };
     }
 
@@ -2198,6 +2208,7 @@
                 {zoom}
                 {wordWrap}
                 wordWrapDisabled={snapshot.large_file}
+                lineNumbersDisabled={snapshot.large_file}
                 onToggleWordWrap={handleToggleWordWrap}
                 onZoomChange={setZoomValue}
                 {sidebarMode}

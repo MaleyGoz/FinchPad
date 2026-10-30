@@ -20,6 +20,11 @@ export const plPL: Record<string, string> = {
   "dialog.update_confirm": "Pobierz",
   "dialog.update_cancel": "Anuluj",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nowa karta",
+  "tab_bar.settings": "Ustawienia",
+  "tab_bar.preview": "Podgląd",
+
   // ===== Opcje języka =====
 
   // ===== Menu kontekstowe karty =====
@@ -30,6 +35,7 @@ export const plPL: Record<string, string> = {
   "tab_menu.close_left": "Zamknij karty po lewej",
   "tab_menu.close_right": "Zamknij karty po prawej",
   "tab_menu.close_all": "Zamknij wszystko",
+  "tab_menu.reopen": "Otwórz ponownie zamkniętą kartę",
   "tab_menu.copy_path": "Kopiuj ścieżkę pliku",
   "tab_menu.reveal_in_explorer": "Pokaż w Eksploratorze",
   "tab_menu.diff": "Porównaj",
@@ -78,6 +84,8 @@ export const plPL: Record<string, string> = {
   "status.selected_lines_and_chars": "Zaznaczono {lines} wierszy · {chars} znaków",
   "status.short_line_numbers": "Wiersze",
   "status.short_word_wrap": "Zawijanie",
+  "status.zoom_tooltip": "Poziom powiększenia",
+  "status.scroll_wheel": "Kółko",
   "status.encoding_tooltip": "Kodowanie: {encoding}",
   "status.line_ending_lf": "Koniec wiersza Unix (LF)",
   "status.line_ending_crlf": "Koniec wiersza Windows (CRLF)",

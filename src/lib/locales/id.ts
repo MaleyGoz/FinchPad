@@ -20,6 +20,11 @@ export const idID: Record<string, string> = {
   "dialog.update_confirm": "Unduh",
   "dialog.update_cancel": "Batal",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Tab Baru",
+  "tab_bar.settings": "Pengaturan",
+  "tab_bar.preview": "Pratinjau",
+
   // ===== Language Options =====
 
   // ===== Tab Context Menu =====
@@ -30,6 +35,7 @@ export const idID: Record<string, string> = {
   "tab_menu.close_left": "Tutup Tab di Kiri",
   "tab_menu.close_right": "Tutup Tab di Kanan",
   "tab_menu.close_all": "Tutup Semua",
+  "tab_menu.reopen": "Buka Kembali Tab yang Ditutup",
   "tab_menu.copy_path": "Salin Jalur File",
   "tab_menu.reveal_in_explorer": "Tampilkan di Explorer",
   "tab_menu.diff": "Bandingkan",
@@ -78,6 +84,8 @@ export const idID: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} baris · {chars} karakter dipilih",
   "status.short_line_numbers": "Baris",
   "status.short_word_wrap": "Wrap",
+  "status.zoom_tooltip": "Tingkat Perbesaran",
+  "status.scroll_wheel": "Roda",
   "status.encoding_tooltip": "Encoding: {encoding}",
   "status.line_ending_lf": "Akhiran baris Unix (LF)",
   "status.line_ending_crlf": "Akhiran baris Windows (CRLF)",

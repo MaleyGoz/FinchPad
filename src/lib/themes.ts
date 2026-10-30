@@ -73,7 +73,7 @@ export const THEMES: Record<string, Theme> = {
         // 状态栏：弱化文字不再过淡
         status_bar_background: "#F3F3F3",
         status_bar_foreground: "#555555",
-        status_bar_foreground_muted: "#888888",
+        status_bar_foreground_muted: "#AAAAAA",
 
         // 浮层
         overlay_background: "#FFFFFF",
@@ -120,7 +120,7 @@ export const THEMES: Record<string, Theme> = {
         // 状态栏
         status_bar_background: "#e4e4e4",
         status_bar_foreground: "#555555",
-        status_bar_foreground_muted: "#777777",
+        status_bar_foreground_muted: "#A0A0A0",
 
         // 浮层：修复悬停背景与普通背景相同的问题
         overlay_background: "#e4e4e4",
@@ -167,7 +167,7 @@ export const THEMES: Record<string, Theme> = {
         // 状态栏
         status_bar_background: "#F0EAD8",
         status_bar_foreground: "#555555",
-        status_bar_foreground_muted: "#82796B",
+        status_bar_foreground_muted: "#B5AC9C",
 
         // 浮层：保留米黄色背景与暖色文字
         overlay_background: "#FDF6E3",
@@ -214,7 +214,7 @@ export const THEMES: Record<string, Theme> = {
         // 状态栏
         status_bar_background: "#BEE0C2",
         status_bar_foreground: "#555555",
-        status_bar_foreground_muted: "#55775A",
+        status_bar_foreground_muted: "#8EAD92",
 
         // 浮层
         overlay_background: "#F0F7F0",
@@ -261,8 +261,7 @@ export const THEMES: Record<string, Theme> = {
         // 状态栏
         status_bar_background: "#252526",
         status_bar_foreground: "#CCCCCC",
-        status_bar_foreground_muted: "#8A8A8A",
-
+        status_bar_foreground_muted: "#666666",
         // 浮层
         overlay_background: "#2D2D2D",
         overlay_foreground: "#DDDDDD",

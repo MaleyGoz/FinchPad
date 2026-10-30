@@ -20,6 +20,11 @@ export const viVN: Record<string, string> = {
   "dialog.update_confirm": "Tải xuống",
   "dialog.update_cancel": "Hủy",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Tab mới",
+  "tab_bar.settings": "Cài đặt",
+  "tab_bar.preview": "Xem trước",
+
   // ===== Tùy chọn ngôn ngữ =====
 
   // ===== Menu chuột phải trên thẻ =====
@@ -30,6 +35,7 @@ export const viVN: Record<string, string> = {
   "tab_menu.close_left": "Đóng thẻ bên trái",
   "tab_menu.close_right": "Đóng thẻ bên phải",
   "tab_menu.close_all": "Đóng tất cả",
+  "tab_menu.reopen": "Mở lại tab đã đóng",
   "tab_menu.copy_path": "Sao chép đường dẫn tệp",
   "tab_menu.reveal_in_explorer": "Mở trong Explorer",
   "tab_menu.diff": "So sánh",
@@ -77,6 +83,8 @@ export const viVN: Record<string, string> = {
   "status.selected_lines_and_chars": "Đã chọn {lines} dòng · {chars} ký tự",
   "status.short_line_numbers": "Số dòng",
   "status.short_word_wrap": "Ngắt dòng",
+  "status.zoom_tooltip": "Tỷ lệ thu phóng",
+  "status.scroll_wheel": "Con lăn",
   "status.encoding_tooltip": "Bảng mã: {encoding}",
   "status.line_ending_lf": "Ký tự xuống dòng Unix (LF)",
   "status.line_ending_crlf": "Ký tự xuống dòng Windows (CRLF)",

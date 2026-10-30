@@ -20,6 +20,11 @@ export const it: Record<string, string> = {
   "dialog.update_confirm": "Scarica",
   "dialog.update_cancel": "Annulla",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nuova scheda",
+  "tab_bar.settings": "Impostazioni",
+  "tab_bar.preview": "Anteprima",
+
   // ===== Opzioni Lingua =====
 
   // ===== Menu Contestuale Scheda =====
@@ -30,6 +35,7 @@ export const it: Record<string, string> = {
   "tab_menu.close_left": "Chiudi schede a sinistra",
   "tab_menu.close_right": "Chiudi schede a destra",
   "tab_menu.close_all": "Chiudi tutto",
+  "tab_menu.reopen": "Riapri scheda chiusa",
   "tab_menu.copy_path": "Copia percorso file",
   "tab_menu.reveal_in_explorer": "Mostra in Esplora risorse",
   "tab_menu.diff": "Confronta",
@@ -78,6 +84,8 @@ export const it: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} righe · {chars} caratteri selezionati",
   "status.short_line_numbers": "Righe",
   "status.short_word_wrap": "A capo",
+  "status.zoom_tooltip": "Livello di zoom",
+  "status.scroll_wheel": "Rotellina",
   "status.encoding_tooltip": "Codifica: {encoding}",
   "status.line_ending_lf": "Termine riga Unix (LF)",
   "status.line_ending_crlf": "Termine riga Windows (CRLF)",

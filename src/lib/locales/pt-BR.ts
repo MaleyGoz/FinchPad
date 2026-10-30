@@ -20,6 +20,11 @@ export const pt: Record<string, string> = {
   "dialog.update_confirm": "Baixar",
   "dialog.update_cancel": "Cancelar",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nova aba",
+  "tab_bar.settings": "Configurações",
+  "tab_bar.preview": "Visualizar",
+
   // ===== Opções de Idioma =====
 
   // ===== Menu de Contexto da Guia =====
@@ -30,6 +35,7 @@ export const pt: Record<string, string> = {
   "tab_menu.close_left": "Fechar guias à esquerda",
   "tab_menu.close_right": "Fechar guias à direita",
   "tab_menu.close_all": "Fechar tudo",
+  "tab_menu.reopen": "Reabrir aba fechada",
   "tab_menu.copy_path": "Copiar caminho do arquivo",
   "tab_menu.reveal_in_explorer": "Revelar no Explorador",
   "tab_menu.diff": "Comparar",
@@ -78,6 +84,8 @@ export const pt: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} linhas · {chars} caracteres selecionados",
   "status.short_line_numbers": "Linhas",
   "status.short_word_wrap": "Quebra",
+  "status.zoom_tooltip": "Nível de zoom",
+  "status.scroll_wheel": "Roda",
   "status.encoding_tooltip": "Codificação: {encoding}",
   "status.line_ending_lf": "Final de linha Unix (LF)",
   "status.line_ending_crlf": "Final de linha Windows (CRLF)",

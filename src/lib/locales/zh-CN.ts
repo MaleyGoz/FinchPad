@@ -20,6 +20,11 @@ export const zhCN: Record<string, string> = {
     "dialog.update_confirm": "前往下载",
     "dialog.update_cancel": "取消",
 
+    // ===== 标签栏 =====
+    "tab_bar.new_tab": "新建标签",
+    "tab_bar.settings": "设置",
+    "tab_bar.preview": "预览",
+
     // ===== 标签右键菜单 =====
     "tab_menu.save": "保存",
     "tab_menu.save_as": "另存为",
@@ -79,6 +84,8 @@ export const zhCN: Record<string, string> = {
     "status.selected_lines_and_chars": "选中 {lines} 行 · {chars} 字符",
     "status.short_line_numbers": "行号",
     "status.short_word_wrap": "换行",
+    "status.zoom_tooltip": "缩放比例",
+    "status.scroll_wheel": "滚轮",
     "status.encoding_tooltip": "文本编码：{encoding}",
     "status.line_ending_lf": "Unix 换行符（LF）",
     "status.line_ending_crlf": "Windows 换行符（CRLF）",

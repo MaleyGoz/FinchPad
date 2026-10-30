@@ -21,6 +21,11 @@ export const enUS: Record<string, string> = {
     "dialog.update_confirm": "Download",
     "dialog.update_cancel": "Cancel",
 
+    // ===== 标签栏 =====
+    "tab_bar.new_tab": "New Tab",
+    "tab_bar.settings": "Settings",
+    "tab_bar.preview": "Preview",
+
     // ===== Tab Context Menu =====
     "tab_menu.save": "Save",
     "tab_menu.save_as": "Save As",
@@ -81,6 +86,8 @@ export const enUS: Record<string, string> = {
     "status.selected_lines_and_chars": "{lines} lines · {chars} chars selected",
     "status.short_line_numbers": "Line Numbers",
     "status.short_word_wrap": "Word Wrap",
+    "status.zoom_tooltip": "Zoom",
+    "status.scroll_wheel": "Wheel",
     "status.encoding_tooltip": "Encoding: {encoding}",
     "status.line_ending_lf": "Unix line ending (LF)",
     "status.line_ending_crlf": "Windows line ending (CRLF)",

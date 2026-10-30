@@ -20,6 +20,11 @@ export const fr: Record<string, string> = {
   "dialog.update_confirm": "Télécharger",
   "dialog.update_cancel": "Annuler",
 
+  // ===== 标签栏 =====
+  "tab_bar.new_tab": "Nouvel onglet",
+  "tab_bar.settings": "Paramètres",
+  "tab_bar.preview": "Aperçu",
+
   // ===== Options de Langue =====
 
   // ===== Menu Contextuel d'Onglet =====
@@ -30,6 +35,7 @@ export const fr: Record<string, string> = {
   "tab_menu.close_left": "Fermer les onglets à gauche",
   "tab_menu.close_right": "Fermer les onglets à droite",
   "tab_menu.close_all": "Tout fermer",
+  "tab_menu.reopen": "Rouvrir l'onglet fermé",
   "tab_menu.copy_path": "Copier le chemin du fichier",
   "tab_menu.reveal_in_explorer": "Ouvrir dans l'explorateur",
   "tab_menu.diff": "Comparer",
@@ -78,6 +84,8 @@ export const fr: Record<string, string> = {
   "status.selected_lines_and_chars": "{lines} lignes · {chars} caractères sélectionnés",
   "status.short_line_numbers": "Lignes",
   "status.short_word_wrap": "Retour",
+  "status.zoom_tooltip": "Niveau de zoom",
+  "status.scroll_wheel": "Molette",
   "status.encoding_tooltip": "Encodage : {encoding}",
   "status.line_ending_lf": "Saut de ligne Unix (LF)",
   "status.line_ending_crlf": "Saut de ligne Windows (CRLF)",
