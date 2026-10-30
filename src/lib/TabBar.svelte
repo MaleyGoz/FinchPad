@@ -154,6 +154,18 @@
     const GAP = 1;
     const FIXED_WIDTH = ADD_BTN_W + SETTINGS_BTN_W + WINDOW_BTNS_W;
 
+    // 标签宽度计算的固定开销（不含文字）
+    const TAB_FONT =
+        '13px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'; // 与 .tab 的 font-size 一致
+    const TAB_PADDING_L = 10; // .tab 的 padding-left
+    const TAB_PADDING_R = 10; // .tab 的 padding-right
+    const CLOSE_BTN_W = 24; // 关闭按钮 × / 脏标记 ● 的预留宽度
+    const TAB_BORDER_W = 6; // .tab 的 border-right
+
+    // canvas 用于测量文字实际渲染宽度
+    let measureCanvas: HTMLCanvasElement | null = null;
+    let measureCtx: CanvasRenderingContext2D | null = null;
+
     // ★ 动态计算最小宽度：确保能放下“未命名 1”及其它短名称，但不至于过宽
     $: {
         // 注意：请确保你的 i18n 文件里，关于“未命名”的 key 是这个。
@@ -165,20 +177,10 @@
             TAB_PADDING_L + TAB_PADDING_R + CLOSE_BTN_W + TAB_BORDER_W;
 
         // 上下限约束：下限 80px 避免过于拥挤，上限 140px 避免因某些语言翻译太长导致标签栏溢出
-        minTabWidth = Math.max(80, Math.min(140, textW + fixedOverhead));
+        // ★ 增加 4px 的呼吸间距，下限提到 90px，上限提到 150px
+        const idealW = textW + fixedOverhead + 4;
+        minTabWidth = Math.max(90, Math.min(150, idealW));
     }
-
-    // 标签宽度计算的固定开销（不含文字）
-    const TAB_FONT =
-        '13px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'; // 与 .tab 的 font-size 一致
-    const TAB_PADDING_L = 5; // .tab 的 padding-left
-    const TAB_PADDING_R = 5; // .tab 的 padding-right
-    const CLOSE_BTN_W = 24; // 关闭按钮 × / 脏标记 ● 的预留宽度
-    const TAB_BORDER_W = 5; // .tab 的 border-right
-
-    // canvas 用于测量文字实际渲染宽度
-    let measureCanvas: HTMLCanvasElement | null = null;
-    let measureCtx: CanvasRenderingContext2D | null = null;
 
     function measureTextWidth(text: string): number {
         if (typeof document === "undefined") return text.length * 8;
