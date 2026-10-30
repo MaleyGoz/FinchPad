@@ -270,23 +270,50 @@ pub fn search_in_large_file(
     })
 }
 
-// 获取文件编码
+// 获取文件编码（大文件专属，使用更高准确率的 charset-normalizer-rs）
 #[tauri::command]
 pub fn get_file_encoding(path: String) -> Result<String, String> {
+    use charset_normalizer_rs::entity::NormalizerSettings;
+    use charset_normalizer_rs::from_bytes;
     use std::fs::File;
     use std::io::Read;
 
     let mut file = File::open(&path).map_err(|e| e.to_string())?;
-    // 读取前 1MB 用于探测，对 chardetng 足够了
+    // 读取前 1MB 用于探测
     let mut buf = vec![0; 1024 * 1024];
     let bytes_read = file.read(&mut buf).map_err(|e| e.to_string())?;
     buf.truncate(bytes_read);
 
-    let mut detector = chardetng::EncodingDetector::new();
-    detector.feed(&buf, true);
-    let encoding = detector.guess(None, true);
+    // ★ 核心配置：增加采样量，总计约 100KB
+    let settings = NormalizerSettings {
+        steps: 100,
+        chunk_size: 1024,
+        ..Default::default()
+    };
 
-    Ok(encoding.name().to_string())
+    // 调用新库进行检测，传入自定义配置
+    if let Ok(matches) = from_bytes(&buf, Some(settings)) {
+        if let Some(best) = matches.get_best() {
+            let raw_enc = best.encoding().to_lowercase();
+
+            let final_enc = match raw_enc.as_str() {
+                "utf-8" | "utf_8" => "UTF-8",
+                "gbk" | "gb2312" | "gb18030" => "GB18030",
+                "big5" => "Big5",
+                "shift_jis" | "shift-jis" => "Shift_JIS",
+                "euc-jp" | "euc_jp" => "EUC-JP",
+                "euc-kr" | "euc_kr" => "EUC-KR",
+                "windows-1252" | "cp1252" => "Windows-1252",
+                "windows-1251" | "cp1251" => "Windows-1251",
+                "koi8-r" => "KOI8-R",
+                _ => "UTF-8",
+            };
+
+            return Ok(final_enc.to_string());
+        }
+    }
+
+    Ok("UTF-8".to_string())
 }
 
 // 解析主题颜色
