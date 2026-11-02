@@ -605,7 +605,8 @@
             theme: `txt-${editorBg}`,
             fontSize: calcFontSize(),
             lineHeight: Math.round(calcFontSize() * 1.5),
-            fontFamily: "Consolas, monospace",
+            fontFamily: `"Cascadia Code", "SF Mono", "JetBrains Mono", "Fira Code", Consolas, Menlo, Monaco, "Noto Sans Mono CJK SC", "PingFang SC", "Microsoft YaHei", "Noto Sans", "Ubuntu Mono", "DejaVu Sans Mono", monospace, sans-serif`,
+            fontLigatures: false,
             minimap: { enabled: false },
             automaticLayout: true,
             lineNumbers: showLineNumbers ? "on" : "off",
@@ -1108,5 +1109,13 @@
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
+    }
+    /* ======================================================
+       ★ Monaco 默认的渲染在 Windows 上有时会显得发虚。可以通过 CSS 强制开启字体平滑
+       ====================================================== */
+    :global(.monaco-editor) {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
     }
 </style>

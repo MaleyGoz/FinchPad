@@ -307,7 +307,8 @@
         diffEditor = monaco.editor.createDiffEditor(container, {
             theme: `diff-${theme}`,
             fontSize: BASE_FONT_SIZE,
-            fontFamily: "Consolas, monospace",
+            fontFamily: `"Cascadia Code", "SF Mono", "JetBrains Mono", "Fira Code", Consolas, Menlo, Monaco, "Noto Sans Mono CJK SC", "PingFang SC", "Microsoft YaHei", "Noto Sans", "Ubuntu Mono", "DejaVu Sans Mono", monospace, sans-serif`,
+            fontLigatures: false,
             readOnly: true,
             renderSideBySide: true,
             useInlineViewWhenSpaceIsLimited: false,
