@@ -1,13 +1,13 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
-    import { tooltip } from "$lib/tooltip";
+    import { tooltip, hideTooltip } from "$lib/tooltip";
     import { t, resolvedLocale } from "$lib/i18n";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     export let titles: string[];
     export let activeIndex: number;
     export let dirtyStates: boolean[] = [];
     export let paths: string[] = [];
-    export let onSelect: (index: number) => void;
+    export let onSelect: (index: number, e?: MouseEvent) => void;
     export let onClose: (index: number) => void;
     export let onNew: () => void;
     export let onContextMenu: (
@@ -29,6 +29,9 @@
     export let canPreview: boolean = false;
     export let isPreviewOpen: boolean = false;
     export let onTogglePreview: () => void = () => {};
+
+    export let tabIds: string[] = [];
+    export let selectedTabIds: Set<string> = new Set();
 
     // 编译时注入的环境变量
     const platform = import.meta.env.TAURI_ENV_PLATFORM;
@@ -97,6 +100,7 @@
     $: if (renamingIndex !== lastRenamingIndex) {
         lastRenamingIndex = renamingIndex;
         if (renamingIndex >= 0 && titles[renamingIndex]) {
+            hideTooltip(); // ★ 进入重命名状态时强制清理
             renameValue = titles[renamingIndex];
 
             // 使用 tick() 代替 setTimeout，确保 DOM 已渲染
@@ -414,7 +418,8 @@
             e.preventDefault();
             return;
         }
-        onSelect(absIdx);
+        hideTooltip(); // ★ 切换标签时强制清理
+        onSelect(absIdx, e); // ★ 把 MouseEvent 传出去
     }
 
     // ============ 下拉菜单 ============
@@ -472,7 +477,7 @@
             0,
             Math.min(absIdx - visibleCount + 1, maxStart),
         );
-        onSelect(absIdx);
+        onSelect(absIdx); // 这里调用时没有传 e，父组件会当做普通点击处理，自动清空多选
     }
 
     // ============ 生命周期 ============
@@ -580,15 +585,16 @@
         {@const isActive = absIdx === activeIndex}
         {@const isDirty = dirtyStates[absIdx] ?? false}
         {@const isHovered = hoveredIndex === absIdx}
+        {@const isSelected = selectedTabIds.has(tabIds[absIdx])}
         {@const isBeingDragged = isDragging && absIdx === dragFromIndex}
         <div
             class="tab"
             class:active={isActive}
+            class:is-selected={isSelected}
             class:dragging={isBeingDragged}
             class:prev-is-active={absIdx + 1 === activeIndex}
             class:is-hovered={isHovered && !isActive}
             style="width: {tabWidth}px;"
-            use:tooltip={paths[absIdx]}
             on:click={(e) => onTabClick(e, absIdx)}
             on:keydown={(e) => e.key === "Enter" && onSelect(absIdx)}
             on:mouseenter={() => (hoveredIndex = absIdx)}
@@ -611,7 +617,9 @@
                     on:mousedown|stopPropagation
                 />
             {:else}
-                <span class="title">{title}</span>
+                <span class="title" use:tooltip={paths[absIdx]}>
+                    {title}
+                </span>
             {/if}
 
             {#if isDirty}
@@ -619,6 +627,7 @@
                     <button
                         class="close-btn"
                         on:click|stopPropagation={() => onClose(absIdx)}
+                        use:tooltip={`${t("tab_menu.close", undefined, $resolvedLocale)} (${mod}+W)`}
                         aria-label="关闭标签"
                     >
                         <svg
@@ -641,6 +650,7 @@
                 <button
                     class="close-btn"
                     on:click|stopPropagation={() => onClose(absIdx)}
+                    use:tooltip={`${t("tab_menu.close", undefined, $resolvedLocale)} (${mod}+W)`}
                     aria-label="关闭标签"
                 >
                     <svg
@@ -666,10 +676,12 @@
                 class="dropdown-btn"
                 bind:this={dropdownButtonEl}
                 on:click={toggleDropdown}
+                use:tooltip={t("tab_bar.more_tabs", undefined, $resolvedLocale)}
                 aria-label="更多标签"
             >
                 ▼
             </button>
+
             {#if dropdownOpen}
                 <div
                     class="dropdown-menu"
@@ -694,20 +706,29 @@
     <button
         class="new-tab"
         on:click={onNew}
-        on:mouseenter={(e) =>
-            showLocalTooltip(
-                e,
-                t("tab_bar.new_tab", undefined, $resolvedLocale) || "新建标签",
-                `${mod}+T`,
-            )}
-        on:mouseleave={hideLocalTooltip}
+        use:tooltip={`${t("tab_bar.new_tab", undefined, $resolvedLocale)} (${mod}+T)`}
         on:contextmenu|preventDefault|stopPropagation
-        aria-label="新建标签">+</button
+        aria-label="新建标签"
     >
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path d="M12 5v14M5 12h14" />
+        </svg>
+    </button>
+
     <!-- 空白拖拽区域 -->
     <div
         class="blank-area"
         data-tauri-drag-region
+        on:click={() => onSelect(-1)}
         on:contextmenu|preventDefault={(e) =>
             onBarContextMenu(e.clientX, e.clientY)}
     ></div>
@@ -718,12 +739,7 @@
             class="settings-btn"
             class:active-preview={isPreviewOpen}
             on:click={onTogglePreview}
-            on:mouseenter={(e) =>
-                showLocalTooltip(
-                    e,
-                    t("tab_bar.preview", undefined, $resolvedLocale) || "预览",
-                )}
-            on:mouseleave={hideLocalTooltip}
+            use:tooltip={t("tab_bar.preview", undefined, $resolvedLocale)}
             aria-label="预览"
         >
             <!-- 眼睛图标 -->
@@ -742,6 +758,7 @@
             </svg>
         </button>
     {/if}
+
     <!-- 设置按钮 -->
     <button
         class="settings-btn"
@@ -751,12 +768,7 @@
             ).getBoundingClientRect();
             onSettingsClick(rect.right, rect.bottom);
         }}
-        on:mouseenter={(e) =>
-            showLocalTooltip(
-                e,
-                t("tab_bar.settings", undefined, $resolvedLocale) || "设置",
-            )}
-        on:mouseleave={hideLocalTooltip}
+        use:tooltip={t("tab_bar.settings", undefined, $resolvedLocale)}
         aria-label="设置"
     >
         <svg
@@ -956,6 +968,20 @@
     .dot {
         position: relative;
         z-index: 1;
+    }
+
+    /* ★ 优化：多选标签的视觉反馈（更克制、更高级） */
+    .tab.is-selected {
+        /* 使用当前主题的悬停背景色，自动适配深色/浅色主题 */
+        background-color: var(--overlay-hover-background) !important;
+        /* 用底部的主题色线条作为选中标志 */
+        box-shadow: inset 0 -2px 0 var(--accent);
+    }
+
+    /* 如果选中的是激活标签，保持它原本的激活背景，只加底线 */
+    .tab.active.is-selected {
+        background: var(--tab-background-active) !important;
+        box-shadow: inset 0 -2px 0 var(--accent);
     }
 
     .tab.active {
@@ -1297,7 +1323,7 @@
         pointer-events: none; /* 防止触发奇怪的 hover 闪烁 */
         display: flex;
         align-items: center;
-        font-family: sans-serif;
+        font-family: var(--font-sans);
     }
 
     .tab-local-tooltip .shortcut {

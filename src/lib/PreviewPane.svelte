@@ -262,10 +262,7 @@
     .markdown-body {
         max-width: 800px;
         margin: 0 auto;
-        font-family:
-            system-ui,
-            -apple-system,
-            sans-serif;
+        font-family: var(--font-sans);
         color: #333333;
         line-height: 1.6;
         font-size: 14px;
@@ -304,7 +301,7 @@
         color: #24292e;
         padding: 0.2em 0.4em;
         border-radius: 4px;
-        font-family: monospace;
+        font-family: var(--font-mono);
     }
     .markdown-body :global(pre) {
         background: #f6f8fa;

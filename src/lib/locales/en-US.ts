@@ -30,6 +30,7 @@ export const enUS: Record<string, string> = {
     "tab_menu.save": "Save",
     "tab_menu.save_as": "Save As",
     "tab_menu.close": "Close Tab",
+    "tab_bar.more_tabs": "More Tabs",
     "tab_menu.close_others": "Close Other Tabs",
     "tab_menu.close_left": "Close Tabs to the Left",
     "tab_menu.close_right": "Close Tabs to the Right",

@@ -364,7 +364,7 @@
         font-size: 12px;
         color: var(--status-bar-foreground); /* 开启状态颜色 */
         cursor: pointer;
-        font-family: "Segoe UI", system-ui, sans-serif;
+        font-family: var(--font-sans);
         letter-spacing: 1px;
         flex-shrink: 0;
         white-space: nowrap;

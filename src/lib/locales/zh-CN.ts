@@ -29,6 +29,7 @@ export const zhCN: Record<string, string> = {
     "tab_menu.save": "保存",
     "tab_menu.save_as": "另存为",
     "tab_menu.close": "关闭标签",
+    "tab_bar.more_tabs": "更多标签",
     "tab_menu.close_others": "关闭其它标签",
     "tab_menu.close_left": "关闭左侧标签",
     "tab_menu.close_right": "关闭右侧标签",

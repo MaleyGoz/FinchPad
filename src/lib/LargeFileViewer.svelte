@@ -46,14 +46,31 @@
     // }
 
     let isMaximized = false;
-    // ★ 新增：拖拽逻辑
+    // ★ 新增：记录上一次点击的时间
+    let lastClickTime = 0;
+
+    // ★ 修改：拖拽逻辑（加入双击识别）
     function handleDragStart(e: MouseEvent) {
         if (e.button !== 0) return;
         const target = e.target as HTMLElement;
+
         // 过滤掉可交互元素，防止拖拽误触
         if (target.closest("button, input, select, .tool-item, .toggle"))
             return;
-        appWindow.startDragging().catch(console.error);
+
+        const now = Date.now();
+        // 判断是否为双击（300ms 内连续点击两次）
+        if (now - lastClickTime < 300) {
+            e.preventDefault();
+            e.stopPropagation();
+            // 触发最大化/还原
+            handleToggleMaximize();
+            lastClickTime = 0; // 重置时间，防止三击再次触发
+        } else {
+            // 单击则启动拖拽
+            appWindow.startDragging().catch(console.error);
+            lastClickTime = now;
+        }
     }
     // ★ 新增：窗口按钮逻辑
     async function handleMinimize() {
@@ -384,6 +401,12 @@
             wordWrap: wordWrap ? "on" : "off",
             scrollBeyondLastLine: false,
             largeFileOptimizations: true,
+
+            //==========终极字体方案===========
+            //解决跨平台、跨语言、跨场景等复杂情况
+            fontFamily: "var(--font-mono)",
+            //关闭连字
+            fontLigatures: false,
 
             renderLineHighlight: "line", // ★ 开启当前行高亮
             occurrencesHighlight: "off", // ★ 核心：关闭光标相同的单词高亮（解决干扰）
@@ -1393,5 +1416,14 @@
         border-radius: 2px;
         box-shadow: 0 0 0 1px rgba(255, 200, 0, 0.8); /* 加一圈细边框让它绝对显眼 */
         color: var(--editor-foreground) !important;
+    }
+
+    /* ======================================================
+       ★ 开启字体平滑抗锯齿解决Monaco在Windows上有时会显得发虚
+       ====================================================== */
+    :global(.monaco-editor) {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
     }
 </style>

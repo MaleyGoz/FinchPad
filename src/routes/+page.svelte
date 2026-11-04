@@ -111,7 +111,7 @@
         zoom: 100,
         word_wrap: true,
         locale_choice: "auto",
-        show_line_numbers: true,
+        show_line_numbers: false,
         editor_bg: "white",
         last_used_path: "",
         record_recent_files: true,
@@ -187,11 +187,16 @@
     let isPreviewOpen = false; // 是否开启预览
     let previewWidth = 50; // 默认右侧占 50%
 
+    // ★ 新增：标签多选相关状态
+    let selectedTabIds = new Set<string>();
+    let anchorIndex = -1;
+
     // 判断当前标签是否支持预览
     $: canPreview =
         snapshot.language_id === "markdown" || snapshot.language_id === "html";
 
     function togglePreview() {
+        clearTabSelection(); // ★ 新增：点预览，清空多选
         if (!canPreview) return;
         isPreviewOpen = !isPreviewOpen;
     }
@@ -226,6 +231,8 @@
     let APP_VERSION = "0.0.0"; // 动态获取版本号
 
     function handleSettingsClick(anchorRight: number, anchorBottom: number) {
+        clearTabSelection(); // ★ 新增
+
         closeContextMenu();
         closeBarContextMenu();
         settingsMenu = { visible: true, anchorRight, anchorBottom };
@@ -388,15 +395,57 @@
     }
 
     async function handleNew() {
+        clearTabSelection(); // ★ 新增
         await flushPendingEdit();
         await api.newTab();
         await refresh();
     }
 
-    async function handleSelect(i: number) {
+    // 标签点击多选
+    async function handleSelect(i: number, e?: MouseEvent) {
+        const isCmdOrCtrl = e && (e.ctrlKey || e.metaKey);
+        const isShift = e && e.shiftKey;
+        const tabId = snapshot.tab_ids[i];
+
+        // 1. Ctrl/Cmd 多选
+        if (isCmdOrCtrl) {
+            // ★ 核心新增：如果是第一次多选，默认把当前激活的标签也加进来
+            if (selectedTabIds.size === 0 && snapshot.active_index !== -1) {
+                selectedTabIds.add(snapshot.tab_ids[snapshot.active_index]);
+            }
+
+            if (selectedTabIds.has(tabId)) {
+                selectedTabIds.delete(tabId);
+            } else {
+                selectedTabIds.add(tabId);
+            }
+            anchorIndex = i;
+            selectedTabIds = new Set(selectedTabIds); // 触发 Svelte 响应
+            return; // 不切换下方编辑器
+        }
+
+        // 2. Shift 连选
+        if (isShift && anchorIndex !== -1) {
+            const start = Math.min(anchorIndex, i);
+            const end = Math.max(anchorIndex, i);
+            selectedTabIds.clear();
+            for (let j = start; j <= end; j++) {
+                selectedTabIds.add(snapshot.tab_ids[j]);
+            }
+            selectedTabIds = new Set(selectedTabIds);
+            return; // 不切换下方编辑器
+        }
+
+        // 3. 普通点击：清空多选，正常切换
+        if (selectedTabIds.size > 0) {
+            selectedTabIds.clear();
+            selectedTabIds = new Set(selectedTabIds);
+        }
+        anchorIndex = i;
+
         if (i === snapshot.active_index) return;
-        loadPendingError = ""; // ★ 新增：切换标签时清空错误提示
-        isOpeningLargeFile = false; // ★ 新增：切换标签时重置状态
+        loadPendingError = "";
+        isOpeningLargeFile = false;
 
         await flushPendingEdit();
         await api.switchTab(i);
@@ -404,6 +453,14 @@
 
         lastDetectTime = 0;
         await detectExternalChanges();
+    }
+
+    // ★ 辅助函数：清空多选状态
+    function clearTabSelection() {
+        if (selectedTabIds.size > 0) {
+            selectedTabIds.clear();
+            selectedTabIds = new Set(selectedTabIds);
+        }
     }
 
     // 检测冷却：1 秒内只检测一次，防止频繁触发
@@ -512,6 +569,8 @@
     }
 
     async function handleClose(i: number) {
+        clearTabSelection(); // ★ 新增
+
         // ★ 方案 A：如果目标标签不是激活标签，先切过去（让用户看清冲突）
         if (i !== snapshot.active_index) {
             await api.switchTab(i);
@@ -568,18 +627,42 @@
     }
 
     function handleContextMenu(i: number, x: number, y: number) {
-        // 标签右键菜单大约 220px 宽、360px 高（8 项 + 分隔线）
-        const pos = clampMenuPos(x, y, 220, 360);
+        const tabId = snapshot.tab_ids[i];
+        const isAlreadySelected = selectedTabIds.has(tabId);
+
+        if (!isAlreadySelected) {
+            clearTabSelection();
+        }
+
+        const showMultiMenu = selectedTabIds.size > 1 && isAlreadySelected;
+
+        // ★ 新增：计算是否允许对比
+        let canDiff = false;
+        if (selectedTabIds.size === 2) {
+            const ids = Array.from(selectedTabIds);
+            const idx1 = snapshot.tab_ids.indexOf(ids[0]);
+            const idx2 = snapshot.tab_ids.indexOf(ids[1]);
+            const isPending1 = snapshot.tab_pending_states[idx1] || false;
+            const isPending2 = snapshot.tab_pending_states[idx2] || false;
+            // 如果两个都不是 pending，才允许对比
+            canDiff = !isPending1 && !isPending2;
+        }
+
+        const pos = clampMenuPos(x, y, 220, showMultiMenu ? 120 : 360);
+
         contextMenu = {
             visible: true,
             index: i,
             left: pos.left,
             right: pos.right,
             top: pos.top,
+            isMultiSelect: showMultiMenu,
+            canDiffSelected: canDiff, // ★ 传给菜单
         };
     }
 
     function handleBarContextMenu(x: number, y: number) {
+        clearTabSelection(); // ★ 新增
         closeContextMenu();
         // 空白区菜单只有 2 项，约 200×80
         const pos = clampMenuPos(x, y, 200, 80);
@@ -689,6 +772,35 @@
         const idx = contextMenu.index;
         closeContextMenu();
         handleClose(idx);
+    }
+
+    // ★ 新增：关闭选中标签
+    function menuCloseSelected() {
+        const idsToClose = Array.from(selectedTabIds);
+        closeContextMenu();
+        selectedTabIds.clear();
+        selectedTabIds = new Set(selectedTabIds);
+        startCloseQueue(idsToClose); // 完美复用现有队列
+    }
+
+    // ★ 新增：对比选中标签（仅限两个）
+    function menuDiffSelected() {
+        closeContextMenu();
+        const ids = Array.from(selectedTabIds);
+        if (ids.length === 2) {
+            const idx1 = snapshot.tab_ids.indexOf(ids[0]);
+            const idx2 = snapshot.tab_ids.indexOf(ids[1]);
+
+            // ★ 双重保险：再检查一次是否包含 pending
+            const isPending1 = snapshot.tab_pending_states[idx1] || false;
+            const isPending2 = snapshot.tab_pending_states[idx2] || false;
+
+            if (idx1 !== -1 && idx2 !== -1 && !isPending1 && !isPending2) {
+                openTabDiff(idx1, idx2);
+            }
+        }
+        selectedTabIds.clear();
+        selectedTabIds = new Set(selectedTabIds);
     }
 
     async function menuSave() {
@@ -1842,6 +1954,7 @@
         left: number | null;
         right: number | null;
         top: number;
+        isMultiSelect?: boolean;
     };
     let contextMenu: ContextMenuState = {
         visible: false,
@@ -2145,6 +2258,8 @@
                     {isPreviewOpen}
                     onTogglePreview={togglePreview}
                     {sidebarMode}
+                    tabIds={snapshot.tab_ids}
+                    {selectedTabIds}
                 />
 
                 <!-- 编辑区域 -->
@@ -2284,6 +2399,9 @@
             tabPendingStates={snapshot.tab_pending_states}
             hasClosedTabs={snapshot.has_closed_tabs}
             onReopenClosedTab={handleReopenTab}
+            selectedTabIdsCount={selectedTabIds.size}
+            onMenuCloseSelected={menuCloseSelected}
+            onMenuDiffSelected={menuDiffSelected}
         />
     </main>
 {/if}
@@ -2293,7 +2411,6 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        font-family: sans-serif;
     }
     main {
         width: 100vw;

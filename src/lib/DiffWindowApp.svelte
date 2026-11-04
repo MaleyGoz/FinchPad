@@ -243,15 +243,29 @@
     }
 
     // ==========================================
-    // 2. 手动拖拽逻辑 (★ 新增)
+    // 2. 手动拖拽逻辑 (★ 加入双击识别)
     // ==========================================
+    let lastClickTime = 0;
+
     function handleDragStart(e: MouseEvent) {
         if (e.button !== 0) return;
         const target = e.target as HTMLElement;
+
         // 过滤掉可交互元素
         if (target.closest("button, input, select, .tool-item, .toggle"))
             return;
-        appWindow.startDragging().catch(console.error);
+
+        const now = Date.now();
+        // 判断是否为双击（300ms 内连续点击两次）
+        if (now - lastClickTime < 300) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleToggleMaximize();
+            lastClickTime = 0;
+        } else {
+            appWindow.startDragging().catch(console.error);
+            lastClickTime = now;
+        }
     }
 
     // ==========================================
@@ -307,8 +321,13 @@
         diffEditor = monaco.editor.createDiffEditor(container, {
             theme: `diff-${theme}`,
             fontSize: BASE_FONT_SIZE,
-            fontFamily: `"Cascadia Code", "SF Mono", "JetBrains Mono", "Fira Code", Consolas, Menlo, Monaco, "Noto Sans Mono CJK SC", "PingFang SC", "Microsoft YaHei", "Noto Sans", "Ubuntu Mono", "DejaVu Sans Mono", monospace, sans-serif`,
+
+            //==========终极字体方案===========
+            //解决跨平台、跨语言、跨场景等复杂情况
+            fontFamily: "var(--font-mono)",
+            //关闭连字
             fontLigatures: false,
+
             readOnly: true,
             renderSideBySide: true,
             useInlineViewWhenSpaceIsLimited: false,
@@ -586,7 +605,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        font-family: sans-serif;
+        font-family: var(--font-sans);
     }
 
     .diff-window {
@@ -655,18 +674,27 @@
 
     .diff-title-cell:first-child {
         border-right: 1px solid var(--overlay-divider);
+        justify-content: center; /* 👈 左侧居中 */
+    }
+    /* ★ 新增：强制右侧标题向右偏移，以对齐右侧编辑器的文本起点 */
+    .diff-title-cell:last-child {
+        justify-content: center; /* 👈 右侧居中 */
     }
 
     .diff-title-text {
         font-size: 12px;
         color: var(--status-bar-foreground, #555);
-        font-family: "Consolas", monospace;
+        font-family: var(--font-mono);
+
+        /* 配合 flex 居中的截断逻辑 */
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        /* 保持你原有的 rtl 逻辑（优先保留尾部文件名） */
         direction: rtl;
-        text-align: left;
-        unicode-bidi: plaintext; /* 修正英文标点 */
+        unicode-bidi: plaintext;
     }
 
     /* 右侧窗口按钮 */
@@ -740,5 +768,14 @@
     }
     :global(.monaco-scrollable-element > .scrollbar.horizontal > .slider) {
         min-width: 40px !important;
+    }
+
+    /* ======================================================
+       ★ 开启字体平滑抗锯齿解决Monaco在Windows上有时会显得发虚
+       ====================================================== */
+    :global(.monaco-editor) {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
     }
 </style>

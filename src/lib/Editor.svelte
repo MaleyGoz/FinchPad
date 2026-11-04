@@ -605,8 +605,13 @@
             theme: `txt-${editorBg}`,
             fontSize: calcFontSize(),
             lineHeight: Math.round(calcFontSize() * 1.5),
-            fontFamily: `"Cascadia Code", "SF Mono", "JetBrains Mono", "Fira Code", Consolas, Menlo, Monaco, "Noto Sans Mono CJK SC", "PingFang SC", "Microsoft YaHei", "Noto Sans", "Ubuntu Mono", "DejaVu Sans Mono", monospace, sans-serif`,
+
+            //==========终极字体方案===========
+            //解决跨平台、跨语言、跨场景等复杂情况
+            fontFamily: "var(--font-mono)",
+            //关闭连字
             fontLigatures: false,
+
             minimap: { enabled: false },
             automaticLayout: true,
             lineNumbers: showLineNumbers ? "on" : "off",
@@ -950,7 +955,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: sans-serif;
+        font-family: var(--font-sans);
         z-index: 10;
     }
     .pending-card {
@@ -1098,7 +1103,7 @@
 
         z-index: 99999;
         pointer-events: none; /* 不阻挡鼠标事件 */
-        font-family: sans-serif;
+        font-family: var(--font-sans);
         line-height: 1.4;
     }
     /* ======================================================
@@ -1110,8 +1115,9 @@
         opacity: 0 !important;
         pointer-events: none !important;
     }
+
     /* ======================================================
-       ★ Monaco 默认的渲染在 Windows 上有时会显得发虚。可以通过 CSS 强制开启字体平滑
+       ★ 开启字体平滑抗锯齿解决Monaco在Windows上有时会显得发虚
        ====================================================== */
     :global(.monaco-editor) {
         -webkit-font-smoothing: antialiased;

@@ -51,6 +51,10 @@
     export let tabUnnamedStates: boolean[];
     export let onMenuCloseAll: () => void;
 
+    export let selectedTabIdsCount: number = 0;
+    export let onMenuCloseSelected: () => void;
+    export let onMenuDiffSelected: () => void;
+
     // 空白处右键菜单
     export let barContextMenu: any;
 
@@ -380,160 +384,218 @@
             role="menu"
             tabindex="-1"
         >
-            <!-- 区块 1：关闭操作 -->
-            <button class="context-item" onclick={onMenuCloseSingle}>
-                <span>{t("tab_menu.close", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+W</span>
-            </button>
-            <button
-                class="context-item"
-                class:disabled={!cmCanCloseOthers}
-                disabled={!cmCanCloseOthers}
-                onclick={onMenuCloseOthers}
-            >
-                <span
-                    >{t(
-                        "tab_menu.close_others",
-                        undefined,
-                        $resolvedLocale,
-                    )}</span
+            {#if contextMenu.isMultiSelect}
+                <!-- 多选专属极简菜单 -->
+                <!-- 关闭标签（） -->
+                <button class="context-item" onclick={onMenuCloseSelected}>
+                    <!-- ★ 把原来的 - 换成括号包裹 -->
+                    <span
+                        >{t("tab_menu.close", undefined, $resolvedLocale)} ({selectedTabIdsCount})</span
+                    >
+                </button>
+                <!-- 对比标签 -->
+                <button
+                    class="context-item"
+                    class:disabled={!contextMenu.canDiffSelected}
+                    disabled={!contextMenu.canDiffSelected}
+                    onclick={onMenuDiffSelected}
                 >
-            </button>
-            <button
-                class="context-item"
-                class:disabled={!cmCanCloseRight}
-                disabled={!cmCanCloseRight}
-                onclick={onMenuCloseRight}
-            >
-                <span
-                    >{t(
-                        "tab_menu.close_right",
-                        undefined,
-                        $resolvedLocale,
-                    )}</span
+                    <span
+                        >{t(
+                            "diff.window_title",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                </button>
+            {:else}
+                <!-- 单选菜单（原本的所有代码放这里面） -->
+                <!-- 区块 1：关闭操作 -->
+                <button class="context-item" onclick={onMenuCloseSingle}>
+                    <span
+                        >{t("tab_menu.close", undefined, $resolvedLocale)}</span
+                    >
+                    <span class="shortcut">{mod}+W</span>
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={!cmCanCloseOthers}
+                    disabled={!cmCanCloseOthers}
+                    onclick={onMenuCloseOthers}
                 >
-            </button>
-            <button class="context-item" onclick={onMenuCloseAll}>
-                <span
-                    >{t("tab_menu.close_all", undefined, $resolvedLocale)}</span
+                    <span
+                        >{t(
+                            "tab_menu.close_others",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={!cmCanCloseRight}
+                    disabled={!cmCanCloseRight}
+                    onclick={onMenuCloseRight}
                 >
-            </button>
-            <button
-                class="context-item"
-                class:disabled={!hasClosedTabs}
-                disabled={!hasClosedTabs}
-                onclick={onReopenClosedTab}
-            >
-                <span>{t("tab_menu.reopen", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+Shift+T</span>
-            </button>
-
-            <div class="context-divider"></div>
-
-            <!-- 区块 2：保存与对比 -->
-            <button
-                class="context-item"
-                class:disabled={!cmIsDirty || cmIsPending}
-                disabled={!cmIsDirty || cmIsPending}
-                onclick={onMenuSave}
-            >
-                <span>{t("tab_menu.save", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+S</span>
-            </button>
-            <button
-                class="context-item"
-                class:disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
-                disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
-                onclick={onMenuSaveAs}
-            >
-                <span>{t("tab_menu.save_as", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+Shift+S</span>
-            </button>
-
-            <button
-                class="context-item"
-                class:disabled={cmTabCount <= 1 ||
-                    cmIsPending ||
-                    !cmHasValidDiffTargets}
-                disabled={cmTabCount <= 1 ||
-                    cmIsPending ||
-                    !cmHasValidDiffTargets}
-                onmouseenter={(e) => {
-                    if (
-                        cmTabCount > 1 &&
-                        !cmIsPending &&
-                        cmHasValidDiffTargets
-                    ) {
-                        onShowDiffSubmenu(e);
-                    }
-                }}
-                onmouseleave={onScheduleCloseDiffSubmenu}
-            >
-                <span>{t("tab_menu.diff", undefined, $resolvedLocale)}</span>
-                <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    style="margin-left: auto;"
+                    <span
+                        >{t(
+                            "tab_menu.close_right",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                </button>
+                <button class="context-item" onclick={onMenuCloseAll}>
+                    <span
+                        >{t(
+                            "tab_menu.close_all",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={!hasClosedTabs}
+                    disabled={!hasClosedTabs}
+                    onclick={onReopenClosedTab}
                 >
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
+                    <span
+                        >{t(
+                            "tab_menu.reopen",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                    <span class="shortcut">{mod}+Shift+T</span>
+                </button>
 
-            <div class="context-divider"></div>
+                <div class="context-divider"></div>
 
-            <!-- 区块 3：文件操作 -->
-            <button
-                class="context-item"
-                class:disabled={cmIsUnnamed}
-                disabled={cmIsUnnamed}
-                onclick={() => onTriggerRename(cmIndex)}
-            >
-                <span>{t("tab_menu.rename", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">F2</span>
-            </button>
-            <button
-                class="context-item"
-                class:disabled={cmIsUnnamed}
-                disabled={cmIsUnnamed}
-                onclick={onMenuCopyPath}
-            >
-                <span
-                    >{t("tab_menu.copy_path", undefined, $resolvedLocale)}</span
+                <!-- 区块 2：保存与对比 -->
+                <button
+                    class="context-item"
+                    class:disabled={!cmIsDirty || cmIsPending}
+                    disabled={!cmIsDirty || cmIsPending}
+                    onclick={onMenuSave}
                 >
-                <span class="shortcut">{mod}+Shift+C</span>
-            </button>
-            <button
-                class="context-item"
-                class:disabled={cmIsUnnamed}
-                disabled={cmIsUnnamed}
-                onclick={onMenuRevealInExplorer}
-            >
-                <span
-                    >{t(
-                        "tab_menu.reveal_in_explorer",
-                        undefined,
-                        $resolvedLocale,
-                    )}</span
+                    <span>{t("tab_menu.save", undefined, $resolvedLocale)}</span
+                    >
+                    <span class="shortcut">{mod}+S</span>
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
+                    disabled={(cmIsUnnamed && !cmIsDirty) || cmIsPending}
+                    onclick={onMenuSaveAs}
                 >
-            </button>
+                    <span
+                        >{t(
+                            "tab_menu.save_as",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                    <span class="shortcut">{mod}+Shift+S</span>
+                </button>
 
-            <div class="context-divider"></div>
+                <button
+                    class="context-item"
+                    class:disabled={cmTabCount <= 1 ||
+                        cmIsPending ||
+                        !cmHasValidDiffTargets}
+                    disabled={cmTabCount <= 1 ||
+                        cmIsPending ||
+                        !cmHasValidDiffTargets}
+                    onmouseenter={(e) => {
+                        if (
+                            cmTabCount > 1 &&
+                            !cmIsPending &&
+                            cmHasValidDiffTargets
+                        ) {
+                            onShowDiffSubmenu(e);
+                        }
+                    }}
+                    onmouseleave={onScheduleCloseDiffSubmenu}
+                >
+                    <span>{t("tab_menu.diff", undefined, $resolvedLocale)}</span
+                    >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="margin-left: auto;"
+                    >
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
 
-            <!-- 区块 4：新建与打开 -->
-            <button class="context-item" onclick={onMenuNewFromTab}>
-                <span>{t("bar_menu.new", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+N</span>
-            </button>
-            <button class="context-item" onclick={onMenuOpenFromTab}>
-                <span>{t("bar_menu.open", undefined, $resolvedLocale)}</span>
-                <span class="shortcut">{mod}+O</span>
-            </button>
+                <div class="context-divider"></div>
+
+                <!-- 区块 3：文件操作 -->
+                <button
+                    class="context-item"
+                    class:disabled={cmIsUnnamed}
+                    disabled={cmIsUnnamed}
+                    onclick={() => onTriggerRename(cmIndex)}
+                >
+                    <span
+                        >{t(
+                            "tab_menu.rename",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                    <span class="shortcut">F2</span>
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={cmIsUnnamed}
+                    disabled={cmIsUnnamed}
+                    onclick={onMenuCopyPath}
+                >
+                    <span
+                        >{t(
+                            "tab_menu.copy_path",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                    <span class="shortcut">{mod}+Shift+C</span>
+                </button>
+                <button
+                    class="context-item"
+                    class:disabled={cmIsUnnamed}
+                    disabled={cmIsUnnamed}
+                    onclick={onMenuRevealInExplorer}
+                >
+                    <span
+                        >{t(
+                            "tab_menu.reveal_in_explorer",
+                            undefined,
+                            $resolvedLocale,
+                        )}</span
+                    >
+                </button>
+
+                <div class="context-divider"></div>
+
+                <!-- 区块 4：新建与打开 -->
+                <button class="context-item" onclick={onMenuNewFromTab}>
+                    <span>{t("bar_menu.new", undefined, $resolvedLocale)}</span>
+                    <span class="shortcut">{mod}+N</span>
+                </button>
+                <button class="context-item" onclick={onMenuOpenFromTab}>
+                    <span>{t("bar_menu.open", undefined, $resolvedLocale)}</span
+                    >
+                    <span class="shortcut">{mod}+O</span>
+                </button>
+            {/if}
         </div>
     </div>
 {/if}
@@ -788,8 +850,7 @@
             0 0 0 0.5px rgba(0, 0, 0, 0.1),
             0 20px 40px rgba(0, 0, 0, 0.25);
         box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-            "Helvetica Neue", sans-serif;
+        font-family: var(--font-sans);
         animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         color: var(--overlay-foreground);
     }
@@ -807,7 +868,7 @@
 
     /* ===== 副标题（弱化的文件路径） ===== */
     .modal-subtitle {
-        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-family: var(--font-mono);
         font-size: 13px;
         font-weight: 400;
         color: var(--status-bar-foreground-muted);
@@ -970,7 +1031,7 @@
         min-width: 380px;
         max-width: 480px;
         text-align: center;
-        font-family: sans-serif;
+        font-family: var(--font-sans);
     }
     .about-icon {
         width: 64px;
@@ -1035,7 +1096,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         display: flex;
         flex-direction: column;
-        font-family: sans-serif;
+        font-family: var(--font-sans);
     }
 
     .settings-menu {

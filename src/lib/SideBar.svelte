@@ -580,13 +580,16 @@
         font-size: 12px;
         color: var(--status-bar-foreground);
         cursor: pointer;
-        font-family: "Segoe UI", system-ui, sans-serif;
         letter-spacing: 1px;
         display: flex;
         align-items: center;
         gap: 6px;
         transition: color 0.15s;
         line-height: 1; /* ★ 新增：抹平文字默认的上下行距，强制居中 */
+    }
+    /* ★ 新增：精准下调此按钮内的 Toggle 胶囊，使其与文字完美对齐 */
+    .record-btn :global(.toggle-capsule) {
+        transform: translateY(1px); /* 1px 通常最完美，如果不够可以改成 2px */
     }
 
     .record-btn:hover {

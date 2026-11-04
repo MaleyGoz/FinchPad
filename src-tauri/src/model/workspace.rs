@@ -78,7 +78,7 @@ impl Workspace {
             active_index: 0,
             zoom: 100,
             word_wrap: true,
-            show_line_numbers: true,
+            show_line_numbers: false,
             editor_bg: "white".to_string(),
             locale: "zh-CN".to_string(),
             unnamed_template: "未命名{index}".to_string(),

@@ -67,7 +67,7 @@ impl Default for WindowSession {
             height: 600.0,
             zoom: 100,
             word_wrap: true,
-            show_line_numbers: true,
+            show_line_numbers: false,
             editor_bg: "white".to_string(),
             locale_choice: "auto".to_string(),
             x: -1.0,              // ★ 新增
