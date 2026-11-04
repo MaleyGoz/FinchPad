@@ -21,6 +21,8 @@ export type Snapshot = {
     char_count: number;
     encoding: string;
     line_ending: string;
+    disk_encoding: string;     // ★ 新增
+    disk_line_ending: string;  // ★ 新增
     is_dirty: boolean;
     default_save_path: string;
     is_unnamed: boolean;
@@ -138,4 +140,8 @@ export const api = {
     countLargeFileLines: (path: string) => invoke<number>("count_large_file_lines", { path }),
     checkFileExists: (path: string) => invoke<boolean>("check_file_exists", { path }),
     reopenClosedTab: () => invoke<Snapshot>("reopen_closed_tab"),
+    checkEncodingLossy: (index: number, encodingName: string) =>
+        invoke<boolean>("check_encoding_lossy", { index, encodingName }),
+    setTabFormat: (index: number, formatType: string, value: string) =>
+        invoke<Snapshot>("set_tab_format", { index, formatType, value }),
 };

@@ -7,6 +7,12 @@
     export let selectedLineCount: number = 0;
     export let encoding: string;
     export let lineEnding: string;
+    export let diskEncoding: string = ""; // ★ 新增：磁盘原始编码
+    export let diskLineEnding: string = ""; // ★ 新增：磁盘原始换行符
+    export let onFormatChange: (
+        type: "encoding" | "line_ending",
+        value: string,
+    ) => void = () => {}; // ★ 新增
     export let isDirty: boolean;
     export let diskState: string = "normal";
     export let zoom: number = 100;
@@ -32,6 +38,117 @@
 
     let zoomMenuOpen = false;
 
+    // ★ 新增：编码和换行符的菜单状态
+    let encodingMenuOpen = false;
+    let lineEndingMenuOpen = false;
+    let activeSubmenu: string | null = null; // 当前展开的二级分类
+    let mainMenuWidth = 0; // ★ 用于动态记录一级菜单的宽度，以便二级菜单完美对齐
+    let submenuBottom = 0; // ★ 记录二级菜单的底部定位
+
+    // ★ 动态计算二级菜单的弹出位置（对齐触发按钮的顶部）
+    function handleSubmenuEnter(e: MouseEvent, groupKey: string) {
+        activeSubmenu = groupKey;
+        const btn = e.currentTarget as HTMLElement;
+        const wrapper = btn.closest(".format-wrapper") as HTMLElement;
+        if (wrapper) {
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+            // ★ 核心修改：按钮底部距离父容器底部的距离，加上间隙（4px）
+            submenuBottom = wrapperRect.bottom - btnRect.bottom + 4;
+        }
+    }
+
+    // ★ 新增：分类编码列表（支持 i18n）
+    // 一级：常用（保持你定下的 6 个）
+    const COMMON_ENCODINGS = [
+        "UTF-8",
+        "UTF-8 BOM",
+        "GBK",
+        "Shift_JIS",
+        "Windows-1252",
+        "Windows-1251",
+    ];
+
+    // 二级：分类（全部对齐 WHATWG 标准，无遗漏）
+    const MORE_ENCODINGS_GROUPS = [
+        {
+            key: "encoding_group_unicode",
+            items: ["UTF-16 LE", "UTF-16 BE"],
+        },
+        {
+            key: "encoding_group_cjk",
+            // 补齐所有 CJK 系
+            items: ["GB18030", "Big5", "EUC-KR", "EUC-JP", "ISO-2022-JP"],
+        },
+        {
+            key: "encoding_group_western",
+            // 补齐西欧/地中海/拉美
+            items: ["ISO-8859-15", "Macintosh", "Windows-1254", "Windows-1258"],
+        },
+        {
+            key: "encoding_group_central_europe",
+            // 补齐北欧、波罗的海、中欧、南欧
+            items: [
+                "ISO-8859-2",
+                "Windows-1250",
+                "ISO-8859-16", // 东南欧
+                "ISO-8859-4", // 北欧
+                "ISO-8859-10", // 北欧
+                "ISO-8859-13", // 波罗的海
+                "ISO-8859-14", // 凯尔特
+                "Windows-1257", // 波罗的海
+            ],
+        },
+        {
+            key: "encoding_group_cyrillic",
+            // 补齐所有西里尔文
+            items: [
+                "KOI8-R",
+                "ISO-8859-5",
+                "KOI8-U",
+                "IBM866",
+                "x-mac-cyrillic",
+            ],
+        },
+        {
+            key: "encoding_group_others",
+            // 补齐中东、希腊、阿拉伯等
+            items: [
+                "Windows-1256", // 阿拉伯
+                "Windows-1255", // 希伯来
+                "Windows-874", // 泰文
+                "ISO-8859-6", // 阿拉伯
+                "ISO-8859-7", // 希腊
+                "Windows-1253", // 希腊
+                "ISO-8859-8", // 希伯来
+                "ISO-8859-3", // 南欧/世界语
+            ],
+        },
+    ];
+
+    // ★ 核心新增：将 Rust 返回的标准名，映射为前端菜单里的漂亮名
+    function formatEncodingName(rawEncoding: string): string {
+        if (!rawEncoding) return "";
+
+        // 1. 把一级和二级里所有的名字拍平成一个数组
+        const allKnown = [
+            ...COMMON_ENCODINGS,
+            ...MORE_ENCODINGS_GROUPS.flatMap((g) => g.items),
+        ];
+
+        // 2. 核心比对逻辑：去掉空格和连字符，并且全部转小写
+        // 这样无论 Rust 给的是 "UTF-16LE" 还是 "utf-16le"，都能匹配到前端的 "UTF-16 LE"
+        const normalize = (s: string) => s.replace(/[\s-]/g, "").toLowerCase();
+        const normalizedRaw = normalize(rawEncoding);
+
+        // 3. 找到就返回漂亮名字，找不到就原样返回（说明是冷门编码）
+        const matched = allKnown.find(
+            (enc) => normalize(enc) === normalizedRaw,
+        );
+
+        return matched || rawEncoding;
+    }
+
     function toggleZoomMenu() {
         zoomMenuOpen = !zoomMenuOpen;
     }
@@ -48,10 +165,17 @@
     }
 
     function handleWindowClick(e: MouseEvent) {
-        if (!zoomMenuOpen) return;
+        if (!zoomMenuOpen && !encodingMenuOpen && !lineEndingMenuOpen) return;
         const target = e.target as HTMLElement;
-        if (target.closest(".zoom-wrapper")) return;
+        if (
+            target.closest(".zoom-wrapper") ||
+            target.closest(".format-wrapper")
+        )
+            return;
+
         zoomMenuOpen = false;
+        encodingMenuOpen = false;
+        lineEndingMenuOpen = false;
     }
 
     function lineEndingTooltip(le: string, locale?: string): string {
@@ -135,7 +259,7 @@
     <!-- 脏标签 -->
     {#if isDirty}
         <span class="badge dirty">
-            <span class="dot">●</span>{t(
+            <span class="dot"></span>{t(
                 "status.unsaved",
                 undefined,
                 $resolvedLocale,
@@ -286,21 +410,237 @@
         {/if}
     </div>
 
+    <span class="sep">|</span>
+
     <!-- 编码 -->
-    <span class="sep">|</span>
-    <span class="tooltip-wrapper">
-        <span class="status-text">{encoding}</span>
-        <span class="tooltip">{encodingTooltip(encoding, $resolvedLocale)}</span
+    <div
+        class="format-wrapper tooltip-wrapper"
+        class:has-menu-open={encodingMenuOpen}
+    >
+        <span
+            class="status-btn"
+            role="button"
+            tabindex="0"
+            onclick={() => {
+                encodingMenuOpen = !encodingMenuOpen;
+                lineEndingMenuOpen = false;
+                activeSubmenu = null;
+            }}
         >
-    </span>
+            {formatEncodingName(encoding)}
+        </span>
+
+        <!-- 编码Tooltip -->
+        {#if !encodingMenuOpen}
+            <span class="tooltip"
+                >{encodingTooltip(
+                    formatEncodingName(encoding),
+                    $resolvedLocale,
+                )}</span
+            >
+        {/if}
+
+        {#if encodingMenuOpen}
+            <!-- 主菜单 -->
+            <div
+                class="format-menu bottom-right main-menu"
+                bind:clientWidth={mainMenuWidth}
+            >
+                <!-- 一级菜单：常用编码 -->
+                {#each COMMON_ENCODINGS as enc}
+                    <button
+                        class="format-item"
+                        onclick={() => {
+                            onFormatChange("encoding", enc);
+                            encodingMenuOpen = false;
+                        }}
+                    >
+                        <span class="enc-label">
+                            {enc}
+                            <!-- ★ 核心新增：只针对 UTF-8 显示推荐置灰标记 -->
+                            {#if enc === "UTF-8"}
+                                <span class="recommend-tag"
+                                    >{t(
+                                        "encoding.recommend",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}</span
+                                >
+                            {/if}
+                        </span>
+                        <span class="check">
+                            {#if enc.toLowerCase() === encoding.toLowerCase()}
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polyline points="20 6 9 17 4 12"
+                                    ></polyline>
+                                </svg>
+                            {/if}
+                        </span>
+                    </button>
+                {/each}
+
+                <div class="context-divider" style="margin: 4px 0;"></div>
+
+                <!-- 一级菜单：二级菜单触发按钮 -->
+                {#each MORE_ENCODINGS_GROUPS as group}
+                    <button
+                        class="format-item submenu-trigger"
+                        onmouseenter={(e) => handleSubmenuEnter(e, group.key)}
+                        onclick={(e) => {
+                            activeSubmenu === group.key
+                                ? (activeSubmenu = null)
+                                : handleSubmenuEnter(e, group.key);
+                        }}
+                    >
+                        <span>{t(group.key, undefined, $resolvedLocale)}</span>
+
+                        <!-- 右侧图标区 -->
+                        <div class="right-icons">
+                            <!-- ★ 核心新增：如果当前选中的编码在这个分组里，显示一个小圆点 -->
+                            {#if group.items.some((item) => item.toLowerCase() === encoding.toLowerCase())}
+                                <svg
+                                    class="active-dot"
+                                    width="8"
+                                    height="8"
+                                    viewBox="0 0 8 8"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                >
+                                    <circle cx="4" cy="4" r="3"></circle>
+                                </svg>
+                            {/if}
+
+                            <!-- 原有的箭头 -->
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </button>
+                {/each}
+            </div>
+
+            <!-- 独立的二级菜单浮层（向上弹出） -->
+            {#if activeSubmenu}
+                {@const targetGroup = MORE_ENCODINGS_GROUPS.find(
+                    (g) => g.key === activeSubmenu,
+                )}
+                {#if targetGroup}
+                    <div
+                        class="format-menu submenu"
+                        style="right: {mainMenuWidth +
+                            1}px; bottom: {submenuBottom}px;"
+                    >
+                        {#each targetGroup.items as item}
+                            <button
+                                class="format-item"
+                                onclick={() => {
+                                    onFormatChange("encoding", item);
+                                    encodingMenuOpen = false;
+                                    activeSubmenu = null;
+                                }}
+                            >
+                                <span>{item}</span>
+                                <span class="check">
+                                    {#if item.toLowerCase() === encoding.toLowerCase()}
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <polyline points="20 6 9 17 4 12"
+                                            ></polyline>
+                                        </svg>
+                                    {/if}
+                                </span>
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+            {/if}
+        {/if}
+    </div>
+
     <span class="sep">|</span>
+
     <!-- 换行符号 -->
-    <span class="tooltip-wrapper tooltip-right">
-        <span class="status-text">{lineEnding}</span>
-        <span class="tooltip"
-            >{lineEndingTooltip(lineEnding, $resolvedLocale)}</span
+    <div
+        class="format-wrapper tooltip-wrapper tooltip-right"
+        class:has-menu-open={lineEndingMenuOpen}
+    >
+        <span
+            class="status-btn"
+            role="button"
+            tabindex="0"
+            onclick={() => {
+                lineEndingMenuOpen = !lineEndingMenuOpen;
+                encodingMenuOpen = false;
+                activeSubmenu = null;
+            }}
         >
-    </span>
+            {lineEnding}
+        </span>
+        {#if !lineEndingMenuOpen}
+            <span class="tooltip"
+                >{lineEndingTooltip(lineEnding, $resolvedLocale)}</span
+            >
+        {/if}
+
+        {#if lineEndingMenuOpen}
+            <div class="format-menu bottom-right" style="min-width: 200px;">
+                {#each ["LF", "CRLF", "CR"] as le}
+                    <button
+                        class="format-item"
+                        onclick={() => {
+                            onFormatChange("line_ending", le);
+                            lineEndingMenuOpen = false;
+                        }}
+                    >
+                        <span>{lineEndingTooltip(le, $resolvedLocale)}</span>
+                        <span class="check">
+                            {#if le === lineEnding}
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><polyline points="20 6 9 17 4 12"
+                                    ></polyline></svg
+                                >
+                            {/if}
+                        </span>
+                    </button>
+                {/each}
+            </div>
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -572,5 +912,133 @@
         opacity: 0 !important;
         pointer-events: none !important;
         transition: none !important; /* 瞬间消失，不留残影 */
+    }
+
+    /* ==========================================
+     编码、换行符弹窗样式 
+     ========================================== */
+    .format-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    .format-menu {
+        position: absolute;
+        bottom: 24px;
+        background: var(--overlay-background);
+        border: 1px solid var(--overlay-border);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 4px;
+        z-index: 500;
+    }
+    .format-menu.bottom-right {
+        right: 0;
+        left: auto;
+    }
+
+    /* 一级主菜单 */
+    .main-menu {
+        min-width: 180px;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* 二级子菜单 */
+    .submenu {
+        /* bottom: 0; */
+        /* ★ 去掉了 right: 100%，因为我们在 HTML 内联样式里动态计算了 */
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* 统一滚动条 */
+    .format-menu::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .format-menu::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .format-menu::-webkit-scrollbar-thumb {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 30%,
+            transparent
+        );
+        border-radius: 4px;
+    }
+    .format-menu::-webkit-scrollbar-thumb:hover {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 60%,
+            transparent
+        );
+    }
+    .format-menu {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(
+                in srgb,
+                var(--overlay-foreground-muted) 30%,
+                transparent
+            )
+            transparent;
+    }
+
+    .format-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--overlay-foreground);
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+    .format-item:hover {
+        background: var(--overlay-hover-background);
+    }
+
+    .check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+    }
+
+    /* 保持原来隐藏 Tooltip 的防御性代码 */
+    .format-wrapper.has-menu-open .tooltip {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: none !important;
+    }
+    /* ★ 新增：分类右侧的图标容器 */
+    .right-icons {
+        display: flex;
+        align-items: center;
+        padding-left: 6px;
+        gap: 0px;
+    }
+
+    /* ★ 新增：提示当前选中项在二级菜单的小圆点 */
+    .active-dot {
+        /* color: var(--accent); 使用主题色 */
+    }
+    /* ★ 新增：推荐标签的置灰样式 */
+    .recommend-tag {
+        font-size: 10px;
+        color: var(--status-bar-foreground-muted);
+        margin-left: 6px;
+        font-weight: normal;
     }
 </style>

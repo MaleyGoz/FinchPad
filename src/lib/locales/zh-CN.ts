@@ -118,6 +118,22 @@ export const zhCN: Record<string, string> = {
     "dialog.large_close_yes": "保存",
     "dialog.large_close_no": "不保存",
 
+    // ===== 编码、换行符修改弹窗 =====
+    "dialog.format_type_encoding": "编码",
+    "dialog.format_type_line_ending": "换行符",
+    "dialog.change_format_title": "是否更改{typeName}为「{value}」？",
+    "dialog.change_format_subtitle": "当前文档可以无损转换为该格式，保存后文件内容将被更新。",
+    "dialog.change_format_lossy_title": "⚠ 更换{typeName}可能导致字符丢失",
+    "dialog.change_format_lossy_subtitle": "当前文档包含特殊字符，切换到「{value}」后，这些字符将无法正确表示，会被替换为「?」且不可恢复。",
+    "encoding_group_unicode": "Unicode 扩展",
+    "encoding_group_cjk": "中日韩",
+    "encoding_group_western": "西欧/西文",
+    "encoding_group_central_europe": "东欧/中欧",
+    "encoding_group_cyrillic": "西里尔文",
+    "encoding_group_others": "中东与其它",
+    "encoding.recommend": "推荐",
+
+
     // ===== 关于弹窗 =====
     "about.title": "FinchPad",
     "about.version": "版本 {version}",

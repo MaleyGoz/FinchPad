@@ -1,8 +1,8 @@
-export const pt: Record<string, string> = {
-  // ===== Menu Configurações =====
-  "settings.view": "Exibir",
+export const ptBR: Record<string, string> = {
+  // ===== Menu de configurações =====
+  "settings.view": "Visualizar",
   "settings.show_line_numbers": "Números de linha",
-  "settings.word_wrap": "Quebra de linha",
+  "settings.word_wrap": "Quebra automática",
   "settings.theme": "Tema",
   "settings.theme.white": "Branco",
   "settings.theme.gray": "Cinza",
@@ -14,158 +14,166 @@ export const pt: Record<string, string> = {
   "settings.check_update": "Verificar atualizações",
   "dialog.update_checking": "Verificando atualizações...",
   "dialog.update_latest": "Você está na versão mais recente (v{version}).",
-  "dialog.update_found":
-    "Nova versão encontrada!\nAtual: v{current}\nMais recente: v{latest}\n\nIr para o GitHub para baixar?",
-  "dialog.update_failed": "Falha ao verificar atualizações. Verifique sua rede.",
+  "dialog.update_found": "Nova versão encontrada!\nAtual: v{current}\nMais recente: v{latest}\n\nIr para o GitHub para baixar?",
+  "dialog.update_failed": "Falha ao verificar atualizações. Por favor, verifique sua rede.",
   "dialog.update_confirm": "Baixar",
   "dialog.update_cancel": "Cancelar",
 
-  // ===== 标签栏 =====
+  // ===== Barra de abas =====
   "tab_bar.new_tab": "Nova aba",
   "tab_bar.settings": "Configurações",
-  "tab_bar.preview": "Visualizar",
+  "tab_bar.preview": "Pré-visualizar",
+  "tab_bar.more_tabs": "Mais abas",
 
-  // ===== Opções de Idioma =====
-
-  // ===== Menu de Contexto da Guia =====
+  // ===== Menu de contexto da aba =====
   "tab_menu.save": "Salvar",
   "tab_menu.save_as": "Salvar como",
-  "tab_menu.close": "Fechar guia",
-  "tab_menu.close_others": "Fechar outras guias",
-  "tab_menu.close_left": "Fechar guias à esquerda",
-  "tab_menu.close_right": "Fechar guias à direita",
-  "tab_menu.close_all": "Fechar tudo",
+  "tab_menu.close": "Fechar aba",
+  "tab_menu.close_others": "Fechar outras abas",
+  "tab_menu.close_left": "Fechar abas à esquerda",
+  "tab_menu.close_right": "Fechar abas à direita",
+  "tab_menu.close_all": "Fechar todas as abas",
   "tab_menu.reopen": "Reabrir aba fechada",
-  "tab_menu.copy_path": "Copiar caminho do arquivo",
-  "tab_menu.reveal_in_explorer": "Revelar no Explorador",
+  "tab_menu.copy_path": "Copiar caminho",
+  "tab_menu.reveal_in_explorer": "Mostrar no explorador",
   "tab_menu.diff": "Comparar",
   "tab_menu.rename": "Renomear",
 
   "diff.window_title": "Comparar",
-  "diff.left_disk": "Disco",
-  "diff.right_editor": "Editor",
-  "diff.keep_mine": "Manter o meu",
+  "diff.left_disk": "Versão do disco",
+  "diff.right_editor": "Versão do editor",
+  "diff.keep_mine": "Manter minhas alterações",
   "diff.use_disk": "Usar versão do disco",
 
-  // ===== Menu da Área Vazia da Barra de Guias =====
-  "bar_menu.new": "Nova guia",
+  // ===== Menu da área vazia =====
+  "bar_menu.new": "Nova aba",
   "bar_menu.open": "Abrir arquivo",
 
-  // ===== Diálogo de Renomear =====
-  "dialog.rename_exists": "Já existe um arquivo com este nome no diretório.",
+  // ===== Diálogo de renomear =====
+  "dialog.rename_exists": "Um arquivo com este nome já existe.",
   "dialog.rename_failed": "Falha ao renomear: {error}",
 
-  // ===== Menu de Contexto do Editor =====
+  // ===== Menu de contexto do editor =====
   "editor_menu.undo": "Desfazer",
   "editor_menu.redo": "Refazer",
-  "editor_menu.cut": "Recortar",
+  "editor_menu.cut": "Cortar",
   "editor_menu.copy": "Copiar",
   "editor_menu.paste": "Colar",
   "editor_menu.delete": "Excluir",
   "editor_menu.select_all": "Selecionar tudo",
 
-  // ===== SideBar =====
-  "sidebar.empty_recent": "Nenhum arquivo recente",
-  "sidebar.empty_dir": "Pasta vazia",
-  "sidebar.up": "Subir um nível",
-  "sidebar.dir_unreachable": "⚠️ Não é possível acessar o diretório:\n{path}\n\nMotivos possíveis: unidade USB desconectada, unidade de rede não montada ou pasta renomeada.",
-
+  // ===== Barra lateral =====
   "sidebar.recent": "Arquivos recentes",
   "sidebar.directory": "Diretório atual",
   "sidebar.file_not_found": "Arquivo não encontrado ou movido: {path}",
+  "sidebar.empty_recent": "Nenhum arquivo recente",
+  "sidebar.empty_dir": "Pasta vazia",
+  "sidebar.up": "Subir",
+  "sidebar.dir_unreachable": "⚠️ Não é possível acessar o diretório:\n{path}\n\nPossíveis motivos: unidade USB desconectada, unidade de rede não montada ou pasta renomeada.",
+  "sidebar.record_history": "Registrar histórico",
+  "sidebar.clear_history": "Limpar histórico",
+  "sidebar.delete_record": "Excluir registro",
 
-  // ===== Barra de Status =====
+  // ===== Barra de status =====
   "status.unsaved": "Não salvo",
   "status.external_deleted": "⚠ Excluído externamente",
-  "status.external_unreachable": "⚠ Localização inacessível",
+  "status.external_unreachable": "⚠ Local inacessível",
   "status.external_modified": "⚠ Modificado externamente",
-  "status.line_and_chars": "{lines} linhas · {chars} caracteres",
-  "status.selected_chars": "{chars} caracteres selecionados",
-  "status.selected_lines_and_chars": "{lines} linhas · {chars} caracteres selecionados",
-  "status.short_line_numbers": "Linhas",
+  "status.line_and_chars": "{lines} linhas · {chars} car.",
+  "status.selected_chars": "{chars} car. selecionados",
+  "status.selected_lines_and_chars": "{lines} linhas · {chars} car. selecionados",
+  "status.short_line_numbers": "Núm. linha",
   "status.short_word_wrap": "Quebra",
-  "status.zoom_tooltip": "Nível de zoom",
+  "status.zoom_tooltip": "Zoom",
   "status.scroll_wheel": "Roda",
   "status.encoding_tooltip": "Codificação: {encoding}",
-  "status.line_ending_lf": "Final de linha Unix (LF)",
-  "status.line_ending_crlf": "Final de linha Windows (CRLF)",
-  "status.line_ending_cr": "Final de linha Macintosh (CR)",
+  "status.line_ending_lf": "Fim de linha Unix (LF)",
+  "status.line_ending_crlf": "Fim de linha Windows (CRLF)",
+  "status.line_ending_cr": "Fim de linha Macintosh (CR)",
 
-  // ===== Diálogos de Fechar/Salvar =====
+  // ===== Diálogos de fechar/salvar =====
   "dialog.close_confirm": "Sim",
   "dialog.close_cancel": "Não",
   "dialog.cancel": "Cancelar",
   "dialog.filter.all_files": "Todos os arquivos",
   "dialog.filter.text_files": "Arquivos de texto",
+  "dialog.ask_save_unnamed": "Salvar arquivo \"{title}\"?",
+  "dialog.ask_save_named": "Salvar alterações em \"{title}\"?",
 
-  "dialog.ask_save_unnamed": 'Salvar arquivo "{title}"?',
-  "dialog.ask_save_named": 'Salvar alterações em "{title}"?',
-
-  // ===== Resolução de Conflitos =====
-  "dialog.conflict_title": "{path}\nO arquivo foi modificado externamente. Escolha como prosseguir:",
+  // ===== Resolução de conflitos =====
+  "dialog.conflict_title": "{path}\nO arquivo foi modificado externamente. Escolha como proceder:",
   "dialog.conflict_overwrite": "Sobrescrever",
   "dialog.conflict_discard": "Recarregar",
   "dialog.conflict_discard_close": "Descartar",
   "dialog.conflict_compare": "Comparar",
   "dialog.conflict_save_as": "Salvar como",
-  "dialog.save_as_conflict":
-    "Falha ao salvar: O arquivo já está aberto em outra guia. Feche-a e tente novamente.\nCaminho: {path}",
+  "dialog.save_as_conflict": "Falha ao salvar: O arquivo já está aberto em outra aba. Feche-o e tente novamente.\nCaminho: {path}",
   "dialog.ok": "OK",
 
-  // ===== Diálogo de Fechar Arquivo Grande =====
-  "dialog.large_close": 'O arquivo "{title}" tem alterações não salvas. Elas serão perdidas se você fechar.',
+  // ===== Diálogo de fechar arquivo grande =====
+  "dialog.large_close": "O arquivo \"{title}\" tem alterações não salvas. Elas serão perdidas se você fechar.",
   "dialog.large_close_yes": "Salvar",
   "dialog.large_close_no": "Não salvar",
 
-  // ===== Placeholder de Arquivo Grande =====
+  // ===== Diálogo de modificação de codificação e fim de linha =====
+  "dialog.format_type_encoding": "codificação",
+  "dialog.format_type_line_ending": "fim de linha",
+  "dialog.change_format_title": "Alterar {typeName} para \"{value}\"?",
+  "dialog.change_format_subtitle": "O documento pode ser convertido sem perdas. O conteúdo do arquivo será atualizado após salvar.",
+  "dialog.change_format_lossy_title": "⚠ Alterar {typeName} pode causar perda de caracteres",
+  "dialog.change_format_lossy_subtitle": "O documento contém caracteres especiais. Após mudar para \"{value}\", esses caracteres serão substituídos por \"?\" e não poderão ser recuperados.",
+  "encoding_group_unicode": "Extensões Unicode",
+  "encoding_group_cjk": "CJK",
+  "encoding_group_western": "Europa Ocidental",
+  "encoding_group_central_europe": "Europa Central/Oriental",
+  "encoding_group_cyrillic": "Cirílico",
+  "encoding_group_others": "Oriente Médio e outros",
+  "encoding.recommend": "Recomendado",
 
-  // ===== Diálogo Sobre =====
+  // ===== Sobre =====
   "about.title": "FinchPad",
   "about.version": "Versão {version}",
-  "about.line1": "Um editor de texto simples, moderno, leve e com várias guias.",
+  "about.line1": "Um editor de texto simples moderno, leve e com várias abas.",
   "about.line2": "Com o objetivo de ser um editor de texto padrão melhor.",
-  "about.tech": "Construído com: Tauri 2 · Svelte 5 · Rust · Monaco Editor",
+  "about.tech": "Desenvolvido com: Tauri 2 · Svelte 5 · Rust · Monaco Editor",
   "about.author": "Autor: MaleyGoz",
   "about.license": "Licença: MIT",
-  "about.website": "Site: https://github.com/MaleyGoz/FinchPad",
+  "about.website": "Website: https://github.com/MaleyGoz/FinchPad",
   "about.ok": "OK",
 
-  // ===== Guias Sem Título =====
+  // ===== Abas sem título =====
   "tab.unnamed": "Sem título {index}",
   "tab.unnamed_fallback": "Sem título",
 
+  // ===== Arquivo grande =====
+  "large_file.pending_title": "Este arquivo é grande e ainda não foi carregado",
+  "large_file.pending_size": "Tamanho do arquivo: {size}",
+  "large_file.pending_hint": "Para manter a interface fluida, ele será aberto em uma janela separada para renderização somente leitura ultrarrápida.",
+  "large_file.pending_btn": "⚡ Visualização rápida somente leitura",
   "large_file.searching": "Digitalizando arquivo...",
+  "large_file.no_results": "Nenhuma correspondência encontrada",
+  "large_file.search_failed": "Falha na pesquisa, verifique o status do arquivo.",
   "large_file.search_limit": "Mostrando apenas os primeiros 100 resultados, use palavras-chave mais precisas",
-  "sidebar.record_history": "Registrar histórico",
+  "large_file.file_not_found": "O arquivo foi excluído ou movido externamente e não pode ser aberto.",
+  "large_file.load_failed": "Falha na leitura. O arquivo pode ter sido modificado ou excluído externamente.",
   "large_file.search_placeholder": "Pesquisar...",
   "large_file.auto_detect": "🔄 Detecção automática",
-  "large_file.search_failed": "Falha na pesquisa, verifique o status do arquivo.",
-  "large_file.pending_size": "Tamanho do arquivo: {size}",
-  "large_file.pending_btn": "⚡ Visualização rápida somente leitura",
-  "large_file.no_results": "Nenhuma correspondência encontrada",
-  "large_file.pending_hint": "Para manter a interface principal fluida, ele será aberto em uma janela separada para renderização somente leitura ultrarrápida.",
-  "large_file.pending_title": "Este arquivo é grande e ainda não foi carregado",
-  "large_file.load_failed": "Falha na leitura. O arquivo pode ter sido modificado ou excluído externamente.",
-  "large_file.file_not_found": "O arquivo foi excluído ou movido externamente e não pode ser aberto.",
-  "sidebar.delete_record": "Excluir registro",
-  "sidebar.clear_history": "Limpar histórico",
 
-    // ===== 查找替换 =====
-    "editor.find.placeholder": "Localizar",
-    "editor.find.replace_placeholder": "Substituir",
-    "editor.find.show_replace": "Mostrar Substituir",
-    "editor.find.hide_replace": "Ocultar Substituir",
-    "editor.find.close": "Fechar (Esc)",
-    "editor.find.find_in_selection": "Localizar na Seleção",
-    "editor.find.match_case": "Diferenciar Maiúsculas de Minúsculas",
-    "editor.find.match_whole_word": "Palavra Inteira",
-    "editor.find.use_regex": "Usar Expressão Regular",
-    "editor.find.preserve_case": "Preservar Maiúsculas e Minúsculas",
-    "editor.find.replace": "Substituir",
-    "editor.find.replace_all": "Substituir Tudo",
-    "editor.find.prev_match": "Correspondência Anterior",
-    "editor.find.next_match": "Próxima Correspondência",
-    "editor.find.no_results": "Nenhum resultado",
-    "editor.find.match_count": "{current} de {total}",
-
+  // ===== Localizar e substituir =====
+  "editor.find.placeholder": "Localizar",
+  "editor.find.replace_placeholder": "Substituir",
+  "editor.find.show_replace": "Mostrar substituição",
+  "editor.find.hide_replace": "Ocultar substituição",
+  "editor.find.close": "Fechar (Esc)",
+  "editor.find.find_in_selection": "Localizar na seleção",
+  "editor.find.match_case": "Diferenciar maiúsculas/minúsculas",
+  "editor.find.match_whole_word": "Palavra inteira",
+  "editor.find.use_regex": "Expressão regular",
+  "editor.find.preserve_case": "Preservar maiúsculas/minúsculas",
+  "editor.find.replace": "Substituir",
+  "editor.find.replace_all": "Substituir tudo",
+  "editor.find.prev_match": "Correspondência anterior",
+  "editor.find.next_match": "Próxima correspondência",
+  "editor.find.no_results": "Sem resultados",
+  "editor.find.match_count": "{current} de {total}",
 };

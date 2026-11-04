@@ -107,12 +107,13 @@
             role="dialog"
             tabindex="-1"
         >
-            <!-- ★ 新增：如果有副标题（如文件路径），优先渲染副标题并弱化 -->
+            <!-- 主标题：显示核心提示语 -->
+            <div class="modal-title">{modal.title}</div>
+            <!-- 副标题：弱化的说明或路径，放在主标题下方 -->
             {#if modal.subtitle}
                 <div class="modal-subtitle">{modal.subtitle}</div>
             {/if}
-            <!-- 主标题：显示核心提示语 -->
-            <div class="modal-title">{modal.title}</div>
+
             {#each modal.rows as row}
                 <div class="modal-row" class:narrow-btns={row.length === 2}>
                     {#each row as btn}
@@ -294,9 +295,10 @@
     {@const maxMenuHeight = window.innerHeight - 16}
     {@const ddH = Math.min(LOCALE_OPTIONS.length * 32 + 8, maxMenuHeight)}
     {@const hasLeft = langSubmenu.anchorLeft - ddW - 8 >= 0}
-    {@const ddLeft = hasLeft
-        ? langSubmenu.anchorLeft - ddW - 4
-        : langSubmenu.anchorRight + 4}
+    <!-- ★ 核心修改：使用 right 定位，让右侧贴边，彻底消除宽度偏差导致的空隙 -->
+    {@const ddStyle = hasLeft
+        ? `right: ${window.innerWidth - langSubmenu.anchorLeft + 6}px;`
+        : `left: ${langSubmenu.anchorRight + 6}px;`}
     {@const ddTop = Math.max(
         8,
         Math.min(langSubmenu.anchorTop, window.innerHeight - ddH - 8),
@@ -307,7 +309,7 @@
         class="context-menu lang-submenu"
         class:bridge-right={!hasLeft}
         class:bridge-left={hasLeft}
-        style="z-index: 1001; left: {ddLeft}px; top: {ddTop}px; max-height: {maxMenuHeight}px; overflow-y: auto;"
+        style="z-index: 1001; {ddStyle} top: {ddTop}px; max-height: {maxMenuHeight}px; overflow-y: auto;"
         onclick={(e) => e.stopPropagation()}
         oncontextmenu={(e) => e.stopPropagation()}
         onmouseenter={onCancelCloseLangSubmenu}
@@ -642,8 +644,8 @@
     {@const ddH = Math.min((tabTitles.length - 1) * 32 + 8, maxMenuHeight)}
     {@const hasRight = diffSubmenu.anchorRight + ddW + 8 <= window.innerWidth}
     {@const ddLeft = hasRight
-        ? diffSubmenu.anchorRight + 4
-        : Math.max(8, diffSubmenu.anchorLeft - ddW - 4)}
+        ? diffSubmenu.anchorRight + 6
+        : Math.max(8, diffSubmenu.anchorLeft - ddW - 6)}
     {@const ddTop = Math.max(
         8,
         Math.min(diffSubmenu.anchorTop, window.innerHeight - ddH - 8),
@@ -857,23 +859,30 @@
 
     /* ===== 主标题（核心提示语） ===== */
     .modal-title {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--overlay-foreground);
         line-height: 1.5;
-        margin-bottom: 24px;
+        margin-bottom: 12px; /* 让主标题和下方的说明保持适度间距 */
         white-space: pre-line;
         word-break: break-all;
     }
 
-    /* ===== 副标题（弱化的文件路径） ===== */
+    /* 如果没有副标题，主标题自己撑开与按钮的间距 */
+    .modal-title:last-child {
+        margin-bottom: 24px;
+    }
+
+    /* ===== 副标题（弱化的说明/路径） ===== */
     .modal-subtitle {
-        font-family: var(--font-mono);
-        font-size: 13px;
+        font-family: var(
+            --font-sans
+        ); /* ★ 核心修改：改成无衬线字体，不再用代码字体！ */
+        font-size: 13px; /* 字体稍小 */
         font-weight: 400;
-        color: var(--status-bar-foreground-muted);
+        color: var(--status-bar-foreground-muted); /* 灰色，弱化存在感 */
         line-height: 1.6;
-        margin-bottom: 8px;
+        margin-bottom: 24px; /* 让说明文字与下方按钮保持明确距离 */
         word-break: break-all;
     }
 

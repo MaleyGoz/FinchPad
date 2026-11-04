@@ -35,6 +35,10 @@ pub struct Tab {
     /// 这个标签的换行符。新建标签用平台默认，打开文件时记录检测结果。
     pub line_ending: LineEnding,
     /// 缓存：当前文本的逻辑行数。空文件算 1 行。
+    /// ★ 新增：记录磁盘上的原始编码（用于状态栏显示“原始”标记）
+    pub disk_encoding: TextEncoding,
+    /// ★ 新增：记录磁盘上的原始换行符
+    pub disk_line_ending: LineEnding,
     pub line_count: usize,
     pub id: String,
     /// 缓存：当前文本的字符数（Unicode scalar 数，不是字节数）。
@@ -85,6 +89,8 @@ impl Tab {
             title,
             encoding: TextEncoding::Utf8,
             line_ending: LineEnding::platform_default(),
+            disk_encoding: TextEncoding::Utf8, // ★ 新增
+            disk_line_ending: LineEnding::platform_default(), // ★ 新增
             line_count: 1,
             id: uuid::Uuid::new_v4().to_string(),
             char_count: 0,
@@ -113,6 +119,8 @@ impl Tab {
             title,
             encoding: TextEncoding::Utf8,
             line_ending: LineEnding::platform_default(),
+            disk_encoding: TextEncoding::Utf8, // ★ 新增
+            disk_line_ending: LineEnding::platform_default(), // ★ 新增
             line_count: 1,
             char_count: 0,
             cursor_line: 1,
@@ -166,6 +174,8 @@ impl Tab {
             title,
             encoding,
             line_ending,
+            disk_encoding: encoding,       // ★ 新增：初始时目标等于原始
+            disk_line_ending: line_ending, // ★ 新增：初始时目标等于原始
             line_count,
             char_count,
             id: uuid::Uuid::new_v4().to_string(),
@@ -200,6 +210,8 @@ impl Tab {
         self.title = title;
         self.encoding = encoding;
         self.line_ending = line_ending;
+        self.disk_encoding = encoding; // ★ 新增
+        self.disk_line_ending = line_ending; // ★ 新增
         let (line_count, char_count) = count_text(content);
         self.line_count = line_count;
         self.char_count = char_count;

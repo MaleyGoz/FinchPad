@@ -20,12 +20,11 @@ export const zhTW: Record<string, string> = {
   "dialog.update_confirm": "前往下載",
   "dialog.update_cancel": "取消",
 
-  // ===== 标签栏 =====
+  // ===== 標籤欄 =====
   "tab_bar.new_tab": "新增分頁",
   "tab_bar.settings": "設定",
   "tab_bar.preview": "預覽",
-
-  // ===== 語言選項 =====
+  "tab_bar.more_tabs": "更多標籤",
 
   // ===== 標籤右鍵選單 =====
   "tab_menu.save": "儲存",
@@ -64,14 +63,17 @@ export const zhTW: Record<string, string> = {
   "editor_menu.delete": "刪除",
   "editor_menu.select_all": "全選",
 
-  // ===== SideBar =====
+  // ===== 側邊欄 =====
+  "sidebar.recent": "最近檔案",
+  "sidebar.directory": "目前目錄",
+  "sidebar.file_not_found": "檔案不存在或已被移動：{path}",
   "sidebar.empty_recent": "暫無最近檔案",
   "sidebar.empty_dir": "空資料夾",
   "sidebar.up": "返回上一級",
   "sidebar.dir_unreachable": "⚠️ 無法存取以下目錄：\n{path}\n\n可能的原因：USB 裝置已拔出、網路磁碟未掛載、或資料夾被重新命名。",
-  "sidebar.recent": "最近檔案",
-  "sidebar.directory": "目前目錄",
-  "sidebar.file_not_found": "檔案不存在或已被移動：{path}",
+  "sidebar.record_history": "記錄歷史",
+  "sidebar.clear_history": "清空歷史",
+  "sidebar.delete_record": "刪除記錄",
 
   // ===== 狀態欄 =====
   "status.unsaved": "未儲存",
@@ -96,7 +98,6 @@ export const zhTW: Record<string, string> = {
   "dialog.cancel": "取消",
   "dialog.filter.all_files": "所有檔案",
   "dialog.filter.text_files": "文字檔案",
-
   "dialog.ask_save_unnamed": "是否儲存檔案「{title}」？",
   "dialog.ask_save_named": "是否儲存對「{title}」的修改？",
 
@@ -107,8 +108,7 @@ export const zhTW: Record<string, string> = {
   "dialog.conflict_discard_close": "放棄修改",
   "dialog.conflict_compare": "比對差異",
   "dialog.conflict_save_as": "另存為",
-  "dialog.save_as_conflict":
-    "儲存失敗：檔案已在另一個標籤頁中開啟。請關閉該標籤後再重試。\n路徑：{path}",
+  "dialog.save_as_conflict": "儲存失敗：檔案已在另一個標籤頁中開啟。請關閉該標籤後再重試。\n路徑：{path}",
   "dialog.ok": "確定",
 
   // ===== 大檔案關窗彈窗 =====
@@ -116,7 +116,20 @@ export const zhTW: Record<string, string> = {
   "dialog.large_close_yes": "儲存",
   "dialog.large_close_no": "不儲存",
 
-  // ===== 大檔案占位 =====
+  // ===== 編碼、換行符修改彈窗 =====
+  "dialog.format_type_encoding": "編碼",
+  "dialog.format_type_line_ending": "換行符",
+  "dialog.change_format_title": "是否將{typeName}更改為「{value}」？",
+  "dialog.change_format_subtitle": "目前文件可以無損轉換為該格式，儲存後檔案內容將被更新。",
+  "dialog.change_format_lossy_title": "⚠ 變更{typeName}可能導致字元遺失",
+  "dialog.change_format_lossy_subtitle": "目前文件包含特殊字元，切換至「{value}」後，這些字元將無法正確表示，會被替換為「?」且無法復原。",
+  "encoding_group_unicode": "Unicode 擴充",
+  "encoding_group_cjk": "中日韓",
+  "encoding_group_western": "西歐/西文",
+  "encoding_group_central_europe": "東歐/中歐",
+  "encoding_group_cyrillic": "西里爾文",
+  "encoding_group_others": "中東與其他",
+  "encoding.recommend": "推薦",
 
   // ===== 關於彈窗 =====
   "about.title": "FinchPad",
@@ -133,38 +146,35 @@ export const zhTW: Record<string, string> = {
   "tab.unnamed": "未命名 {index}",
   "tab.unnamed_fallback": "未命名",
 
+  // ===== 大檔案 =====
+  "large_file.pending_title": "此檔案較大，尚未載入",
+  "large_file.pending_size": "檔案大小：{size}",
+  "large_file.pending_hint": "為了不卡頓主介面，將在獨立視窗中進行極速唯讀渲染。",
+  "large_file.pending_btn": "⚡ 極速唯讀檢視",
   "large_file.searching": "正在全檔案掃描...",
+  "large_file.no_results": "未找到匹配項",
+  "large_file.search_failed": "搜尋失敗，請檢查檔案狀態。",
   "large_file.search_limit": "僅顯示前 100 個結果，請使用更精確的關鍵字",
-  "sidebar.record_history": "記錄歷史",
+  "large_file.file_not_found": "檔案已被外部刪除或移動，無法開啟。",
+  "large_file.load_failed": "讀取失敗，檔案可能已被外部修改或刪除。",
   "large_file.search_placeholder": "搜尋...",
   "large_file.auto_detect": "🔄 自動識別",
-  "large_file.search_failed": "搜尋失敗，請檢查檔案狀態。",
-  "large_file.pending_size": "檔案大小：{size}",
-  "large_file.pending_btn": "⚡ 極速唯讀檢視",
-  "large_file.no_results": "未找到匹配項",
-  "large_file.pending_hint": "為了不卡頓主介面，將在獨立視窗中進行極速唯讀渲染。",
-  "large_file.pending_title": "此檔案較大，尚未載入",
-  "large_file.load_failed": "讀取失敗，檔案可能已被外部修改或刪除。",
-  "large_file.file_not_found": "檔案已被外部刪除或移動，無法開啟。",
-  "sidebar.delete_record": "刪除記錄",
-  "sidebar.clear_history": "清空歷史",
 
-    // ===== 查找替换 =====
-    "editor.find.placeholder": "尋找",
-    "editor.find.replace_placeholder": "取代",
-    "editor.find.show_replace": "展開取代",
-    "editor.find.hide_replace": "收起取代",
-    "editor.find.close": "關閉 (Esc)",
-    "editor.find.find_in_selection": "在選取範圍中尋找",
-    "editor.find.match_case": "區分大小寫",
-    "editor.find.match_whole_word": "全字拼寫須相符",
-    "editor.find.use_regex": "使用規則運算式",
-    "editor.find.preserve_case": "保留大小寫",
-    "editor.find.replace": "取代",
-    "editor.find.replace_all": "全部取代",
-    "editor.find.prev_match": "上一個相符項",
-    "editor.find.next_match": "下一個相符項",
-    "editor.find.no_results": "無結果",
-    "editor.find.match_count": "第 {current} 項，共 {total} 項",
-
+  // ===== 尋找與取代 =====
+  "editor.find.placeholder": "尋找",
+  "editor.find.replace_placeholder": "取代",
+  "editor.find.show_replace": "展開取代",
+  "editor.find.hide_replace": "收起取代",
+  "editor.find.close": "關閉 (Esc)",
+  "editor.find.find_in_selection": "在選取範圍中尋找",
+  "editor.find.match_case": "區分大小寫",
+  "editor.find.match_whole_word": "全字拼寫須相符",
+  "editor.find.use_regex": "使用規則運算式",
+  "editor.find.preserve_case": "保留大小寫",
+  "editor.find.replace": "取代",
+  "editor.find.replace_all": "全部取代",
+  "editor.find.prev_match": "上一個相符項",
+  "editor.find.next_match": "下一個相符項",
+  "editor.find.no_results": "無結果",
+  "editor.find.match_count": "第 {current} 項，共 {total} 項",
 };

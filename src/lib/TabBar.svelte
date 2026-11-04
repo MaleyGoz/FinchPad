@@ -644,7 +644,7 @@
                         </svg>
                     </button>
                 {:else}
-                    <span class="dot" aria-label="未保存">●</span>
+                    <span class="dot" aria-label="未保存"></span>
                 {/if}
             {:else if isHovered || isActive}
                 <button
@@ -1087,12 +1087,22 @@
         justify-content: center;
         width: 20px; /* ★ 必须和 close-btn 宽度一致 */
         height: 20px; /* ★ 必须和 close-btn 高度一致 */
-        font-size: 6px;
-        color: var(--tab-foreground);
         margin-left: 4px; /* ★ 必须和 close-btn 左间距一致 */
         user-select: none;
         flex-shrink: 0;
+        /* ★ 删除了 font-size: 6px; 因为不再用文字了 */
     }
+
+    /* ★ 新增：用 CSS 画一个完美的正圆 */
+    .dot::before {
+        content: "";
+        display: block;
+        width: 5px; /* 圆点的直径，如果你觉得小可以改成 8px */
+        height: 5px;
+        border-radius: 50%; /* 变成正圆 */
+        background-color: currentColor; /* 自动继承 .dot 里的文字颜色（跟随主题） */
+    }
+
     .tab.active .dot {
         color: var(--tab-foreground-active);
     }

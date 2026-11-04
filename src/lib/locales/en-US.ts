@@ -122,6 +122,21 @@ export const enUS: Record<string, string> = {
     "dialog.large_close_yes": "Save",
     "dialog.large_close_no": "Don't Save",
 
+    // ===== Encoding and Line Ending Modification Dialog =====
+    "dialog.format_type_encoding": "encoding",
+    "dialog.format_type_line_ending": "line ending",
+    "dialog.change_format_title": "Change {typeName} to \"{value}\"?",
+    "dialog.change_format_subtitle": "The document can be converted losslessly. File content will be updated after saving.",
+    "dialog.change_format_lossy_title": "⚠ Changing {typeName} may cause character loss",
+    "dialog.change_format_lossy_subtitle": "The document contains special characters. After switching to \"{value}\", these characters will be replaced with \"?\" and cannot be recovered.",
+    "encoding_group_unicode": "Unicode Extensions",
+    "encoding_group_cjk": "CJK",
+    "encoding_group_western": "Western",
+    "encoding_group_central_europe": "Central/Eastern Europe",
+    "encoding_group_cyrillic": "Cyrillic",
+    "encoding_group_others": "Middle East & Others",
+    "encoding.recommend": "Recommended",
+
     // ===== About Dialog =====
     "about.title": "FinchPad",
     "about.version": "Version {version}",

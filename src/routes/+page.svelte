@@ -95,6 +95,8 @@
         char_count: 0,
         encoding: "UTF-8",
         line_ending: "LF",
+        disk_encoding: "UTF-8", // ★ 新增
+        disk_line_ending: "LF", // ★ 新增
         is_dirty: false,
         default_save_path: "",
         is_unnamed: true,
@@ -1617,6 +1619,128 @@
         api.setZoom(clamped).catch(console.error);
     }
 
+    // ★ 新增：处理编码/换行符修改
+    async function handleFormatChange(
+        type: "encoding" | "line_ending",
+        value: string,
+    ) {
+        const idx = snapshot.active_index;
+        if (idx < 0) return;
+
+        const currentValue =
+            type === "encoding" ? snapshot.encoding : snapshot.line_ending;
+        if (currentValue === value) return;
+
+        let isLossy = false;
+        if (type === "encoding") {
+            try {
+                isLossy = await api.checkEncodingLossy(idx, value);
+            } catch (e) {
+                console.error("检查编码丢失风险失败:", e);
+                return;
+            }
+        }
+
+        // ★ 核心新增：i18n 逻辑与拼装
+        const locale = get(resolvedLocale);
+        const typeName =
+            type === "encoding"
+                ? t("dialog.format_type_encoding", undefined, locale)
+                : t("dialog.format_type_line_ending", undefined, locale);
+
+        let displayValue = value;
+        if (type === "line_ending") {
+            // 把 LF 翻译成 "Unix 换行符（LF）"
+            const key = `status.line_ending_${value.toLowerCase()}`;
+            displayValue = t(key, undefined, locale);
+            if (displayValue === key) displayValue = value; // 兜底
+        }
+
+        let title = "";
+        let subtitle = "";
+
+        if (isLossy) {
+            title = t("dialog.change_format_lossy_title", { typeName }, locale);
+            subtitle = t(
+                "dialog.change_format_lossy_subtitle",
+                { value: displayValue },
+                locale,
+            );
+        } else {
+            title = t(
+                "dialog.change_format_title",
+                { typeName, value: displayValue },
+                locale,
+            );
+            subtitle = t("dialog.change_format_subtitle", undefined, locale);
+        }
+
+        modal = {
+            visible: true,
+            title: title,
+            subtitle: subtitle,
+            rows: [
+                [
+                    {
+                        label: t("dialog.cancel", undefined, locale),
+                        action: closeModal,
+                    },
+                    {
+                        label: t("dialog.ok", undefined, locale),
+                        style: "primary",
+                        action: async () => {
+                            closeModal();
+                            await executeFormatChange(idx, type, value);
+                        },
+                    },
+                ],
+            ],
+        };
+    }
+
+    // ★ 新增：真正执行修改格式的动作
+    async function executeFormatChange(
+        idx: number,
+        type: "encoding" | "line_ending",
+        value: string,
+    ) {
+        try {
+            // 0. 先把防抖队列里的最新文本同步给 Rust，防止丢失刚敲的字
+            await flushPendingEdit();
+
+            // 1. 让后端静默修改内存里的格式标记
+            snapshot = await api.setTabFormat(idx, type, value);
+
+            // 2. 如果是未命名标签，改内存状态就够了，等用户以后 Ctrl+S
+            if (snapshot.is_unnamed) {
+                return;
+            }
+
+            // 3. 如果是已命名标签，写盘前必须检查是否有外部冲突
+            const full = await api.checkTabFullState(idx);
+            if (full.disk_state === "modified") {
+                showSaveConflictModal(idx);
+                return;
+            }
+            if (
+                full.disk_state === "deleted" ||
+                full.disk_state === "unreachable"
+            ) {
+                await handleSaveAs();
+                return;
+            }
+
+            // 4. ★ 核心修复：绕过 handleSave，直接调用底层保存（无条件写盘）
+            try {
+                snapshot = await api.saveActiveFile();
+            } catch (e) {
+                console.error("保存新格式失败：", e);
+            }
+        } catch (e) {
+            console.error("应用格式失败:", e);
+        }
+    }
+
     async function handleToggleWordWrap() {
         // 大文件不允许切换
         if (snapshot.large_file) return;
@@ -1955,6 +2079,7 @@
         right: number | null;
         top: number;
         isMultiSelect?: boolean;
+        canDiffSelected?: boolean;
     };
     let contextMenu: ContextMenuState = {
         visible: false,
@@ -2318,6 +2443,9 @@
                 {selectedLineCount}
                 encoding={snapshot.encoding}
                 lineEnding={snapshot.line_ending}
+                diskEncoding={snapshot.disk_encoding}
+                diskLineEnding={snapshot.disk_line_ending}
+                onFormatChange={handleFormatChange}
                 isDirty={snapshot.is_dirty}
                 diskState={snapshot.disk_state}
                 {zoom}

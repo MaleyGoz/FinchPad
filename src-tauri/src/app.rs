@@ -39,6 +39,9 @@ pub struct WorkspaceSnapshot {
     pub char_count: i32,
     pub encoding: String,
     pub line_ending: String,
+    pub disk_encoding: String,    // ★ 新增
+    pub disk_line_ending: String, // ★ 新增
+
     pub is_dirty: bool,
     /// 另存为对话框的默认路径：
     ///   - 有 file_path 的标签 → 完整路径（定位到原目录、文件名预填）
@@ -240,6 +243,8 @@ fn snapshot_from_workspace(ws: &crate::model::Workspace) -> WorkspaceSnapshot {
         char_count: tab.char_count as i32,
         encoding: tab.encoding.name().to_string(),
         line_ending: tab.line_ending.name().to_string(),
+        disk_encoding: tab.disk_encoding.name().to_string(), // ★ 新增
+        disk_line_ending: tab.disk_line_ending.name().to_string(), // ★ 新增
 
         // ★ 修复：Pending 状态下强制干净，强制磁盘状态为 normal，不读真实磁盘
         is_dirty: if tab.is_pending_load {
@@ -1232,6 +1237,52 @@ pub fn set_word_wrap(state: tauri::State<AppState>, value: bool) -> Result<(), S
     drop(ws);
     state.mark_session_dirty();
     Ok(())
+}
+
+/// 检查将文本转换为目标编码是否会丢失字符
+#[tauri::command]
+pub fn check_encoding_lossy(
+    state: tauri::State<AppState>,
+    index: i32,
+    encoding_name: String,
+) -> Result<bool, String> {
+    let ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    let tab = ws.tab(index as usize).ok_or("标签无效")?;
+
+    let target_enc = crate::io::encoding::TextEncoding::from_name(&encoding_name);
+    let text = tab.buffer.to_string();
+
+    // 返回 true 代表有损（会丢字符）
+    let is_lossy = !crate::io::encoding::can_encode(&text, target_enc);
+    Ok(is_lossy)
+}
+
+/// 仅修改内存中的编码或换行符状态（不写盘）
+#[tauri::command]
+pub fn set_tab_format(
+    state: tauri::State<AppState>,
+    index: i32,
+    format_type: String,
+    value: String,
+) -> Result<WorkspaceSnapshot, String> {
+    let mut ws = state.workspace.lock().map_err(|e| e.to_string())?;
+    let tab = ws.tab_mut(index as usize).ok_or("标签无效")?;
+
+    if format_type == "encoding" {
+        tab.encoding = crate::io::encoding::TextEncoding::from_name(&value);
+    } else if format_type == "line_ending" {
+        tab.line_ending = crate::io::line_ending::LineEnding::from_name(&value);
+    } else {
+        return Err("未知的格式类型".to_string());
+    }
+
+    // 如果是未命名标签且为空，不标脏；否则标脏（由前端去触发保存）
+    if tab.file_path.is_some() || !tab.buffer.is_empty() {
+        tab.is_dirty = true;
+    }
+
+    state.mark_session_dirty();
+    Ok(snapshot_from_workspace(&ws))
 }
 
 // 设置行号
