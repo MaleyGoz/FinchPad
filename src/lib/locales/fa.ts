@@ -16,7 +16,7 @@ export const fa: Record<string, string> = {
     "dialog.update_latest": "شما از آخرین نسخه (v{version}) استفاده می‌کنید.",
     "dialog.update_found": "نسخه جدید پیدا شد!\nنسخه فعلی: v{current}\nآخرین نسخه: v{latest}\n\nآیا به GitHub می‌روید تا دانلود کنید؟",
     "dialog.update_failed": "بررسی بروزرسانی ناموفق بود. لطفاً شبکه خود را بررسی کنید.",
-    "dialog.update_confirm": "دانلود",
+    "dialog.update_confirm": "آخرین نسخه",
     "dialog.update_cancel": "لغو",
 
     // ===== نوار زبانه‌ها =====
@@ -176,4 +176,11 @@ export const fa: Record<string, string> = {
     "editor.find.next_match": "تطابق بعدی",
     "editor.find.no_results": "بدون نتیجه",
     "editor.find.match_count": "{current} از {total}",
+
+    
+    // ===== منوی macOS =====
+    "menu.file": "پرونده",
+    "menu.edit": "ویرایش",
+    "menu.view": "نما",
+    "menu.quit": "خروج از FinchPad",
 };

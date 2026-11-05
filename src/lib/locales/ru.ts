@@ -16,7 +16,7 @@ export const ru: Record<string, string> = {
   "dialog.update_latest": "У вас установлена последняя версия (v{version}).",
   "dialog.update_found": "Найдена новая версия!\nТекущая: v{current}\nПоследняя: v{latest}\n\nПерейти на GitHub для загрузки?",
   "dialog.update_failed": "Не удалось проверить обновления. Пожалуйста, проверьте сеть.",
-  "dialog.update_confirm": "Скачать",
+  "dialog.update_confirm": "Новая версия",
   "dialog.update_cancel": "Отмена",
 
   // ===== Панель вкладок =====
@@ -176,4 +176,11 @@ export const ru: Record<string, string> = {
   "editor.find.next_match": "Следующее",
   "editor.find.no_results": "Нет результатов",
   "editor.find.match_count": "{current} из {total}",
+
+    
+    // ===== Меню macOS =====
+    "menu.file": "Файл",
+    "menu.edit": "Правка",
+    "menu.view": "Вид",
+    "menu.quit": "Завершить FinchPad",
 };

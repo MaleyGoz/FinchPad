@@ -16,7 +16,7 @@ export const hi: Record<string, string> = {
     "dialog.update_latest": "आप नवीनतम संस्करण पर हैं (v{version})।",
     "dialog.update_found": "नया संस्करण मिला!\nवर्तमान: v{current}\nनवीनतम: v{latest}\n\nडाउनलोड करने के लिए GitHub पर जाएं?",
     "dialog.update_failed": "अपडेट जांचने में विफल। कृपया अपना नेटवर्क जांचें।",
-    "dialog.update_confirm": "डाउनलोड करें",
+    "dialog.update_confirm": "नवीनतम रिलीज़",
     "dialog.update_cancel": "रद्द करें",
 
     // ===== टैब बार =====
@@ -176,4 +176,11 @@ export const hi: Record<string, string> = {
     "editor.find.next_match": "अगला मेल",
     "editor.find.no_results": "कोई परिणाम नहीं",
     "editor.find.match_count": "{current} / {total}",
+
+    
+    // ===== macOS मेनू =====
+    "menu.file": "फ़ाइल",
+    "menu.edit": "संपादित करें",
+    "menu.view": "देखें",
+    "menu.quit": "FinchPad बंद करें",
 };

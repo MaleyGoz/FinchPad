@@ -16,7 +16,7 @@ export const th: Record<string, string> = {
     "dialog.update_latest": "คุณเป็นเวอร์ชันล่าสุดแล้ว (v{version})",
     "dialog.update_found": "พบเวอร์ชันใหม่!\nปัจจุบัน: v{current}\nล่าสุด: v{latest}\n\nไปที่ GitHub เพื่อดาวน์โหลด?",
     "dialog.update_failed": "ตรวจสอบอัปเดตไม่สำเร็จ โปรดตรวจสอบเครือข่ายของคุณ",
-    "dialog.update_confirm": "ดาวน์โหลด",
+    "dialog.update_confirm": "เวอร์ชันล่าสุด",
     "dialog.update_cancel": "ยกเลิก",
 
     // ===== แถบแท็บ =====
@@ -176,4 +176,11 @@ export const th: Record<string, string> = {
     "editor.find.next_match": "รายการถัดไป",
     "editor.find.no_results": "ไม่มีผลลัพธ์",
     "editor.find.match_count": "{current} จาก {total}",
+
+    
+    // ===== เมนู macOS =====
+    "menu.file": "ไฟล์",
+    "menu.edit": "แก้ไข",
+    "menu.view": "มุมมอง",
+    "menu.quit": "ออกจาก FinchPad",
 };

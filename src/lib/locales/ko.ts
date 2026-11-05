@@ -16,7 +16,7 @@ export const ko: Record<string, string> = {
   "dialog.update_latest": "최신 버전입니다 (v{version}).",
   "dialog.update_found": "새 버전 발견!\n현재 버전: v{current}\n최신 버전: v{latest}\n\nGitHub로 이동하여 다운로드하시겠습니까?",
   "dialog.update_failed": "업데이트 확인 실패. 네트워크 연결을 확인하세요.",
-  "dialog.update_confirm": "다운로드",
+  "dialog.update_confirm": "최신 릴리스",
   "dialog.update_cancel": "취소",
 
   // ===== 탭 바 =====
@@ -176,4 +176,11 @@ export const ko: Record<string, string> = {
   "editor.find.next_match": "다음 일치 항목",
   "editor.find.no_results": "결과 없음",
   "editor.find.match_count": "{current} / {total}",
+
+    
+    // ===== macOS 메뉴 =====
+    "menu.file": "파일",
+    "menu.edit": "편집",
+    "menu.view": "보기",
+    "menu.quit": "FinchPad 종료",
 };

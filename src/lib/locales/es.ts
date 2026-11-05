@@ -16,7 +16,7 @@ export const es: Record<string, string> = {
   "dialog.update_latest": "Estás en la última versión (v{version}).",
   "dialog.update_found": "¡Nueva versión encontrada!\nActual: v{current}\nÚltima: v{latest}\n\n¿Ir a GitHub para descargar?",
   "dialog.update_failed": "Error al buscar actualizaciones. Por favor, comprueba tu red.",
-  "dialog.update_confirm": "Descargar",
+  "dialog.update_confirm": "Última versión",
   "dialog.update_cancel": "Cancelar",
 
   // ===== Barra de pestañas =====
@@ -176,4 +176,11 @@ export const es: Record<string, string> = {
   "editor.find.next_match": "Siguiente coincidencia",
   "editor.find.no_results": "Sin resultados",
   "editor.find.match_count": "{current} de {total}",
+
+    
+    // ===== Menú de macOS =====
+    "menu.file": "Archivo",
+    "menu.edit": "Edición",
+    "menu.view": "Ver",
+    "menu.quit": "Salir de FinchPad",
 };

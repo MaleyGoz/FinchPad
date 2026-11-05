@@ -177,4 +177,11 @@ export const zhTW: Record<string, string> = {
   "editor.find.next_match": "下一個相符項",
   "editor.find.no_results": "無結果",
   "editor.find.match_count": "第 {current} 項，共 {total} 項",
+
+    
+    // ===== macOS 選單 =====
+    "menu.file": "檔案",
+    "menu.edit": "編輯",
+    "menu.view": "檢視",
+    "menu.quit": "結束 FinchPad",
 };

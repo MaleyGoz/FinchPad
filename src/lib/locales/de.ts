@@ -16,7 +16,7 @@ export const de: Record<string, string> = {
   "dialog.update_latest": "Sie verwenden die neueste Version (v{version}).",
   "dialog.update_found": "Neue Version gefunden!\nAktuell: v{current}\nNeueste: v{latest}\n\nZu GitHub wechseln, um herunterzuladen?",
   "dialog.update_failed": "Update-Suche fehlgeschlagen. Bitte überprüfen Sie Ihre Netzwerkverbindung.",
-  "dialog.update_confirm": "Herunterladen",
+  "dialog.update_confirm": "Neueste Version",
   "dialog.update_cancel": "Abbrechen",
 
   // ===== Tableiste =====
@@ -176,4 +176,11 @@ export const de: Record<string, string> = {
   "editor.find.next_match": "Nächstes Vorkommen",
   "editor.find.no_results": "Keine Ergebnisse",
   "editor.find.match_count": "{current} von {total}",
+
+    
+    // ===== macOS-Menü =====
+    "menu.file": "Ablage",
+    "menu.edit": "Bearbeiten",
+    "menu.view": "Darstellung",
+    "menu.quit": "FinchPad beenden",
 };

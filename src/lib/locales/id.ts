@@ -16,7 +16,7 @@ export const id: Record<string, string> = {
     "dialog.update_latest": "Anda menggunakan versi terbaru (v{version}).",
     "dialog.update_found": "Versi baru ditemukan!\nSaat ini: v{current}\nTerbaru: v{latest}\n\nPergi ke GitHub untuk mengunduh?",
     "dialog.update_failed": "Gagal memeriksa pembaruan. Harap periksa jaringan Anda.",
-    "dialog.update_confirm": "Unduh",
+    "dialog.update_confirm": "Rilis Terbaru",
     "dialog.update_cancel": "Batal",
 
     // ===== Bilah Tab =====
@@ -176,4 +176,11 @@ export const id: Record<string, string> = {
     "editor.find.next_match": "Kecocokan Berikutnya",
     "editor.find.no_results": "Tidak ada hasil",
     "editor.find.match_count": "{current} dari {total}",
+
+    
+    // ===== Menu macOS =====
+    "menu.file": "Berkas",
+    "menu.edit": "Edit",
+    "menu.view": "Tampilan",
+    "menu.quit": "Keluar dari FinchPad",
 };

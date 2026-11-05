@@ -16,7 +16,7 @@ export const ar: Record<string, string> = {
     "dialog.update_latest": "أنت تستخدم أحدث إصدار (v{version}).",
     "dialog.update_found": "تم العثور على إصدار جديد!\nالحالي: v{current}\nالأحدث: v{latest}\n\nالانتقال إلى GitHub للتنزيل؟",
     "dialog.update_failed": "فشل التحقق من التحديثات. يرجى التحقق من شبكتك.",
-    "dialog.update_confirm": "تنزيل",
+    "dialog.update_confirm": "أحدث إصدار",
     "dialog.update_cancel": "إلغاء",
 
     // ===== شريط التبويبات =====
@@ -176,4 +176,11 @@ export const ar: Record<string, string> = {
     "editor.find.next_match": "التطابق التالي",
     "editor.find.no_results": "لا توجد نتائج",
     "editor.find.match_count": "{current} من {total}",
+
+    
+    // ===== قائمة macOS =====
+    "menu.file": "ملف",
+    "menu.edit": "تحرير",
+    "menu.view": "عرض",
+    "menu.quit": "إنهاء FinchPad",
 };

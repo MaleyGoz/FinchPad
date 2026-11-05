@@ -16,7 +16,7 @@ export const ptBR: Record<string, string> = {
   "dialog.update_latest": "Você está na versão mais recente (v{version}).",
   "dialog.update_found": "Nova versão encontrada!\nAtual: v{current}\nMais recente: v{latest}\n\nIr para o GitHub para baixar?",
   "dialog.update_failed": "Falha ao verificar atualizações. Por favor, verifique sua rede.",
-  "dialog.update_confirm": "Baixar",
+  "dialog.update_confirm": "Última versão",
   "dialog.update_cancel": "Cancelar",
 
   // ===== Barra de abas =====
@@ -176,4 +176,11 @@ export const ptBR: Record<string, string> = {
   "editor.find.next_match": "Próxima correspondência",
   "editor.find.no_results": "Sem resultados",
   "editor.find.match_count": "{current} de {total}",
+
+    
+    // ===== Menu do macOS =====
+    "menu.file": "Arquivo",
+    "menu.edit": "Editar",
+    "menu.view": "Visualizar",
+    "menu.quit": "Sair do FinchPad",
 };

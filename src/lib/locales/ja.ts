@@ -16,7 +16,7 @@ export const ja: Record<string, string> = {
   "dialog.update_latest": "最新バージョンです (v{version})。",
   "dialog.update_found": "新しいバージョンが見つかりました！\n現在のバージョン: v{current}\n最新バージョン: v{latest}\n\nGitHubに移動してダウンロードしますか？",
   "dialog.update_failed": "アップデートの確認に失敗しました。ネットワーク接続を確認してください。",
-  "dialog.update_confirm": "ダウンロード",
+  "dialog.update_confirm": "最新リリース",
   "dialog.update_cancel": "キャンセル",
 
   // ===== タブバー =====
@@ -176,4 +176,11 @@ export const ja: Record<string, string> = {
   "editor.find.next_match": "次の一致",
   "editor.find.no_results": "結果なし",
   "editor.find.match_count": "{current} / {total}",
+
+    
+    // ===== macOS メニュー =====
+    "menu.file": "ファイル",
+    "menu.edit": "編集",
+    "menu.view": "表示",
+    "menu.quit": "FinchPadを終了",
 };

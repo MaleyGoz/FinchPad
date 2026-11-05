@@ -16,7 +16,7 @@ export const pl: Record<string, string> = {
   "dialog.update_latest": "Używasz najnowszej wersji (v{version}).",
   "dialog.update_found": "Znaleziono nową wersję!\nAktualna: v{current}\nNajnowsza: v{latest}\n\nPrzejść do GitHub, aby pobrać?",
   "dialog.update_failed": "Nie udało się sprawdzić aktualizacji. Sprawdź połączenie sieciowe.",
-  "dialog.update_confirm": "Pobierz",
+  "dialog.update_confirm": "Najnowsza wersja",
   "dialog.update_cancel": "Anuluj",
 
   // ===== Pasek kart =====
@@ -176,4 +176,11 @@ export const pl: Record<string, string> = {
   "editor.find.next_match": "Następne dopasowanie",
   "editor.find.no_results": "Brak wyników",
   "editor.find.match_count": "{current} z {total}",
+
+    
+    // ===== Menu macOS =====
+    "menu.file": "Plik",
+    "menu.edit": "Edycja",
+    "menu.view": "Widok",
+    "menu.quit": "Zakończ FinchPad",
 };

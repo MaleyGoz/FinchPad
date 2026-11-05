@@ -16,7 +16,7 @@ export const tr: Record<string, string> = {
   "dialog.update_latest": "En son sürümü kullanıyorsunuz (v{version}).",
   "dialog.update_found": "Yeni sürüm bulundu!\nMevcut: v{current}\nEn son: v{latest}\n\nİndirmek için GitHub'a gidilsin mi?",
   "dialog.update_failed": "Güncellemeler kontrol edilemedi. Lütfen ağınızı kontrol edin.",
-  "dialog.update_confirm": "İndir",
+  "dialog.update_confirm": "Son Sürüm",
   "dialog.update_cancel": "İptal",
 
   // ===== Sekme çubuğu =====
@@ -176,4 +176,11 @@ export const tr: Record<string, string> = {
   "editor.find.next_match": "Sonraki eşleşme",
   "editor.find.no_results": "Sonuç yok",
   "editor.find.match_count": "{current} / {total}",
+
+    
+    // ===== macOS Menüsü =====
+    "menu.file": "Dosya",
+    "menu.edit": "Düzen",
+    "menu.view": "Görünüm",
+    "menu.quit": "FinchPad'den Çık",
 };

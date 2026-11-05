@@ -16,7 +16,7 @@ export const vi: Record<string, string> = {
     "dialog.update_latest": "Bạn đang sử dụng phiên bản mới nhất (v{version}).",
     "dialog.update_found": "Đã tìm thấy phiên bản mới!\nHiện tại: v{current}\nMới nhất: v{latest}\n\nTruy cập GitHub để tải xuống?",
     "dialog.update_failed": "Không thể kiểm tra cập nhật. Vui lòng kiểm tra mạng của bạn.",
-    "dialog.update_confirm": "Tải xuống",
+    "dialog.update_confirm": "Bản mới nhất",
     "dialog.update_cancel": "Hủy bỏ",
 
     // ===== Thanh tab =====
@@ -176,4 +176,11 @@ export const vi: Record<string, string> = {
     "editor.find.next_match": "Kết quả tiếp theo",
     "editor.find.no_results": "Không có kết quả",
     "editor.find.match_count": "{current} / {total}",
+
+    
+    // ===== Menu macOS =====
+    "menu.file": "Tệp",
+    "menu.edit": "Sửa",
+    "menu.view": "Xem",
+    "menu.quit": "Thoát FinchPad",
 };

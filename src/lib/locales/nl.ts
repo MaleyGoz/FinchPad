@@ -16,7 +16,7 @@ export const nl: Record<string, string> = {
   "dialog.update_latest": "Je hebt de nieuwste versie (v{version}).",
   "dialog.update_found": "Nieuwe versie gevonden!\nHuidige: v{current}\nNieuwste: v{latest}\n\nNaar GitHub gaan om te downloaden?",
   "dialog.update_failed": "Kan niet controleren op updates. Controleer je netwerk.",
-  "dialog.update_confirm": "Downloaden",
+  "dialog.update_confirm": "Nieuwste release",
   "dialog.update_cancel": "Annuleren",
 
   // ===== Tabbladbalk =====
@@ -176,4 +176,11 @@ export const nl: Record<string, string> = {
   "editor.find.next_match": "Volgende overeenkomst",
   "editor.find.no_results": "Geen resultaten",
   "editor.find.match_count": "{current} van {total}",
+
+    
+    // ===== macOS-menu =====
+    "menu.file": "Archief",
+    "menu.edit": "Wijzig",
+    "menu.view": "Weergave",
+    "menu.quit": "Stop FinchPad",
 };

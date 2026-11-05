@@ -18,7 +18,7 @@ export const enUS: Record<string, string> = {
         "New version found!\nCurrent: v{current}\nLatest: v{latest}\n\nGo to GitHub to download?",
     "dialog.update_failed":
         "Failed to check for updates. Please check your network.",
-    "dialog.update_confirm": "Download",
+    "dialog.update_confirm": "Latest Release",
     "dialog.update_cancel": "Cancel",
 
     // ===== Tab Bar =====
