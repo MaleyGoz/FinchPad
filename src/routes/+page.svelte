@@ -46,6 +46,7 @@
         Menu,
         Submenu,
         MenuItem,
+        CheckMenuItem,
         PredefinedMenuItem,
     } from "@tauri-apps/api/menu";
 
@@ -2125,41 +2126,39 @@
         modal = { visible: false, title: "", rows: [] };
     }
 
-    // ★ 核心新增：构建 macOS 专属原生菜单
-    async function initMacMenu() {
+    // ==========================================
+    // ★ 新增：macOS 原生菜单构建逻辑
+    // ==========================================
+    let macMenu: Menu | null = null;
+    let chkShowLineNumbers: CheckMenuItem | null = null;
+    let chkWordWrap: CheckMenuItem | null = null;
+    async function buildMacMenu() {
+        if (!isMac) return;
+        const locale = get(resolvedLocale);
+        const mode = $page.url.searchParams.get("mode");
+
         try {
+            // 1. 构建 App 菜单
             const appMenu = await Submenu.new({
                 text: "FinchPad",
                 items: [
                     await MenuItem.new({
-                        text:
-                            t("about.title", undefined, get(resolvedLocale)) ||
-                            "About FinchPad",
+                        text: t("about.title", undefined, locale),
                         action: () => {
                             aboutVisible = true;
                         },
                     }),
                     await MenuItem.new({
-                        text:
-                            t(
-                                "settings.check_update",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Check for Updates",
+                        text: t("settings.check_update", undefined, locale),
                         action: () => {
                             checkForUpdates();
                         },
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    // 拦截默认的 Cmd+Q，走你写好的 onCloseRequested 拦截逻辑
                     await MenuItem.new({
                         text:
-                            t(
-                                "settings.about",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Quit FinchPad",
-                        accelerator: "CmdOrCtrl+Q",
+                            t("menu.quit", undefined, locale) ||
+                            "Quit FinchPad",
                         action: () => {
                             getCurrentWindow().close();
                         },
@@ -2167,152 +2166,245 @@
                 ],
             });
 
+            // 如果是大文件窗口或对比窗口，只保留 App 菜单
+            if (mode === "large_viewer" || mode === "diff") {
+                macMenu = await Menu.new({ items: [appMenu] });
+                await macMenu.setAsAppMenu();
+                return;
+            }
+
+            // 2. 构建 File 菜单（动态过滤对比目标）
+            const compareItems = [];
+            for (let i = 0; i < snapshot.tab_titles.length; i++) {
+                if (
+                    i !== snapshot.active_index &&
+                    !snapshot.tab_pending_states[i]
+                ) {
+                    compareItems.push(
+                        await MenuItem.new({
+                            text: snapshot.tab_titles[i],
+                            action: () => openTabDiff(snapshot.active_index, i),
+                        }),
+                    );
+                }
+            }
+
             const fileMenu = await Submenu.new({
-                text: "File",
+                text: t("menu.file", undefined, locale) || "File",
                 items: [
                     await MenuItem.new({
-                        text:
-                            t(
-                                "tab_bar.new_tab",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "New Tab",
-                        accelerator: "CmdOrCtrl+N",
-                        action: () => {
-                            handleNew();
-                        },
+                        text: t("tab_bar.new_tab", undefined, locale),
+                        action: () => handleNew(),
                     }),
                     await MenuItem.new({
-                        text:
-                            t(
-                                "bar_menu.open",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Open File...",
-                        accelerator: "CmdOrCtrl+O",
+                        text: t("bar_menu.open", undefined, locale),
+                        action: () => handleOpen(),
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await MenuItem.new({
+                        text: t("tab_menu.save", undefined, locale),
+                        action: () => handleSave(),
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.save_as", undefined, locale),
+                        action: () => handleSaveAs(),
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.rename", undefined, locale),
                         action: () => {
-                            handleOpen();
+                            renamingIndex = snapshot.active_index;
                         },
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
                     await MenuItem.new({
-                        text:
-                            t(
-                                "tab_menu.save",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Save",
-                        accelerator: "CmdOrCtrl+S",
+                        text: t("tab_menu.close", undefined, locale),
+                        action: () => handleClose(snapshot.active_index),
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.close_others", undefined, locale),
                         action: () => {
-                            handleSave();
+                            const ids = snapshot.tab_ids.filter(
+                                (_, i) => i !== snapshot.active_index,
+                            );
+                            startCloseQueue(ids);
                         },
                     }),
                     await MenuItem.new({
-                        text:
-                            t(
-                                "tab_menu.save_as",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Save As...",
-                        accelerator: "CmdOrCtrl+Shift+S",
+                        text: t("tab_menu.close_right", undefined, locale),
                         action: () => {
-                            handleSaveAs();
+                            const ids = snapshot.tab_ids.slice(
+                                snapshot.active_index + 1,
+                            );
+                            startCloseQueue(ids);
                         },
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.close_all", undefined, locale),
+                        action: () => startCloseQueue(snapshot.tab_ids),
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.reopen", undefined, locale),
+                        action: () => handleReopenTab(),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
                     await MenuItem.new({
-                        text:
-                            t(
-                                "tab_menu.close",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Close Tab",
-                        accelerator: "CmdOrCtrl+W",
+                        text: t(
+                            "tab_menu.reveal_in_explorer",
+                            undefined,
+                            locale,
+                        ),
                         action: () => {
-                            handleClose(snapshot.active_index);
+                            const p = snapshot.tab_paths[snapshot.active_index];
+                            if (p) revealItemInDir(p);
                         },
+                    }),
+                    await MenuItem.new({
+                        text: t("tab_menu.copy_path", undefined, locale),
+                        action: () => {
+                            const p = snapshot.tab_paths[snapshot.active_index];
+                            if (p) writeText(p).catch(console.error);
+                        },
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await Submenu.new({
+                        text:
+                            t("tab_menu.diff", undefined, locale) || "Compare",
+                        items: compareItems,
                     }),
                 ],
             });
 
+            // 3. 构建 Edit 菜单
             const editMenu = await Submenu.new({
-                text: "Edit",
+                text: t("menu.edit", undefined, locale) || "Edit",
                 items: [
-                    await PredefinedMenuItem.new({
-                        item: "Undo",
-                        text: "Undo",
+                    await MenuItem.new({
+                        text: t("editor_menu.undo", undefined, locale),
+                        action: () => editorRef?.execEditorAction("undo"),
                     }),
-                    await PredefinedMenuItem.new({
-                        item: "Redo",
-                        text: "Redo",
+                    await MenuItem.new({
+                        text: t("editor_menu.redo", undefined, locale),
+                        action: () => editorRef?.execEditorAction("redo"),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await PredefinedMenuItem.new({ item: "Cut", text: "Cut" }),
-                    await PredefinedMenuItem.new({
-                        item: "Copy",
-                        text: "Copy",
+                    await MenuItem.new({
+                        text: t("editor_menu.cut", undefined, locale),
+                        action: () => editorRef?.execEditorAction("cut"),
                     }),
-                    await PredefinedMenuItem.new({
-                        item: "Paste",
-                        text: "Paste",
+                    await MenuItem.new({
+                        text: t("editor_menu.copy", undefined, locale),
+                        action: () => editorRef?.execEditorAction("copy"),
                     }),
-                    await PredefinedMenuItem.new({
-                        item: "SelectAll",
-                        text: "Select All",
+                    await MenuItem.new({
+                        text: t("editor_menu.paste", undefined, locale),
+                        action: () => editorRef?.execEditorAction("paste"),
+                    }),
+                    await MenuItem.new({
+                        text: t("editor_menu.delete", undefined, locale),
+                        action: () => editorRef?.execEditorAction("delete"),
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await MenuItem.new({
+                        text: t("editor_menu.select_all", undefined, locale),
+                        action: () => editorRef?.execEditorAction("selectAll"),
                     }),
                 ],
+            });
+
+            // 4. 构建 View 菜单
+            chkShowLineNumbers = await CheckMenuItem.new({
+                text: t("settings.show_line_numbers", undefined, locale),
+                checked: showLineNumbers,
+                action: () => toggleShowLineNumbers(),
+            });
+            chkWordWrap = await CheckMenuItem.new({
+                text: t("settings.word_wrap", undefined, locale),
+                checked: wordWrap,
+                action: () => handleToggleWordWrap(),
+            });
+
+            const themeItems = [];
+            for (const themeKey of THEME_ORDER) {
+                themeItems.push(
+                    await CheckMenuItem.new({
+                        text: t(
+                            `settings.theme.${themeKey}`,
+                            undefined,
+                            locale,
+                        ),
+                        checked: editorBg === themeKey,
+                        action: () => setTheme(themeKey),
+                    }),
+                );
+            }
+            const themeMenu = await Submenu.new({
+                text: t("settings.theme", undefined, locale),
+                items: themeItems,
+            });
+
+            const langItems = [];
+            langItems.push(
+                await CheckMenuItem.new({
+                    text: "Auto",
+                    checked: $localeChoice === "auto",
+                    action: () => setLocale("auto"),
+                }),
+            );
+            for (const opt of LOCALE_OPTIONS) {
+                langItems.push(
+                    await CheckMenuItem.new({
+                        text: LANGUAGE_NAMES[opt.key] || opt.key,
+                        checked: $localeChoice === opt.key,
+                        action: () => setLocale(opt.key as LocaleChoice),
+                    }),
+                );
+            }
+            const langMenu = await Submenu.new({
+                text: t("settings.language", undefined, locale),
+                items: langItems,
             });
 
             const viewMenu = await Submenu.new({
-                text: "View",
+                text: t("menu.view", undefined, locale) || "View",
                 items: [
-                    await MenuItem.new({
-                        text:
-                            t(
-                                "sidebar.directory",
-                                undefined,
-                                get(resolvedLocale),
-                            ) || "Toggle Sidebar",
-                        accelerator: "CmdOrCtrl+B",
-                        action: () => {
-                            handleSidebarShortcut();
-                        },
-                    }),
+                    chkShowLineNumbers,
+                    chkWordWrap,
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: "Zoom In",
-                        accelerator: "CmdOrCtrl+=",
-                        action: () => {
-                            applyZoomDelta(10);
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: "Zoom Out",
-                        accelerator: "CmdOrCtrl+-",
-                        action: () => {
-                            applyZoomDelta(-10);
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: "Actual Size",
-                        accelerator: "CmdOrCtrl+0",
-                        action: () => {
-                            setZoomValue(100);
-                        },
-                    }),
+                    themeMenu,
+                    langMenu,
                 ],
             });
 
-            // 组装菜单
-            const menu = await Menu.new({
+            // 5. 组装并应用
+            macMenu = await Menu.new({
                 items: [appMenu, fileMenu, editMenu, viewMenu],
             });
-
-            // 设置为 Mac 顶部菜单
-            await menu.setAsAppMenu();
+            await macMenu.setAsAppMenu();
         } catch (e) {
-            console.error("Mac 菜单初始化失败:", e);
+            console.error("Mac 菜单构建失败:", e);
         }
+    }
+    // ★ 声明一个外部变量存放定时器
+    let macMenuTimer: ReturnType<typeof setTimeout> | null = null;
+    // ★ 核心：精准监听，拒绝打字时反复重建
+    $: menuTrigger = [
+        $resolvedLocale,
+        $localeChoice,
+        snapshot.tab_titles.join(","),
+        snapshot.active_index,
+        snapshot.tab_pending_states.join(","),
+        snapshot.tab_ids.join(","),
+        editorBg,
+        isMac,
+    ].join("|");
+
+    $: if (isMac && menuTrigger) {
+        // 如果上一次的定时器还没执行完，先清掉它（这就是防抖逻辑）
+        if (macMenuTimer) clearTimeout(macMenuTimer);
+
+        macMenuTimer = setTimeout(() => {
+            buildMacMenu();
+        }, 50);
     }
 
     onMount(() => {
@@ -2477,11 +2569,6 @@
         };
         window.addEventListener("mousemove", handleMouseMove);
 
-        // ★ 核心新增：只有 macOS 才初始化原生菜单，绝不影响 Win/Linux
-        if (isMac) {
-            initMacMenu();
-        }
-
         // 7. 清理函数（必须放最后）
         return () => {
             window.removeEventListener("focus", handleDetect);
@@ -2491,6 +2578,7 @@
             if (unlistenSingleInstance) unlistenSingleInstance();
             if (unlistenFocus) unlistenFocus();
             window.removeEventListener("mousedown", handleGlobalClick);
+            if (macMenuTimer) clearTimeout(macMenuTimer);
         };
     });
 </script>

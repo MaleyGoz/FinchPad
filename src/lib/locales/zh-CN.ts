@@ -180,4 +180,11 @@ export const zhCN: Record<string, string> = {
     "editor.find.next_match": "下一个匹配项",
     "editor.find.no_results": "无结果",
     "editor.find.match_count": "第 {current} 项，共 {total} 项",
+
+    // ===== macOS菜单 =====
+    "menu.file": "文件",
+    "menu.edit": "编辑",
+    "menu.view": "视图",
+    "menu.quit": "退出 FinchPad",
+
 };

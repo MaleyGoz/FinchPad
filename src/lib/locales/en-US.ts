@@ -183,4 +183,10 @@ export const enUS: Record<string, string> = {
     "editor.find.next_match": "Next Match",
     "editor.find.no_results": "No results",
     "editor.find.match_count": "{current} of {total}",
+
+    // ===== macOS Menu =====
+    "menu.file": "File",
+    "menu.edit": "Edit",
+    "menu.view": "View",
+    "menu.quit": "Quit FinchPad",
 };
