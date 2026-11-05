@@ -42,6 +42,12 @@
 
     import { page } from "$app/stores";
     import LargeFileViewer from "$lib/LargeFileViewer.svelte";
+    import {
+        Menu,
+        Submenu,
+        MenuItem,
+        PredefinedMenuItem,
+    } from "@tauri-apps/api/menu";
 
     // ======== 全局type块 ========
     // 编辑区右键菜单
@@ -2119,6 +2125,196 @@
         modal = { visible: false, title: "", rows: [] };
     }
 
+    // ★ 核心新增：构建 macOS 专属原生菜单
+    async function initMacMenu() {
+        try {
+            const appMenu = await Submenu.new({
+                text: "FinchPad",
+                items: [
+                    await MenuItem.new({
+                        text:
+                            t("about.title", undefined, get(resolvedLocale)) ||
+                            "About FinchPad",
+                        action: () => {
+                            aboutVisible = true;
+                        },
+                    }),
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "settings.check_update",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Check for Updates",
+                        action: () => {
+                            checkForUpdates();
+                        },
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    // 拦截默认的 Cmd+Q，走你写好的 onCloseRequested 拦截逻辑
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "settings.about",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Quit FinchPad",
+                        accelerator: "CmdOrCtrl+Q",
+                        action: () => {
+                            getCurrentWindow().close();
+                        },
+                    }),
+                ],
+            });
+
+            const fileMenu = await Submenu.new({
+                text: "File",
+                items: [
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "tab_bar.new_tab",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "New Tab",
+                        accelerator: "CmdOrCtrl+N",
+                        action: () => {
+                            handleNew();
+                        },
+                    }),
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "bar_menu.open",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Open File...",
+                        accelerator: "CmdOrCtrl+O",
+                        action: () => {
+                            handleOpen();
+                        },
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "tab_menu.save",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Save",
+                        accelerator: "CmdOrCtrl+S",
+                        action: () => {
+                            handleSave();
+                        },
+                    }),
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "tab_menu.save_as",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Save As...",
+                        accelerator: "CmdOrCtrl+Shift+S",
+                        action: () => {
+                            handleSaveAs();
+                        },
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "tab_menu.close",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Close Tab",
+                        accelerator: "CmdOrCtrl+W",
+                        action: () => {
+                            handleClose(snapshot.active_index);
+                        },
+                    }),
+                ],
+            });
+
+            const editMenu = await Submenu.new({
+                text: "Edit",
+                items: [
+                    await PredefinedMenuItem.new({
+                        item: "Undo",
+                        text: "Undo",
+                    }),
+                    await PredefinedMenuItem.new({
+                        item: "Redo",
+                        text: "Redo",
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await PredefinedMenuItem.new({ item: "Cut", text: "Cut" }),
+                    await PredefinedMenuItem.new({
+                        item: "Copy",
+                        text: "Copy",
+                    }),
+                    await PredefinedMenuItem.new({
+                        item: "Paste",
+                        text: "Paste",
+                    }),
+                    await PredefinedMenuItem.new({
+                        item: "SelectAll",
+                        text: "Select All",
+                    }),
+                ],
+            });
+
+            const viewMenu = await Submenu.new({
+                text: "View",
+                items: [
+                    await MenuItem.new({
+                        text:
+                            t(
+                                "sidebar.directory",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Toggle Sidebar",
+                        accelerator: "CmdOrCtrl+B",
+                        action: () => {
+                            handleSidebarShortcut();
+                        },
+                    }),
+                    await PredefinedMenuItem.new({ item: "Separator" }),
+                    await MenuItem.new({
+                        text: "Zoom In",
+                        accelerator: "CmdOrCtrl+=",
+                        action: () => {
+                            applyZoomDelta(10);
+                        },
+                    }),
+                    await MenuItem.new({
+                        text: "Zoom Out",
+                        accelerator: "CmdOrCtrl+-",
+                        action: () => {
+                            applyZoomDelta(-10);
+                        },
+                    }),
+                    await MenuItem.new({
+                        text: "Actual Size",
+                        accelerator: "CmdOrCtrl+0",
+                        action: () => {
+                            setZoomValue(100);
+                        },
+                    }),
+                ],
+            });
+
+            // 组装菜单
+            const menu = await Menu.new({
+                items: [appMenu, fileMenu, editMenu, viewMenu],
+            });
+
+            // 设置为 Mac 顶部菜单
+            await menu.setAsAppMenu();
+        } catch (e) {
+            console.error("Mac 菜单初始化失败:", e);
+        }
+    }
+
     onMount(() => {
         // ★ 核心防御：如果当前是大文件独立窗口，直接停止主界面的所有初始化逻辑！
         if ($page.url.searchParams.get("mode") === "large_viewer") {
@@ -2280,6 +2476,11 @@
             mouseY = e.clientY;
         };
         window.addEventListener("mousemove", handleMouseMove);
+
+        // ★ 核心新增：只有 macOS 才初始化原生菜单，绝不影响 Win/Linux
+        if (isMac) {
+            initMacMenu();
+        }
 
         // 7. 清理函数（必须放最后）
         return () => {
