@@ -99,7 +99,6 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
                 else if (key === "x") ctx.editorRef?.execEditorAction("cut");
                 else if (key === "c") ctx.editorRef?.execEditorAction("copy");
                 else if (key === "v") ctx.editorRef?.execEditorAction("paste");
-                else if (key === "a") ctx.editorRef?.execEditorAction("selectAll");
                 return;
             } else {
                 return; // Windows/Linux 放行给 Monaco 原生处理，性能最高
