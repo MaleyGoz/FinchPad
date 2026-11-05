@@ -48,6 +48,7 @@
     let localTooltipShortcut = "";
     let localTooltipStyle = "";
 
+    let isTooltipAbove = false;
     function showLocalTooltip(
         e: MouseEvent,
         text: string,
@@ -59,24 +60,29 @@
         localTooltipText = text;
         localTooltipShortcut = shortcut;
 
-        // ★ 核心防溢出算法：
-        // 默认居中，如果靠右太近，就右对齐；如果靠左太近，就左对齐
         let left = rect.left + rect.width / 2;
         let transform = "translateX(-50%)";
 
-        // 防右侧截断 (如果按钮右侧离屏幕边缘 < 100px)
-        if (rect.right > window.innerWidth - 100) {
+        // 右侧防溢出
+        if (rect.right > window.innerWidth - 150) {
             left = rect.right;
             transform = "translateX(-100%)";
         }
-        // 防左侧截断
+        // 左侧防溢出
         else if (rect.left < 100) {
             left = rect.left;
             transform = "translateX(0)";
         }
 
-        // ★ 向下弹出：top 坐标加上按钮高度，并留 8px 空隙
-        localTooltipStyle = `top: ${rect.bottom + 8}px; left: ${left}px; transform: ${transform};`;
+        // 下方防溢出（如果下方空间不够 60px，强制向上弹出）
+        if (window.innerHeight - rect.bottom < 60) {
+            isTooltipAbove = true;
+            localTooltipStyle = `bottom: ${window.innerHeight - rect.top + 8}px; left: ${left}px; transform: ${transform};`;
+        } else {
+            isTooltipAbove = false;
+            localTooltipStyle = `top: ${rect.bottom + 8}px; left: ${left}px; transform: ${transform};`;
+        }
+
         localTooltipVisible = true;
     }
 
@@ -556,9 +562,11 @@
     <!-- ★ 新增：TabBar 局部 Tooltip 浮层 -->
     {#if localTooltipVisible}
         <div class="tab-local-tooltip" style={localTooltipStyle}>
-            <span>{localTooltipText}</span>
+            <span style="white-space: nowrap;">{localTooltipText}</span>
             {#if localTooltipShortcut}
-                <span class="shortcut">{localTooltipShortcut}</span>
+                <span class="shortcut" style="white-space: nowrap;"
+                    >{localTooltipShortcut}</span
+                >
             {/if}
         </div>
     {/if}
@@ -1328,7 +1336,9 @@
         font-size: 12px;
 
         /* 强制单行，绝对不换行 */
-        white-space: nowrap;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        max-width: 300px; /* 防巨型字串 */
         z-index: 99999;
         pointer-events: none; /* 防止触发奇怪的 hover 闪烁 */
         display: flex;
