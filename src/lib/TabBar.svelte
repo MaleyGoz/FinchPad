@@ -561,7 +561,14 @@
 >
     <!-- ★ 新增：TabBar 局部 Tooltip 浮层 -->
     {#if localTooltipVisible}
-        <div class="tab-local-tooltip" style={localTooltipStyle}>
+        <!-- ★ 核心修改：只有是 Mac 且文案是设置按钮时，才加上专属类名 -->
+        <div
+            class="tab-local-tooltip"
+            class:mac-settings-tooltip={isMac &&
+                localTooltipText ===
+                    t("tab_bar.settings", undefined, $resolvedLocale)}
+            style={localTooltipStyle}
+        >
             <span style="white-space: nowrap;">{localTooltipText}</span>
             {#if localTooltipShortcut}
                 <span class="shortcut" style="white-space: nowrap;"
@@ -776,7 +783,30 @@
             ).getBoundingClientRect();
             onSettingsClick(rect.right, rect.bottom);
         }}
-        use:tooltip={t("tab_bar.settings", undefined, $resolvedLocale)}
+        use:tooltip={!isMac
+            ? t("tab_bar.settings", undefined, $resolvedLocale)
+            : undefined}
+        on:mouseenter={(e) => {
+            if (isMac) {
+                localTooltipText = t(
+                    "tab_bar.settings",
+                    undefined,
+                    $resolvedLocale,
+                );
+                localTooltipShortcut = "";
+                const rect = (
+                    e.currentTarget as HTMLElement
+                ).getBoundingClientRect();
+                // ★ 核心：让 Tooltip 的右边与按钮右边对齐，向下弹出，实现向左下弹出的效果
+                localTooltipStyle = `top: ${rect.bottom + 8}px; right: ${window.innerWidth - rect.right}px; left: auto; transform: none;`;
+                localTooltipVisible = true;
+            }
+        }}
+        on:mouseleave={() => {
+            if (isMac) {
+                localTooltipVisible = false;
+            }
+        }}
         aria-label="设置"
     >
         <svg
@@ -1344,6 +1374,13 @@
         display: flex;
         align-items: center;
         font-family: var(--font-sans);
+    }
+
+    /* ★ 新增：仅针对 Mac 设置按钮的 Tooltip 修复 Webkit 挤压 Bug */
+    .tab-local-tooltip.mac-settings-tooltip {
+        display: inline-block !important;
+        width: max-content !important;
+        white-space: nowrap !important;
     }
 
     .tab-local-tooltip .shortcut {
