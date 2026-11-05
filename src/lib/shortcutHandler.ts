@@ -84,7 +84,12 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) return;
 
-    const key = e.key.toLowerCase();
+    // ★ 核心修复：拦截 macOS 的 Cmd+Q，交给 Tauri 的 close() 走未保存弹窗
+    if (ctx.isMac && e.metaKey && key === "q") {
+        e.preventDefault();
+        ctx.closeWindow();
+        return;
+    }
 
     // ★ 核心接管：Mac 下的 Ctrl 文本快捷键
     const isTextAction = ["z", "y", "x", "c", "v"].includes(key);
