@@ -34,7 +34,6 @@ dirs = "5"
 uuid = { version = "1", features = ["v4"] }
 aes-gcm = "0.10"
 keyring = "2"
-charset-normalizer-rs = "1.1.0"
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

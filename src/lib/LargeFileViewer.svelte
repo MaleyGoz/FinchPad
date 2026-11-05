@@ -134,38 +134,86 @@
         null;
 
     // 编码支持
-    let currentEncoding = "UTF-8"; //
-    const ENCODINGS = [
-        "AutoDetect", // ★ 置顶：自动探测
+    let currentEncoding = "AutoDetect"; // ★ 核心修复：初始状态设为自动探测
+
+    // ★ 新增：一级常用（与 StatusBar 保持一致）
+    const COMMON_ENCODINGS = [
         "UTF-8",
-        "UTF-16LE",
-        "UTF-16BE",
+        "UTF-8 BOM",
         "GBK",
-        "GB18030",
-        "Big5",
         "Shift_JIS",
-        "EUC-JP",
-        "ISO-2022-JP",
-        "EUC-KR",
         "Windows-1252",
-        "ISO-8859-1",
-        "ISO-8859-15",
         "Windows-1251",
-        "KOI8-R",
-        "Windows-1250",
-        "ISO-8859-2",
-        "Windows-1256",
-        "Windows-874",
     ];
+
+    // ★ 新增：二级分类（与 StatusBar 保持一致）
+    const MORE_ENCODINGS_GROUPS = [
+        { key: "encoding_group_unicode", items: ["UTF-16 LE", "UTF-16 BE"] },
+        {
+            key: "encoding_group_cjk",
+            items: ["GB18030", "Big5", "EUC-KR", "EUC-JP", "ISO-2022-JP"],
+        },
+        {
+            key: "encoding_group_western",
+            items: ["ISO-8859-15", "Macintosh", "Windows-1254", "Windows-1258"],
+        },
+        {
+            key: "encoding_group_central_europe",
+            items: [
+                "ISO-8859-2",
+                "Windows-1250",
+                "ISO-8859-16",
+                "ISO-8859-4",
+                "ISO-8859-10",
+                "ISO-8859-13",
+                "ISO-8859-14",
+                "Windows-1257",
+            ],
+        },
+        {
+            key: "encoding_group_cyrillic",
+            items: [
+                "KOI8-R",
+                "ISO-8859-5",
+                "KOI8-U",
+                "IBM866",
+                "x-mac-cyrillic",
+            ],
+        },
+        {
+            key: "encoding_group_others",
+            items: [
+                "Windows-1256",
+                "Windows-1255",
+                "Windows-874",
+                "ISO-8859-6",
+                "ISO-8859-7",
+                "Windows-1253",
+                "ISO-8859-8",
+                "ISO-8859-3",
+            ],
+        },
+    ];
+
+    // ★ 新增：将后端返回的标准名或杂乱的别名，统一映射为前端列表里的名字
+    function normalizeEncodingName(raw: string): string {
+        if (!raw || raw === "AutoDetect") return "AutoDetect";
+        const allKnown = [
+            ...COMMON_ENCODINGS,
+            ...MORE_ENCODINGS_GROUPS.flatMap((g) => g.items),
+        ];
+        const norm = (s: string) => s.replace(/[\s-]/g, "").toLowerCase();
+        const matched = allKnown.find((enc) => norm(enc) === norm(raw));
+        return matched || raw;
+    }
 
     // ★ 新增：获取真实编码（如果是 Auto，则让后端探测）
     async function getActualEncoding(): Promise<string> {
         if (currentEncoding === "AutoDetect") {
             try {
                 const enc = await api.getFileEncoding(filePath);
-                if (enc.includes("GBK") || enc.includes("gbk")) return "GBK";
-                if (enc.includes("GB18030")) return "GB18030";
-                return enc;
+                // ★ 核心修改：后端给啥，都先走一遍归一化，保证能在下拉框精准选中
+                return normalizeEncodingName(enc);
             } catch (e) {
                 console.warn("编码探测失败，默认UTF-8", e);
                 return "UTF-8";
@@ -235,6 +283,17 @@
                 // 如果焦点在编辑器，按 Esc 则取消编辑器里选中高亮的词
                 editorInstance.setSelection(new monaco.Range(1, 1, 1, 1));
             }
+        }
+    }
+
+    // ★ 新增：全局点击处理，点击外部关闭编码菜单
+    function handleWindowClick(e: MouseEvent) {
+        if (!encodingMenuOpen) return;
+        const target = e.target as HTMLElement;
+
+        // 如果点击的目标不在包含下拉框的 wrapper 内部
+        if (!target.closest(".encoding-wrapper")) {
+            encodingMenuOpen = false;
         }
     }
 
@@ -668,13 +727,16 @@
         }
     }
 
-    async function handleEncodingChange(e: Event) {
-        const selectedValue = (e.target as HTMLSelectElement).value;
+    // ★ 新增：编码下拉框状态
+    let encodingMenuOpen = false;
 
+    // ★ 修改：接收字符串参数，而不是原生 Event
+    async function handleEncodingChange(selectedValue: string) {
+        encodingMenuOpen = false; // 选完立刻关闭菜单
         if (selectedValue === "AutoDetect") {
-            currentEncoding = "AutoDetect"; // 临时设为它，触发重新探测
+            currentEncoding = "AutoDetect";
             const actualEnc = await getActualEncoding();
-            currentEncoding = actualEnc; // 探测完立刻变回真实编码
+            currentEncoding = actualEnc;
         } else {
             currentEncoding = selectedValue;
         }
@@ -708,6 +770,13 @@
         }
     }
 
+    // ★ 新增：获取全量平铺的编码列表（常用 + 二级分类拍平）
+    $: flatEncodings = [
+        "AutoDetect",
+        ...COMMON_ENCODINGS,
+        ...MORE_ENCODINGS_GROUPS.flatMap((g) => g.items),
+    ];
+
     function handleToggleWordWrap() {
         wordWrap = !wordWrap;
         if (editorInstance) {
@@ -718,8 +787,11 @@
     }
 </script>
 
-<!-- 绑定全局快捷键 -->
-<svelte:window onkeydowncapture={handleWindowKeydown} />
+<!-- 绑定全局快捷键与点击 -->
+<svelte:window
+    onkeydowncapture={handleWindowKeydown}
+    onclick={handleWindowClick}
+/>
 
 <!-- 把这个 style 直接挂在 html 级别，保证一进页面就填满背景 -->
 <svelte:head>
@@ -814,23 +886,104 @@
             <div class="divider"></div>
 
             <!-- 3. 编码 -->
-            <select
-                class="tool-select"
-                value={currentEncoding}
-                onchange={handleEncodingChange}
-            >
-                {#each ENCODINGS as enc}
-                    <option value={enc}>
-                        {enc === "AutoDetect"
-                            ? t(
-                                  "large_file.auto_detect",
-                                  undefined,
-                                  $resolvedLocale,
-                              )
-                            : enc}
-                    </option>
-                {/each}
-            </select>
+            <div class="encoding-wrapper">
+                <!-- 触发按钮 -->
+                <button
+                    class="tool-select custom-select-btn"
+                    onclick={() => (encodingMenuOpen = !encodingMenuOpen)}
+                >
+                    {currentEncoding === "AutoDetect"
+                        ? t(
+                              "large_file.auto_detect",
+                              undefined,
+                              $resolvedLocale,
+                          )
+                        : currentEncoding}
+                </button>
+
+                <!-- 自定义下拉菜单 -->
+                {#if encodingMenuOpen}
+                    <div class="encoding-menu">
+                        <!-- 1. 顶部：自动识别 (特殊动作，无需打勾) -->
+                        <button
+                            class="encoding-item"
+                            onclick={() => handleEncodingChange("AutoDetect")}
+                        >
+                            <span
+                                >{t(
+                                    "large_file.auto_detect",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</span
+                            >
+                        </button>
+
+                        <div class="encoding-divider"></div>
+
+                        <!-- 2. 常用编码（无标题，直接平铺） -->
+                        {#each COMMON_ENCODINGS as enc}
+                            <button
+                                class="encoding-item"
+                                onclick={() => handleEncodingChange(enc)}
+                            >
+                                <span>{enc}</span>
+                                <span class="check">
+                                    {#if enc === currentEncoding}
+                                        <svg
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2.5"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <polyline points="20 6 9 17 4 12"
+                                            ></polyline>
+                                        </svg>
+                                    {/if}
+                                </span>
+                            </button>
+                        {/each}
+
+                        <div class="encoding-divider"></div>
+
+                        <!-- 3. 二级分类组（带灰色小标题） -->
+                        {#each MORE_ENCODINGS_GROUPS as group}
+                            <div class="encoding-group-title">
+                                {t(group.key, undefined, $resolvedLocale)}
+                            </div>
+                            {#each group.items as item}
+                                <button
+                                    class="encoding-item"
+                                    onclick={() => handleEncodingChange(item)}
+                                >
+                                    <span>{item}</span>
+                                    <span class="check">
+                                        {#if item === currentEncoding}
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2.5"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <polyline
+                                                    points="20 6 9 17 4 12"
+                                                ></polyline>
+                                            </svg>
+                                        {/if}
+                                    </span>
+                                </button>
+                            {/each}
+                        {/each}
+                    </div>
+                {/if}
+            </div>
 
             <div class="divider"></div>
 
@@ -1425,5 +1578,135 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+    }
+
+    /* ==========================================
+       ★ 新增：大文件编码自定义下拉框
+       ========================================== */
+    .encoding-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 按钮样式，继承原来的 tool-select */
+    .custom-select-btn {
+        min-width: 80px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .custom-select-btn::after {
+        content: "▼";
+        font-size: 8px;
+        color: var(--status-bar-foreground-muted);
+    }
+
+    /* 菜单主体 */
+    .encoding-menu {
+        position: absolute;
+        top: 32px; /* 在按钮正下方弹出 */
+        left: 0;
+        min-width: 160px;
+        max-height: 400px;
+        overflow-y: auto;
+        background: var(--overlay-background);
+        border: 1px solid var(--overlay-border);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 4px;
+        z-index: 950;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 菜单项：两端对齐，包裹左侧文字和右侧打勾区 */
+    .encoding-item {
+        display: flex;
+        justify-content: space-between; /* ★ 核心：让文字居左，勾居右 */
+        align-items: center;
+        width: 100%;
+        padding: 6px 12px;
+        font-size: 12px;
+        text-align: left;
+        background: none;
+        border: none;
+        border-radius: 4px;
+        color: var(--overlay-foreground);
+        cursor: pointer;
+        box-sizing: border-box;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+
+    /* ★ 核心修改：Hover 只变背景，文字颜色绝不改变 */
+    .encoding-item:hover {
+        background: var(--overlay-hover-background);
+    }
+
+    /* 打勾容器的固定宽度，保证列表绝对对齐 */
+    .check {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+    }
+
+    /* ★ 核心：极简超细滚动条定制（完美复刻 AppOverlays） */
+    .encoding-menu::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .encoding-menu::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .encoding-menu::-webkit-scrollbar-thumb {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 30%,
+            transparent
+        );
+        border-radius: 4px;
+    }
+    .encoding-menu::-webkit-scrollbar-thumb:hover {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 60%,
+            transparent
+        );
+    }
+    .encoding-menu::-webkit-scrollbar-button {
+        display: none;
+    }
+    .encoding-menu {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(
+                in srgb,
+                var(--overlay-foreground-muted) 30%,
+                transparent
+            )
+            transparent;
+    }
+    /* ★ 核心优化：分组标题（极致弱化，绝不抢风头） */
+    .encoding-group-title {
+        /* 强制覆盖可能存在的全局大字体 */
+        font-size: 10px !important;
+        font-weight: 500 !important; /* 不要用粗体，用中等字重 */
+        color: var(
+            --status-bar-foreground-muted
+        ) !important; /* 强制使用置灰颜色 */
+        opacity: 0.9; /* 再降低一点存在感 */
+
+        /* 布局 */
+        padding: 12px 12px 4px 12px; /* 顶部留出空间，底部紧贴列表 */
+        line-height: 1;
+        text-transform: uppercase; /* 如果是英文，强制小写转大写，更有极客感 */
+        letter-spacing: 0.5px; /* 微微拉开字间距，显得更高级 */
+        user-select: none;
+        white-space: nowrap;
     }
 </style>

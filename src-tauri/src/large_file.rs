@@ -270,50 +270,102 @@ pub fn search_in_large_file(
     })
 }
 
-// 获取文件编码（大文件专属，使用更高准确率的 charset-normalizer-rs）
+// 获取文件编码（大文件专属，使用 chardetng 头中尾三采样，不依赖臃肿的第三方库）
 #[tauri::command]
 pub fn get_file_encoding(path: String) -> Result<String, String> {
-    use charset_normalizer_rs::entity::NormalizerSettings;
-    use charset_normalizer_rs::from_bytes;
     use std::fs::File;
-    use std::io::Read;
+    use std::io::{Read, Seek, SeekFrom};
 
     let mut file = File::open(&path).map_err(|e| e.to_string())?;
-    // 读取前 1MB 用于探测
-    let mut buf = vec![0; 1024 * 1024];
-    let bytes_read = file.read(&mut buf).map_err(|e| e.to_string())?;
-    buf.truncate(bytes_read);
+    let file_size = file.metadata().map_err(|e| e.to_string())?.len(); // 类型: u64
 
-    // ★ 核心配置：增加采样量，总计约 100KB
-    let settings = NormalizerSettings {
-        steps: 100,
-        chunk_size: 1024,
-        ..Default::default()
-    };
+    // ★ 核心修复：直接定义为 u64，计算位移时就不报错了
+    let sample_size: u64 = 64 * 1024;
+    let mut buf = Vec::with_capacity((sample_size * 3) as usize);
 
-    // 调用新库进行检测，传入自定义配置
-    if let Ok(matches) = from_bytes(&buf, Some(settings)) {
-        if let Some(best) = matches.get_best() {
-            let raw_enc = best.encoding().to_lowercase();
+    // 1. 头部采样
+    let mut head_buf = vec![0; sample_size as usize];
+    let bytes_read = file.read(&mut head_buf).map_err(|e| e.to_string())?;
+    head_buf.truncate(bytes_read);
 
-            let final_enc = match raw_enc.as_str() {
-                "utf-8" | "utf_8" => "UTF-8",
-                "gbk" | "gb2312" | "gb18030" => "GB18030",
-                "big5" => "Big5",
-                "shift_jis" | "shift-jis" => "Shift_JIS",
-                "euc-jp" | "euc_jp" => "EUC-JP",
-                "euc-kr" | "euc_kr" => "EUC-KR",
-                "windows-1252" | "cp1252" => "Windows-1252",
-                "windows-1251" | "cp1251" => "Windows-1251",
-                "koi8-r" => "KOI8-R",
-                _ => "UTF-8",
-            };
-
-            return Ok(final_enc.to_string());
-        }
+    // 极速检查：是否有 BOM 头，有就直接确定，0 误差
+    if let Some((enc, _)) = encoding_rs::Encoding::for_bom(&head_buf) {
+        return Ok(map_encoding_name(enc));
     }
 
-    Ok("UTF-8".to_string())
+    // 2. 尾部采样
+    let tail_pos = if file_size > sample_size {
+        file_size - sample_size
+    } else {
+        0
+    };
+    let mut tail_buf = vec![0; sample_size as usize];
+    if tail_pos > 0 {
+        file.seek(SeekFrom::Start(tail_pos))
+            .map_err(|e| e.to_string())?;
+        let bytes_read = file.read(&mut tail_buf).map_err(|e| e.to_string())?;
+        tail_buf.truncate(bytes_read);
+    } else {
+        tail_buf.clear();
+    }
+
+    // 3. 中部采样
+    let mid_pos = file_size / 2;
+    let mut mid_buf = vec![0; sample_size as usize];
+    if mid_pos > sample_size && mid_pos < file_size - sample_size {
+        file.seek(SeekFrom::Start(mid_pos))
+            .map_err(|e| e.to_string())?;
+        let bytes_read = file.read(&mut mid_buf).map_err(|e| e.to_string())?;
+        mid_buf.truncate(bytes_read);
+    } else {
+        mid_buf.clear();
+    }
+
+    // 将三段数据拼接到一起
+    buf.extend_from_slice(&head_buf);
+    buf.extend_from_slice(&mid_buf);
+    buf.extend_from_slice(&tail_buf);
+
+    // 4. 严格 UTF-8 预检
+    if std::str::from_utf8(&buf).is_ok() {
+        return Ok("UTF-8".to_string());
+    }
+
+    // 5. chardetng 识别
+    let mut detector = chardetng::EncodingDetector::new();
+    detector.feed(&buf, true);
+    let enc = detector.guess(None, true);
+    Ok(map_encoding_name(enc))
+}
+
+// ★ 辅助函数：将 encoding_rs 的底层标准名，映射为前端下拉菜单期望的名字
+fn map_encoding_name(enc: &'static encoding_rs::Encoding) -> String {
+    match enc.name() {
+        "gbk" | "gb2312" | "gb18030" => "GB18030".to_string(),
+        "big5" => "Big5".to_string(),
+        "shift_jis" => "Shift_JIS".to_string(),
+        "euc-jp" => "EUC-JP".to_string(),
+        "iso-2022-jp" => "ISO-2022-JP".to_string(),
+        "euc-kr" => "EUC-KR".to_string(),
+        "windows-1252" => "Windows-1252".to_string(),
+        "windows-1251" => "Windows-1251".to_string(),
+        "windows-1250" => "Windows-1250".to_string(),
+        "windows-1256" => "Windows-1256".to_string(),
+        "windows-874" => "Windows-874".to_string(),
+        "iso-8859-1" => "ISO-8859-1".to_string(),
+        "iso-8859-2" => "ISO-8859-2".to_string(),
+        "iso-8859-15" => "ISO-8859-15".to_string(),
+        "koi8-r" => "KOI8-R".to_string(),
+        "utf-16le" => "UTF-16LE".to_string(),
+        "utf-16be" => "UTF-16BE".to_string(),
+        _ => {
+            if enc == encoding_rs::UTF_8 {
+                "UTF-8".to_string()
+            } else {
+                enc.name().to_string()
+            }
+        }
+    }
 }
 
 // 解析主题颜色
