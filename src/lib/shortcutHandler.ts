@@ -87,9 +87,15 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     const key = e.key.toLowerCase();
 
     // ★ 核心放行：如果是 Ctrl + 文本操作键（在 Mac 下没被 Editor 拦截住的）
-    // 直接 return，放行给 Monaco 底层处理，防止在全局把文本操作搞砸
     const isTextAction = ["z", "y", "x", "c", "v", "a"].includes(key);
     if (isTextAction && e.ctrlKey) {
+        return;
+    }
+
+    // ★ 新增：兼容 Mac 用户习惯，Cmd+Y 触发重做
+    if (e.metaKey && key === "y") {
+        e.preventDefault();
+        ctx.editorRef?.execEditorAction("redo");
         return;
     }
 

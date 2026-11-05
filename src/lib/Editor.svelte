@@ -560,12 +560,10 @@
 
         // ★ 核心修复：在捕获阶段强行拦截，兼容 Mac 的 Ctrl 键并放行全局快捷键
         const keydownHandler = (e: KeyboardEvent) => {
-            // 如果焦点在输入框内，不作干预（防误杀搜索框打字）
-            if (
-                document.activeElement?.tagName === "INPUT" ||
-                document.activeElement?.tagName === "TEXTAREA"
-            )
-                return;
+            // ★ 关键修复：Monaco 内部有个隐藏的 textarea 承接键盘事件。
+            // 如果我们在这里 return 了，所有的 Ctrl 键都会被彻底放行给底层导致失效。
+            // 只过滤真正的搜索输入框即可（比如我们自己界面的 input）
+            if (e.target instanceof HTMLInputElement) return;
 
             // 1. 兼容 Mac 双系统用户：当使用 Ctrl 时，手动映射底层不认的文本操作
             if (e.ctrlKey && !e.metaKey) {
@@ -622,8 +620,6 @@
                     return;
                 }
             }
-
-            // 注意：这里不再拦截 O 和 B，全部交由全局 shortcutHandler 处理
         };
         container.addEventListener("keydown", keydownHandler, {
             capture: true,
@@ -717,6 +713,28 @@
             // ★ 核心终极杀招：彻底禁止渲染任何语法/语义校验的波浪线
             renderValidationDecorations: "off",
         });
+
+        // ★ 核心新增：屏蔽 Monaco 自带的 Mac 怪异快捷键 (Cmd+D, Cmd+U, Cmd+G, Cmd+I, Cmd+N)
+        editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD,
+            () => {},
+        );
+        editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyU,
+            () => {},
+        );
+        editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyG,
+            () => {},
+        );
+        editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyI,
+            () => {},
+        );
+        editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN,
+            () => {},
+        );
 
         // ★ 查找框修改
         const tooltipObservers = setupFindWidgetTooltip(container);
