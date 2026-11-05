@@ -633,6 +633,10 @@
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN,
             () => {},
         );
+        // ★ 专属核心修复：在 Monaco 底层接管 Mac 的 Ctrl+A，防止被 WebKit 吞掉
+        editor.addCommand(monaco.KeyMod.WinCtrl | monaco.KeyCode.KeyA, () => {
+            editor!.trigger("keyboard", "editor.action.selectAll", null);
+        });
 
         // ★ 查找框修改
         const tooltipObservers = setupFindWidgetTooltip(container);

@@ -87,7 +87,7 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     const key = e.key.toLowerCase();
 
     // ★ 核心接管：Mac 下的 Ctrl 文本快捷键
-    const isTextAction = ["z", "y", "x", "c", "v", "a"].includes(key);
+    const isTextAction = ["z", "y", "x", "c", "v"].includes(key);
     if (isTextAction && e.ctrlKey) {
         // 确保焦点在 Monaco 编辑器内，否则不拦截（比如搜索框里的复制粘贴）
         if (document.activeElement?.closest(".monaco-editor")) {
