@@ -113,6 +113,9 @@
                 }
             }
 
+            // ==========================================
+            // File 菜单
+            // ==========================================
             const fileMenu = await Submenu.new({
                 text: t("menu.file", undefined, locale) || "File",
                 items: [
@@ -131,10 +134,12 @@
                         action: () => handleOpen(),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
+
+                    // ★ 修复：干净标签禁用保存
                     await MenuItem.new({
                         text: t("tab_menu.save", undefined, locale) || "Save",
                         accelerator: "CmdOrCtrl+S",
-                        enabled: !isPending,
+                        enabled: !isPending && snapshot.is_dirty,
                         action: () => handleSave(),
                     }),
                     await MenuItem.new({
@@ -142,7 +147,8 @@
                             t("tab_menu.save_as", undefined, locale) ||
                             "Save As...",
                         accelerator: "CmdOrCtrl+Shift+S",
-                        enabled: !isPending,
+                        enabled:
+                            !isPending && !(isUnnamed && !snapshot.is_dirty),
                         action: () => handleSaveAs(),
                     }),
                     await MenuItem.new({
@@ -155,6 +161,7 @@
                         },
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
+
                     await MenuItem.new({
                         text:
                             t("tab_menu.close", undefined, locale) ||
@@ -207,6 +214,7 @@
                         action: () => handleReopenTab(),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
+
                     await MenuItem.new({
                         text:
                             t(
@@ -232,15 +240,20 @@
                         },
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
+
+                    // ★ 修复：Pending 标签禁用对比，且没有可选项时禁用
                     await Submenu.new({
                         text:
                             t("tab_menu.diff", undefined, locale) || "Compare",
-                        enabled: compareItems.length > 0,
+                        enabled: !isPending && compareItems.length > 0,
                         items: compareItems,
                     }),
                 ],
             });
 
+            // ==========================================
+            // Edit 菜单（完美补齐 Pending 时的置灰）
+            // ==========================================
             const editMenu = await Submenu.new({
                 text: t("menu.edit", undefined, locale) || "Edit",
                 items: [
@@ -311,6 +324,7 @@
             chkWordWrap = await CheckMenuItem.new({
                 text: t("settings.word_wrap", undefined, locale) || "Word Wrap",
                 checked: wordWrap,
+                enabled: !isPending && !snapshot.large_file,
                 enabled: !isPending && !snapshot.large_file,
                 action: () => handleToggleWordWrap(),
             });
