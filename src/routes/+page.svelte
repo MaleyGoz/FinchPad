@@ -42,13 +42,7 @@
 
     import { page } from "$app/stores";
     import LargeFileViewer from "$lib/LargeFileViewer.svelte";
-    import {
-        Menu,
-        Submenu,
-        MenuItem,
-        CheckMenuItem,
-        PredefinedMenuItem,
-    } from "@tauri-apps/api/menu";
+    import MacMenu from "$lib/MacMenu.svelte";
 
     // ======== 全局type块 ========
     // 编辑区右键菜单
@@ -2126,287 +2120,6 @@
         modal = { visible: false, title: "", rows: [] };
     }
 
-    // ==========================================
-    // ★ 新增：macOS 原生菜单构建逻辑
-    // ==========================================
-    let macMenu: Menu | null = null;
-    let chkShowLineNumbers: CheckMenuItem | null = null;
-    let chkWordWrap: CheckMenuItem | null = null;
-    async function buildMacMenu() {
-        if (!isMac) return;
-        const locale = get(resolvedLocale);
-        const mode = $page.url.searchParams.get("mode");
-
-        try {
-            // 1. 构建 App 菜单
-            const appMenu = await Submenu.new({
-                text: "FinchPad",
-                items: [
-                    await MenuItem.new({
-                        text: t("about.title", undefined, locale),
-                        action: () => {
-                            aboutVisible = true;
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: t("settings.check_update", undefined, locale),
-                        action: () => {
-                            checkForUpdates();
-                        },
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text:
-                            t("menu.quit", undefined, locale) ||
-                            "Quit FinchPad",
-                        action: () => {
-                            getCurrentWindow().close();
-                        },
-                    }),
-                ],
-            });
-
-            // 如果是大文件窗口或对比窗口，只保留 App 菜单
-            if (mode === "large_viewer" || mode === "diff") {
-                macMenu = await Menu.new({ items: [appMenu] });
-                await macMenu.setAsAppMenu();
-                return;
-            }
-
-            // 2. 构建 File 菜单（动态过滤对比目标）
-            const compareItems = [];
-            for (let i = 0; i < snapshot.tab_titles.length; i++) {
-                if (
-                    i !== snapshot.active_index &&
-                    !snapshot.tab_pending_states[i]
-                ) {
-                    compareItems.push(
-                        await MenuItem.new({
-                            text: snapshot.tab_titles[i],
-                            action: () => openTabDiff(snapshot.active_index, i),
-                        }),
-                    );
-                }
-            }
-
-            const fileMenu = await Submenu.new({
-                text: t("menu.file", undefined, locale) || "File",
-                items: [
-                    await MenuItem.new({
-                        text: t("tab_bar.new_tab", undefined, locale),
-                        action: () => handleNew(),
-                    }),
-                    await MenuItem.new({
-                        text: t("bar_menu.open", undefined, locale),
-                        action: () => handleOpen(),
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t("tab_menu.save", undefined, locale),
-                        action: () => handleSave(),
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.save_as", undefined, locale),
-                        action: () => handleSaveAs(),
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.rename", undefined, locale),
-                        action: () => {
-                            renamingIndex = snapshot.active_index;
-                        },
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t("tab_menu.close", undefined, locale),
-                        action: () => handleClose(snapshot.active_index),
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.close_others", undefined, locale),
-                        action: () => {
-                            const ids = snapshot.tab_ids.filter(
-                                (_, i) => i !== snapshot.active_index,
-                            );
-                            startCloseQueue(ids);
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.close_right", undefined, locale),
-                        action: () => {
-                            const ids = snapshot.tab_ids.slice(
-                                snapshot.active_index + 1,
-                            );
-                            startCloseQueue(ids);
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.close_all", undefined, locale),
-                        action: () => startCloseQueue(snapshot.tab_ids),
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.reopen", undefined, locale),
-                        action: () => handleReopenTab(),
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t(
-                            "tab_menu.reveal_in_explorer",
-                            undefined,
-                            locale,
-                        ),
-                        action: () => {
-                            const p = snapshot.tab_paths[snapshot.active_index];
-                            if (p) revealItemInDir(p);
-                        },
-                    }),
-                    await MenuItem.new({
-                        text: t("tab_menu.copy_path", undefined, locale),
-                        action: () => {
-                            const p = snapshot.tab_paths[snapshot.active_index];
-                            if (p) writeText(p).catch(console.error);
-                        },
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await Submenu.new({
-                        text:
-                            t("tab_menu.diff", undefined, locale) || "Compare",
-                        items: compareItems,
-                    }),
-                ],
-            });
-
-            // 3. 构建 Edit 菜单
-            const editMenu = await Submenu.new({
-                text: t("menu.edit", undefined, locale) || "Edit",
-                items: [
-                    await MenuItem.new({
-                        text: t("editor_menu.undo", undefined, locale),
-                        action: () => editorRef?.execEditorAction("undo"),
-                    }),
-                    await MenuItem.new({
-                        text: t("editor_menu.redo", undefined, locale),
-                        action: () => editorRef?.execEditorAction("redo"),
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t("editor_menu.cut", undefined, locale),
-                        action: () => editorRef?.execEditorAction("cut"),
-                    }),
-                    await MenuItem.new({
-                        text: t("editor_menu.copy", undefined, locale),
-                        action: () => editorRef?.execEditorAction("copy"),
-                    }),
-                    await MenuItem.new({
-                        text: t("editor_menu.paste", undefined, locale),
-                        action: () => editorRef?.execEditorAction("paste"),
-                    }),
-                    await MenuItem.new({
-                        text: t("editor_menu.delete", undefined, locale),
-                        action: () => editorRef?.execEditorAction("delete"),
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t("editor_menu.select_all", undefined, locale),
-                        action: () => editorRef?.execEditorAction("selectAll"),
-                    }),
-                ],
-            });
-
-            // 4. 构建 View 菜单
-            chkShowLineNumbers = await CheckMenuItem.new({
-                text: t("settings.show_line_numbers", undefined, locale),
-                checked: showLineNumbers,
-                action: () => toggleShowLineNumbers(),
-            });
-            chkWordWrap = await CheckMenuItem.new({
-                text: t("settings.word_wrap", undefined, locale),
-                checked: wordWrap,
-                action: () => handleToggleWordWrap(),
-            });
-
-            const themeItems = [];
-            for (const themeKey of THEME_ORDER) {
-                themeItems.push(
-                    await CheckMenuItem.new({
-                        text: t(
-                            `settings.theme.${themeKey}`,
-                            undefined,
-                            locale,
-                        ),
-                        checked: editorBg === themeKey,
-                        action: () => setTheme(themeKey),
-                    }),
-                );
-            }
-            const themeMenu = await Submenu.new({
-                text: t("settings.theme", undefined, locale),
-                items: themeItems,
-            });
-
-            const langItems = [];
-            langItems.push(
-                await CheckMenuItem.new({
-                    text: "Auto",
-                    checked: $localeChoice === "auto",
-                    action: () => setLocale("auto"),
-                }),
-            );
-            for (const opt of LOCALE_OPTIONS) {
-                langItems.push(
-                    await CheckMenuItem.new({
-                        text: LANGUAGE_NAMES[opt.key] || opt.key,
-                        checked: $localeChoice === opt.key,
-                        action: () => setLocale(opt.key as LocaleChoice),
-                    }),
-                );
-            }
-            const langMenu = await Submenu.new({
-                text: t("settings.language", undefined, locale),
-                items: langItems,
-            });
-
-            const viewMenu = await Submenu.new({
-                text: t("menu.view", undefined, locale) || "View",
-                items: [
-                    chkShowLineNumbers,
-                    chkWordWrap,
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    themeMenu,
-                    langMenu,
-                ],
-            });
-
-            // 5. 组装并应用
-            macMenu = await Menu.new({
-                items: [appMenu, fileMenu, editMenu, viewMenu],
-            });
-            await macMenu.setAsAppMenu();
-        } catch (e) {
-            console.error("Mac 菜单构建失败:", e);
-        }
-    }
-    // ★ 声明一个外部变量存放定时器
-    let macMenuTimer: ReturnType<typeof setTimeout> | null = null;
-    // ★ 核心：精准监听，拒绝打字时反复重建
-    $: menuTrigger = [
-        $resolvedLocale,
-        $localeChoice,
-        snapshot.tab_titles.join(","),
-        snapshot.active_index,
-        snapshot.tab_pending_states.join(","),
-        snapshot.tab_ids.join(","),
-        editorBg,
-        isMac,
-    ].join("|");
-
-    $: if (isMac && menuTrigger) {
-        // 如果上一次的定时器还没执行完，先清掉它（这就是防抖逻辑）
-        if (macMenuTimer) clearTimeout(macMenuTimer);
-
-        macMenuTimer = setTimeout(() => {
-            buildMacMenu();
-        }, 50);
-    }
-
     onMount(() => {
         // ★ 核心防御：如果当前是大文件独立窗口，直接停止主界面的所有初始化逻辑！
         if ($page.url.searchParams.get("mode") === "large_viewer") {
@@ -2578,7 +2291,6 @@
             if (unlistenSingleInstance) unlistenSingleInstance();
             if (unlistenFocus) unlistenFocus();
             window.removeEventListener("mousedown", handleGlobalClick);
-            if (macMenuTimer) clearTimeout(macMenuTimer);
         };
     });
 </script>
@@ -2822,6 +2534,33 @@
         />
     </main>
 {/if}
+
+<!-- ★ 核心挂载：只有 Mac 才会在内部渲染菜单，Win/Linux 完全静默 -->
+<MacMenu
+    {isMac}
+    {snapshot}
+    {showLineNumbers}
+    {wordWrap}
+    {editorBg}
+    bind:aboutVisible
+    bind:renamingIndex
+    {checkForUpdates}
+    {handleNew}
+    {handleOpen}
+    {handleSave}
+    {handleSaveAs}
+    {handleClose}
+    {startCloseQueue}
+    {handleReopenTab}
+    {revealItemInDir}
+    {openTabDiff}
+    {editorRef}
+    {toggleShowLineNumbers}
+    {handleToggleWordWrap}
+    {setTheme}
+    {setLocale}
+    mode={$page.url.searchParams.get("mode")}
+/>
 
 <style>
     :global(body) {
