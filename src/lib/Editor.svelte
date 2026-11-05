@@ -620,6 +620,25 @@
             renderValidationDecorations: "off",
         });
 
+        // ★ 核心修复：还原右键菜单的自定义拦截
+        const contextmenuHandler = (e: MouseEvent) => {
+            if (!editor) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const sel = editor.getSelection();
+            const model = editor.getModel();
+            const hasSel = !!(sel && model && !sel.isEmpty());
+            onEditorContextMenu({
+                x: e.clientX,
+                y: e.clientY,
+                hasSelection: hasSel,
+                canUndo: model?.canUndo() ?? false,
+                canRedo: model?.canRedo() ?? false,
+            });
+        };
+        container.addEventListener("contextmenu", contextmenuHandler);
+        (container as any).__contextmenuHandler = contextmenuHandler;
+
         // ★ 核心新增：屏蔽 Monaco 自带的 Mac 怪异快捷键
         editor.addCommand(
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD,
