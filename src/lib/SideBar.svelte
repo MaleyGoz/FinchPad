@@ -293,7 +293,18 @@
                                         $resolvedLocale,
                                     )}
                                 >
-                                    ×
+                                    <svg
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
                                 </button>
                             </div>
                         {/each}
@@ -629,18 +640,19 @@
         background: transparent;
         border: none;
         color: var(--status-bar-foreground-muted);
-        font-size: 16px;
         cursor: pointer;
         opacity: 0;
         transition:
             opacity 0.15s,
-            color 0.15s;
+            color 0.15s,
+            background-color 0.15s;
         display: flex;
         align-items: center;
         justify-content: center;
         width: 20px;
         height: 20px;
-        border-radius: 4px;
+        border-radius: 50%;
+        padding: 0; /* ★ 确保没有任何内边距干扰 SVG */
     }
 
     .recent-item:hover .delete-btn {
