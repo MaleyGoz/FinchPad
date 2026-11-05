@@ -449,6 +449,16 @@
     }
 
     function handleKeydown(e: KeyboardEvent) {
+        const mod = e.ctrlKey || e.metaKey;
+
+        // ★ 核心新增：拦截 Ctrl+W / Cmd+W 关闭窗口
+        if (mod && e.key.toLowerCase() === "w") {
+            e.preventDefault();
+            e.stopPropagation();
+            api.closeDiffWindow(); // 复用现有的安全关闭逻辑
+            return;
+        }
+
         if (e.key === "Escape") {
             // ★ 新增这行判断：如果页面上有查找框，说明用户想先关查找框，直接 return 不关窗口
             if (document.querySelector(".find-widget")) return;
@@ -458,7 +468,7 @@
     }
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydowncapture={handleKeydown} />
 
 <div class="diff-window">
     <!-- ==========================================

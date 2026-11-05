@@ -226,6 +226,14 @@
     function handleWindowKeydown(e: KeyboardEvent) {
         const mod = e.ctrlKey || e.metaKey;
 
+        // ★ 核心新增：拦截 Ctrl+W / Cmd+W 关闭窗口
+        if (mod && e.key.toLowerCase() === "w") {
+            e.preventDefault();
+            e.stopPropagation();
+            appWindow.close();
+            return;
+        }
+
         if (mod) {
             switch (e.key.toLowerCase()) {
                 case "f": {

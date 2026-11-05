@@ -120,6 +120,23 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         return;
     }
 
+    // ★ 核心修复：统一接管全选
+    if (key === "a") {
+        // 1. 如果焦点在真实的输入框（比如搜索框、重命名框），放行给原生逻辑
+        if (
+            document.activeElement?.tagName === "INPUT" ||
+            document.activeElement?.tagName === "TEXTAREA"
+        ) {
+            return;
+        }
+        // 2. 其他情况（焦点在标签栏、或编辑器内），强行触发 Monaco 的全选逻辑
+        e.preventDefault();
+        e.stopPropagation();
+        ctx.editorRef?.execEditorAction("selectAll");
+        return;
+    }
+
+
     // 查找 / 替换 (Ctrl+F / Cmd+F)
     if (key === "f" && !e.shiftKey) {
         e.preventDefault();
