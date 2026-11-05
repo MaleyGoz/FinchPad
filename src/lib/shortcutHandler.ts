@@ -86,10 +86,25 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
 
     const key = e.key.toLowerCase();
 
-    // ★ 核心放行：如果是 Ctrl + 文本操作键（在 Mac 下没被 Editor 拦截住的）
+    // ★ 核心接管：Mac 下的 Ctrl 文本快捷键
     const isTextAction = ["z", "y", "x", "c", "v", "a"].includes(key);
     if (isTextAction && e.ctrlKey) {
-        return;
+        // 确保焦点在 Monaco 编辑器内，否则不拦截（比如搜索框里的复制粘贴）
+        if (document.activeElement?.closest(".monaco-editor")) {
+            if (ctx.isMac) {
+                // ★ Mac 专属桥接：拦截并直接调用我们封装好的 Tauri 剪贴板动作
+                e.preventDefault();
+                if (key === "z") ctx.editorRef?.execEditorAction(e.shiftKey ? "redo" : "undo");
+                else if (key === "y") ctx.editorRef?.execEditorAction("redo");
+                else if (key === "x") ctx.editorRef?.execEditorAction("cut");
+                else if (key === "c") ctx.editorRef?.execEditorAction("copy");
+                else if (key === "v") ctx.editorRef?.execEditorAction("paste");
+                else if (key === "a") ctx.editorRef?.execEditorAction("selectAll");
+                return;
+            } else {
+                return; // Windows/Linux 放行给 Monaco 原生处理，性能最高
+            }
+        }
     }
 
     // ★ 新增：兼容 Mac 用户习惯，Cmd+Y 触发重做

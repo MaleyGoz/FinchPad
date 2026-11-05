@@ -558,93 +558,7 @@
             capture: true,
         });
 
-        // ★ 核心修复：在捕获阶段强行拦截，兼容 Mac 的 Ctrl 键并放行全局快捷键
-        const keydownHandler = (e: KeyboardEvent) => {
-            // ★ 关键修复：Monaco 内部有个隐藏的 textarea 承接键盘事件。
-            // 如果我们在这里 return 了，所有的 Ctrl 键都会被彻底放行给底层导致失效。
-            // 只过滤真正的搜索输入框即可（比如我们自己界面的 input）
-            if (e.target instanceof HTMLInputElement) return;
-
-            // 1. 兼容 Mac 双系统用户：当使用 Ctrl 时，手动映射底层不认的文本操作
-            if (e.ctrlKey && !e.metaKey) {
-                const key = e.key.toLowerCase();
-                if (key === "z" && !e.shiftKey) {
-                    e.preventDefault();
-                    editor?.trigger("keyboard", "undo", null);
-                    return;
-                }
-                if (key === "z" && e.shiftKey) {
-                    e.preventDefault();
-                    editor?.trigger("keyboard", "redo", null);
-                    return;
-                }
-                if (key === "y") {
-                    e.preventDefault();
-                    editor?.trigger("keyboard", "redo", null);
-                    return;
-                }
-                if (key === "x") {
-                    e.preventDefault();
-                    editor?.trigger(
-                        "keyboard",
-                        "editor.action.clipboardCutAction",
-                        null,
-                    );
-                    return;
-                }
-                if (key === "c") {
-                    e.preventDefault();
-                    editor?.trigger(
-                        "keyboard",
-                        "editor.action.clipboardCopyAction",
-                        null,
-                    );
-                    return;
-                }
-                if (key === "v") {
-                    e.preventDefault();
-                    editor?.trigger(
-                        "keyboard",
-                        "editor.action.clipboardPasteAction",
-                        null,
-                    );
-                    return;
-                }
-                if (key === "a") {
-                    e.preventDefault();
-                    editor?.trigger(
-                        "keyboard",
-                        "editor.action.selectAll",
-                        null,
-                    );
-                    return;
-                }
-            }
-        };
-        container.addEventListener("keydown", keydownHandler, {
-            capture: true,
-        });
-
-        // 右键 → 上报给父组件，由父组件渲染自定义菜单
-        const contextmenuHandler = (e: MouseEvent) => {
-            if (!editor) return;
-            e.preventDefault();
-            e.stopPropagation();
-            const sel = editor.getSelection();
-            const model = editor.getModel();
-            const hasSel = !!(sel && model && !sel.isEmpty());
-            onEditorContextMenu({
-                x: e.clientX,
-                y: e.clientY,
-                hasSelection: hasSel,
-                canUndo: model?.canUndo() ?? false,
-                canRedo: model?.canRedo() ?? false,
-            });
-        };
-        container.addEventListener("contextmenu", contextmenuHandler);
-        (container as any).__contextmenuHandler = contextmenuHandler;
-
-        container.addEventListener("mouseover", removeTitleHandler);
+        // ★ 彻底删除了 keydownHandler 和它的 addEventListener ★
 
         // 编辑区域初始化
         editor = monaco.editor.create(container, {
@@ -653,29 +567,20 @@
             theme: `txt-${editorBg}`,
             fontSize: calcFontSize(),
             lineHeight: Math.round(calcFontSize() * 1.5),
-
-            //==========终极字体方案===========
-            //解决跨平台、跨语言、跨场景等复杂情况
             fontFamily: "var(--font-mono)",
-            //关闭连字
             fontLigatures: false,
-
             minimap: { enabled: false },
             automaticLayout: true,
             lineNumbers: showLineNumbers ? "on" : "off",
             glyphMargin: false,
-
-            // ★ 在这里添加 scrollbar 配置
             scrollbar: {
-                verticalScrollbarSize: 10, // 垂直滚动条宽度，8px 是比较细腻的尺寸
-                horizontalScrollbarSize: 10, // 水平滚动条高度
-                useShadows: false, // 关闭滚动条阴影，让胶囊效果更干净
-                alwaysConsumeMouseWheel: true, // 防止滚轮事件冒泡到编辑器外部
+                verticalScrollbarSize: 10,
+                horizontalScrollbarSize: 10,
+                useShadows: false,
+                alwaysConsumeMouseWheel: true,
             },
-
             lineNumbersMinChars: language === "plaintext" ? 6 : 3,
             lineDecorationsWidth: language === "plaintext" ? 0 : 12,
-
             wordWrap: "off",
             scrollBeyondLastLine: false,
             largeFileOptimizations: true,
@@ -685,11 +590,8 @@
                 ambiguousCharacters: false,
                 invisibleCharacters: false,
             },
-
-            // ★ 动态控制折叠：如果是纯文本，则关闭折叠
             folding: language !== "plaintext",
             showFoldingControls: "mouseover",
-
             bracketPairColorization: { enabled: false },
             colorDecorators: false,
             quickSuggestions: false,
@@ -705,16 +607,12 @@
             guides: { bracketPairs: false, indentation: false },
             hover: { enabled: "off" },
             contextmenu: false,
-
             useShadowDOM: false,
-            find: {
-                addExtraSpaceOnTop: false,
-            },
-            // ★ 核心终极杀招：彻底禁止渲染任何语法/语义校验的波浪线
+            find: { addExtraSpaceOnTop: false },
             renderValidationDecorations: "off",
         });
 
-        // ★ 核心新增：屏蔽 Monaco 自带的 Mac 怪异快捷键 (Cmd+D, Cmd+U, Cmd+G, Cmd+I, Cmd+N)
+        // ★ 核心新增：屏蔽 Monaco 自带的 Mac 怪异快捷键
         editor.addCommand(
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyD,
             () => {},
@@ -756,10 +654,8 @@
 
         // 清理函数（onDestroy 里用）
         (container as any).__wheelHandler = wheelHandler;
-        // 保存到 container 上以便在 onDestroy 清理
         (container as any).__findWidgetObserver =
             tooltipObservers.findWidgetObserver;
-        // ★ 加回这一行
         (container as any).__destroyTooltipObserver =
             tooltipObservers.destroyTooltipObserver;
         (container as any).__i18nObserver = i18nObserver;
@@ -846,10 +742,6 @@
         const ch = (container as any).__contextmenuHandler;
         if (ch) {
             container.removeEventListener("contextmenu", ch);
-        }
-        const kh = (container as any).__keydownHandler;
-        if (kh) {
-            container.removeEventListener("keydown", kh, { capture: true });
         }
 
         // 清理查找框相关的 Observer（合并为一组，绝不重复）
