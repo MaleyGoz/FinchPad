@@ -2296,7 +2296,7 @@
 
 <!-- 快捷键 -->
 <svelte:window
-    on:keydown={(e) => {
+    onkeydowncapture={(e) => {
         // ★ 大文件窗口不响应主界面的快捷键
         if ($page.url.searchParams.get("mode") === "large_viewer") return;
 

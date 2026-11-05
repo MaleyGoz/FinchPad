@@ -58,10 +58,10 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         return;
     }
 
-
     // ==========================================
-    // ★ 第一优先级：强制仅限 Ctrl 的快捷键
+    // ★ 第一优先级：强制仅限 Ctrl 的快捷键（切换标签）
     // ==========================================
+    // 为了避开 Mac 的 Cmd+Tab，这里强制判断 e.ctrlKey
     if (e.ctrlKey && e.key === "Tab") {
         e.preventDefault();
         if (e.shiftKey) ctx.switchToPrevTab();
@@ -86,7 +86,14 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
 
     const key = e.key.toLowerCase();
 
-    // 查找 / 替换
+    // ★ 核心放行：如果是 Ctrl + 文本操作键（在 Mac 下没被 Editor 拦截住的）
+    // 直接 return，放行给 Monaco 底层处理，防止在全局把文本操作搞砸
+    const isTextAction = ["z", "y", "x", "c", "v", "a"].includes(key);
+    if (isTextAction && e.ctrlKey) {
+        return;
+    }
+
+    // 查找 / 替换 (Ctrl+F / Cmd+F)
     if (key === "f" && !e.shiftKey) {
         e.preventDefault();
         ctx.editorRef?.execEditorAction("find");
@@ -105,8 +112,8 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         return;
     }
 
-    // ★ 新增：拦截 Ctrl+Shift+C（复制文件路径）
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
+    // 复制文件路径 (Ctrl+Shift+C / Cmd+Shift+C)
+    if (e.shiftKey && key === "c") {
         e.preventDefault();
         e.stopPropagation();
         ctx.onCopyPath();
@@ -118,7 +125,6 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
         e.preventDefault();
         ctx.handleNew();
     } else if (key === "t" && e.shiftKey) {
-        // ★ 新增：恢复标签
         e.preventDefault();
         ctx.onReopenTab();
     } else if (key === "o" && !e.shiftKey) {
@@ -127,13 +133,13 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     } else if (key === "s" && e.shiftKey) {
         e.preventDefault();
         ctx.handleSaveAs();
-    } else if (key === "s") {
+    } else if (key === "s" && !e.shiftKey) {
         e.preventDefault();
         ctx.handleSave();
     } else if (key === "w" && e.shiftKey) {
         e.preventDefault();
         ctx.closeWindow();
-    } else if (key === "w") {
+    } else if (key === "w" && !e.shiftKey) {
         e.preventDefault();
         ctx.handleClose(ctx.activeIndex);
     }

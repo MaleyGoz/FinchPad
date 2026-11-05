@@ -558,24 +558,76 @@
             capture: true,
         });
 
-        // ★ 核心修复：在捕获阶段强行拦截 Mac 的 Ctrl+O以及Ctrl+B
+        // ★ 核心修复：在捕获阶段强行拦截，兼容 Mac 的 Ctrl 键并放行全局快捷键
         const keydownHandler = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
-                e.preventDefault();
-                e.stopPropagation();
-                onOpenRequest();
+            // 如果焦点在输入框内，不作干预（防误杀搜索框打字）
+            if (
+                document.activeElement?.tagName === "INPUT" ||
+                document.activeElement?.tagName === "TEXTAREA"
+            )
+                return;
+
+            // 1. 兼容 Mac 双系统用户：当使用 Ctrl 时，手动映射底层不认的文本操作
+            if (e.ctrlKey && !e.metaKey) {
+                const key = e.key.toLowerCase();
+                if (key === "z" && !e.shiftKey) {
+                    e.preventDefault();
+                    editor?.trigger("keyboard", "undo", null);
+                    return;
+                }
+                if (key === "z" && e.shiftKey) {
+                    e.preventDefault();
+                    editor?.trigger("keyboard", "redo", null);
+                    return;
+                }
+                if (key === "y") {
+                    e.preventDefault();
+                    editor?.trigger("keyboard", "redo", null);
+                    return;
+                }
+                if (key === "x") {
+                    e.preventDefault();
+                    editor?.trigger(
+                        "keyboard",
+                        "editor.action.clipboardCutAction",
+                        null,
+                    );
+                    return;
+                }
+                if (key === "c") {
+                    e.preventDefault();
+                    editor?.trigger(
+                        "keyboard",
+                        "editor.action.clipboardCopyAction",
+                        null,
+                    );
+                    return;
+                }
+                if (key === "v") {
+                    e.preventDefault();
+                    editor?.trigger(
+                        "keyboard",
+                        "editor.action.clipboardPasteAction",
+                        null,
+                    );
+                    return;
+                }
+                if (key === "a") {
+                    e.preventDefault();
+                    editor?.trigger(
+                        "keyboard",
+                        "editor.action.selectAll",
+                        null,
+                    );
+                    return;
+                }
             }
-            // ★ 新增：拦截 Ctrl/Cmd + B
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
-                e.preventDefault();
-                e.stopPropagation();
-                onToggleSidebarRequest();
-            }
+
+            // 注意：这里不再拦截 O 和 B，全部交由全局 shortcutHandler 处理
         };
         container.addEventListener("keydown", keydownHandler, {
             capture: true,
         });
-        (container as any).__keydownHandler = keydownHandler;
 
         // 右键 → 上报给父组件，由父组件渲染自定义菜单
         const contextmenuHandler = (e: MouseEvent) => {
