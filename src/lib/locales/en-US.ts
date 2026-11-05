@@ -21,7 +21,7 @@ export const enUS: Record<string, string> = {
     "dialog.update_confirm": "Download",
     "dialog.update_cancel": "Cancel",
 
-    // ===== 标签栏 =====
+    // ===== Tab Bar =====
     "tab_bar.new_tab": "New Tab",
     "tab_bar.settings": "Settings",
     "tab_bar.preview": "Preview",

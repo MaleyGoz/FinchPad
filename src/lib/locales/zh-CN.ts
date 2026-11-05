@@ -45,7 +45,7 @@ export const zhCN: Record<string, string> = {
     "diff.keep_mine": "保留我的修改",
     "diff.use_disk": "采用磁盘版本",
 
-    // ===== 标签栏空白处菜单 =====
+    // ===== 标签栏空白处右键菜单 =====
     "bar_menu.new": "新建标签",
     "bar_menu.open": "打开文件",
 
