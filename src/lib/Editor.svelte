@@ -547,8 +547,9 @@
             });
         }
         // Ctrl+滚轮 → 缩放（capture 模式，抢在 Monaco 前拦截）
+        // ★ 核心修复：同时支持 Ctrl 和 Cmd (Mac)
         const wheelHandler = (e: WheelEvent) => {
-            if (!e.ctrlKey) return;
+            if (!e.ctrlKey && !e.metaKey) return;
             e.preventDefault();
             e.stopPropagation();
             onZoomDelta(e.deltaY < 0 ? +10 : -10);
