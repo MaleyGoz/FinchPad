@@ -170,6 +170,13 @@
         }
     }
 
+    /** ★ 新增：供全局快捷键判断当前编辑器内是否有选中文字 */
+    export function hasSelection(): boolean {
+        if (!editor) return false;
+        const sel = editor.getSelection();
+        return !!(sel && !sel.isEmpty());
+    }
+
     // 行号栏相关
     // ★ 缓存上一次的状态，用于极速性能判断
     let lastLineCount = -1;

@@ -134,6 +134,15 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
 
     // 复制文件路径 (Ctrl+Shift+C / Cmd+Shift+C)
     if (e.shiftKey && key === "c") {
+        // ★ 隐患1防御：如果焦点在输入框里，直接放行，不要拦截
+        if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+            return;
+        }
+        // ★ 隐患2防御：如果焦点在 Monaco 编辑器，且用户选中了文本，直接放行去复制文本
+        if (document.activeElement?.closest(".monaco-editor") && ctx.editorRef?.hasSelection()) {
+            return;
+        }
+        // 如果以上都不是（比如焦点在标签栏，或者编辑器里没选中文字），则执行复制文件路径
         e.preventDefault();
         e.stopPropagation();
         ctx.onCopyPath();
