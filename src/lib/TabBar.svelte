@@ -608,8 +608,16 @@
             on:mouseenter={() => (hoveredIndex = absIdx)}
             on:mouseleave={() => (hoveredIndex = -1)}
             on:mousedown={(e) => onTabMouseDown(e, absIdx)}
-            on:contextmenu|preventDefault|stopPropagation={(e) =>
-                onContextMenu(absIdx, e.clientX, e.clientY)}
+            on:contextmenu|preventDefault|stopPropagation={(e) => {
+                // ★ 核心修复：仅在 Mac 平台上，将 Ctrl+左键 转义为多选
+                // （因为 Mac 系统会把 Ctrl+左键 强制识别为右键菜单）
+                if (isMac && e.ctrlKey) {
+                    onSelect(absIdx, e);
+                    return;
+                }
+                // 在 Windows/Linux 上，按住 Ctrl 点右键依然能正常弹出菜单
+                onContextMenu(absIdx, e.clientX, e.clientY);
+            }}
             role="tab"
             tabindex="0"
             aria-selected={isActive}
