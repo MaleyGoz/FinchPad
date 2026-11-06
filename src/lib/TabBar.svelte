@@ -380,6 +380,10 @@
             return;
         }
         if (e.button !== 0) return;
+        // ★ 核心修复 1：如果是 Mac 的 Ctrl+左键，直接终止，绝对不进入拖拽逻辑！
+        // 这样就不会有 mousemove 和 mouseup 的干扰，也就不会触发重排闪烁。
+        if (isMac && e.ctrlKey) return;
+
         dragFromIndex = absIdx;
         dragToIndex = absIdx;
         dragStartX = e.clientX;
@@ -420,6 +424,12 @@
 
     function onTabClick(e: MouseEvent, absIdx: number) {
         if (Date.now() < suppressClickUntil) {
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
+        // ★ 核心修复 2：Mac 的 Ctrl+左键已被 contextmenu 接管，直接拦截，防止二次切换
+        if (isMac && e.ctrlKey) {
             e.stopPropagation();
             e.preventDefault();
             return;

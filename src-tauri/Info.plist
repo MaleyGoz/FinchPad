@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 声明应用支持的所有语言 -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>zh-Hans</string>
+        <string>zh-Hant</string>
+        <string>hi</string>
+        <string>es</string>
+        <string>fr</string>
+        <string>ar</string>
+        <string>ru</string>
+        <string>pt-BR</string>
+        <string>de</string>
+        <string>ja</string>
+        <string>tr</string>
+        <string>vi</string>
+        <string>ko</string>
+        <string>it</string>
+        <string>th</string>
+        <string>id</string>
+        <string>pl</string>
+        <string>nl</string>
+        <string>fa</string>
+    </array>
+    
+    <!-- 默认开发语言（当系统语言不在上述列表中时回退到此语言） -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+</dict>
+</plist>

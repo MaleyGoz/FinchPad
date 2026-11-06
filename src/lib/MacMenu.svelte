@@ -254,78 +254,52 @@
             // ==========================================
             // Edit 菜单（完美兼容原生快捷键 + Pending 状态置灰）
             // ==========================================
-            const editItems: any[] = [];
-
-            if (isPending) {
-                // ★ 方案 A：Pending 状态，使用禁用（enabled: false）的普通菜单项
-                // 此时前端已经拦截了保存/打开操作，不会触发原生弹窗，因此安全置灰
-                editItems.push(
-                    await MenuItem.new({
+            const editMenu = await Submenu.new({
+                text: t("menu.edit", undefined, locale) || "Edit",
+                items: [
+                    await PredefinedMenuItem.new({
+                        item: "Undo",
                         text:
                             t("editor_menu.undo", undefined, locale) || "Undo",
-                        enabled: false,
                     }),
-                    await MenuItem.new({
+                    await PredefinedMenuItem.new({
+                        item: "Redo",
                         text:
                             t("editor_menu.redo", undefined, locale) || "Redo",
-                        enabled: false,
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
+                    await PredefinedMenuItem.new({
+                        item: "Cut",
                         text: t("editor_menu.cut", undefined, locale) || "Cut",
-                        enabled: false,
                     }),
-                    await MenuItem.new({
+                    await PredefinedMenuItem.new({
+                        item: "Copy",
                         text:
                             t("editor_menu.copy", undefined, locale) || "Copy",
-                        enabled: false,
                     }),
-                    await MenuItem.new({
+                    await PredefinedMenuItem.new({
+                        item: "Paste",
                         text:
                             t("editor_menu.paste", undefined, locale) ||
                             "Paste",
-                        enabled: false,
                     }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.delete", undefined, locale) ||
-                            "Delete",
-                        enabled: false,
-                    }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.select_all", undefined, locale) ||
-                            "Select All",
-                        enabled: false,
-                    }),
-                );
-            } else {
-                // ★ 方案 B：正常状态，使用 PredefinedMenuItem，将快捷键控制权交还给 macOS 原生系统
-                editItems.push(
-                    await PredefinedMenuItem.new({ item: "Undo" }),
-                    await PredefinedMenuItem.new({ item: "Redo" }),
-                    await PredefinedMenuItem.new({ item: "Separator" }),
-                    await PredefinedMenuItem.new({ item: "Cut" }),
-                    await PredefinedMenuItem.new({ item: "Copy" }),
-                    await PredefinedMenuItem.new({ item: "Paste" }),
                     await MenuItem.new({
                         text:
                             t("editor_menu.delete", undefined, locale) ||
                             "Delete",
                         accelerator: "Delete",
+                        enabled: !isPending,
                         action: () => editorRef?.execEditorAction("delete"),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await PredefinedMenuItem.new({ item: "SelectAll" }),
-                );
-            }
-
-            const editMenu = await Submenu.new({
-                text: t("menu.edit", undefined, locale) || "Edit",
-                items: editItems,
+                    await PredefinedMenuItem.new({
+                        item: "SelectAll",
+                        text:
+                            t("editor_menu.select_all", undefined, locale) ||
+                            "Select All",
+                    }),
+                ],
             });
-
             // ===========Edit 菜单结束===========
 
             chkShowLineNumbers = await CheckMenuItem.new({
