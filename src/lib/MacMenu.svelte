@@ -254,62 +254,97 @@
             // ==========================================
             // Edit 菜单（完美补齐 Pending 时的置灰）
             // ==========================================
+            // const editMenu = await Submenu.new({
+            //     text: t("menu.edit", undefined, locale) || "Edit",
+            //     items: [
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.undo", undefined, locale) || "Undo",
+            //             // ★ 核心修改：删除了 accelerator，把快捷键控制权交还给前端
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("undo"),
+            //         }),
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.redo", undefined, locale) || "Redo",
+            //             // ★ 核心修改：删除了 accelerator
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("redo"),
+            //         }),
+            //         await PredefinedMenuItem.new({ item: "Separator" }),
+            //         await MenuItem.new({
+            //             text: t("editor_menu.cut", undefined, locale) || "Cut",
+            //             // ★ 核心修改：删除了 accelerator
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("cut"),
+            //         }),
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.copy", undefined, locale) || "Copy",
+            //             // ★ 核心修改：删除了 accelerator
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("copy"),
+            //         }),
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.paste", undefined, locale) ||
+            //                 "Paste",
+            //             // ★ 核心修改：删除了 accelerator
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("paste"),
+            //         }),
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.delete", undefined, locale) ||
+            //                 "Delete",
+            //             accelerator: "Delete", // (这个可以保留，不影响剪贴板)
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("delete"),
+            //         }),
+            //         await PredefinedMenuItem.new({ item: "Separator" }),
+            //         await MenuItem.new({
+            //             text:
+            //                 t("editor_menu.select_all", undefined, locale) ||
+            //                 "Select All",
+            //             // ★ 核心修改：删除了 accelerator
+            //             enabled: !isPending,
+            //             action: () => editorRef?.execEditorAction("selectAll"),
+            //         }),
+            //     ],
+            // });
+
+            // ==========================================
+            // Edit 菜单（修复 macOS 原生对话框快捷键失效）
+            // ==========================================
             const editMenu = await Submenu.new({
                 text: t("menu.edit", undefined, locale) || "Edit",
                 items: [
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.undo", undefined, locale) || "Undo",
-                        // ★ 核心修改：删除了 accelerator，把快捷键控制权交还给前端
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("undo"),
-                    }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.redo", undefined, locale) || "Redo",
-                        // ★ 核心修改：删除了 accelerator
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("redo"),
-                    }),
+                    // ★ 核心修复 1：使用原生菜单接管撤销/重做
+                    // 原生菜单会自动绑定 Cmd+Z 和 Cmd+Shift+Z，并在原生弹窗中生效
+                    await PredefinedMenuItem.new({ item: "Undo" }),
+                    await PredefinedMenuItem.new({ item: "Redo" }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text: t("editor_menu.cut", undefined, locale) || "Cut",
-                        // ★ 核心修改：删除了 accelerator
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("cut"),
-                    }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.copy", undefined, locale) || "Copy",
-                        // ★ 核心修改：删除了 accelerator
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("copy"),
-                    }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.paste", undefined, locale) ||
-                            "Paste",
-                        // ★ 核心修改：删除了 accelerator
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("paste"),
-                    }),
+
+                    // ★ 核心修复 2：使用原生菜单接管剪切/复制/粘贴
+                    // 原生菜单会自动绑定 Cmd+X / C / V，完美解决保存对话框的快捷键问题
+                    await PredefinedMenuItem.new({ item: "Cut" }),
+                    await PredefinedMenuItem.new({ item: "Copy" }),
+                    await PredefinedMenuItem.new({ item: "Paste" }),
+
+                    // Delete 没有对应的原生预定义项，保留原有的前端接管逻辑
                     await MenuItem.new({
                         text:
                             t("editor_menu.delete", undefined, locale) ||
                             "Delete",
-                        accelerator: "Delete", // (这个可以保留，不影响剪贴板)
+                        accelerator: "Delete",
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("delete"),
                     }),
+
                     await PredefinedMenuItem.new({ item: "Separator" }),
-                    await MenuItem.new({
-                        text:
-                            t("editor_menu.select_all", undefined, locale) ||
-                            "Select All",
-                        // ★ 核心修改：删除了 accelerator
-                        enabled: !isPending,
-                        action: () => editorRef?.execEditorAction("selectAll"),
-                    }),
+
+                    // ★ 核心修复 3：使用原生菜单接管全选
+                    await PredefinedMenuItem.new({ item: "SelectAll" }),
                 ],
             });
 
