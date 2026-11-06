@@ -44,6 +44,10 @@
     export let onToggleSidebarRequest: () => void = () => {};
     export let loadPendingError: string = "";
 
+    const isMac =
+        typeof navigator !== "undefined" &&
+        /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
     const BASE_FONT_SIZE = 15;
 
     let container: HTMLDivElement;
@@ -481,10 +485,7 @@
     // 函数4：强制应用翻译（根据 Index 暴力覆盖）
     // ==========================================
     function applyFindWidgetI18n(findWidget: HTMLElement) {
-        const isMacPlatform =
-            typeof navigator !== "undefined" &&
-            /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-        const modKey = isMacPlatform ? "Cmd" : "Ctrl";
+        const modKey = isMac ? "Cmd" : "Ctrl";
 
         const tr = (key: string, fallback: string, params?: any) => {
             try {
@@ -660,6 +661,21 @@
             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN,
             () => {},
         );
+
+        // ★ 专属核心修复：仅在 Mac 环境下，在 Monaco 底层接管 Ctrl+A
+        if (isMac) {
+            editor.addCommand(
+                monaco.KeyMod.WinCtrl | monaco.KeyCode.KeyA,
+                () => {
+                    // 当焦点在编辑器内时，强制全选内容
+                    editor!.trigger(
+                        "keyboard",
+                        "editor.action.selectAll",
+                        null,
+                    );
+                },
+            );
+        }
 
         // ★ 查找框修改
         const tooltipObservers = setupFindWidgetTooltip(container);

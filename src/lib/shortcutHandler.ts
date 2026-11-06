@@ -1,5 +1,6 @@
 export type ShortcutContext = {
     isAnyModalOpen: boolean;
+    isNativeDialogOpen?: boolean;
     isMac: boolean;
     modal: any;
     aboutVisible: boolean;
@@ -34,6 +35,11 @@ export type ShortcutContext = {
 };
 
 export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
+    // ★ 核心修复：如果当前是 Mac 环境，且系统原生对话框正在前台，全局快捷键全面静默
+    if (ctx.isMac && ctx.isNativeDialogOpen) {
+        return;
+    }
+
     // ★ 弹窗打开时，屏蔽除 Escape 外的所有快捷键
     if (ctx.isAnyModalOpen) {
         if (e.key === "Escape") {

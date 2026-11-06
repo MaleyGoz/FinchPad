@@ -85,6 +85,8 @@
     // ======== 全局变量块 ========
     let loadPendingError = "";
     let isOpeningLargeFile = false;
+    // ★ 核心新增：控制原生系统弹窗的休眠开关
+    let isNativeDialogOpen = false;
 
     // ======== 响应式变量块 ========
 
@@ -817,7 +819,14 @@
         if (snapshot.is_unnamed) {
             // 未命名 → 走另存为
             const { defaultPath, filters } = getSaveOptions();
-            const path = await save({ defaultPath, filters });
+
+            let path;
+            isNativeDialogOpen = true;
+            try {
+                path = await save({ defaultPath, filters });
+            } finally {
+                isNativeDialogOpen = false;
+            }
 
             if (!path) return;
 
@@ -991,7 +1000,14 @@
         if (isUnnamed) {
             // ★ 直接复用封装好的函数
             const { defaultPath, filters } = getSaveOptions();
-            const path = await save({ defaultPath, filters });
+
+            let path;
+            isNativeDialogOpen = true;
+            try {
+                path = await save({ defaultPath, filters });
+            } finally {
+                isNativeDialogOpen = false;
+            }
 
             if (!path) {
                 // 用户取消文件对话框 → 中止整个队列 (原有逻辑，一字未改)
@@ -1167,7 +1183,14 @@
         if (isUnnamed) {
             // 未命名 → 走另存为
             const { defaultPath, filters } = getSaveOptions();
-            const path = await save({ defaultPath, filters });
+
+            let path;
+            isNativeDialogOpen = true;
+            try {
+                path = await save({ defaultPath, filters });
+            } finally {
+                isNativeDialogOpen = false;
+            }
 
             if (!path) return;
 
@@ -1318,7 +1341,13 @@
         }
 
         // 3. 调出系统对话框
-        const selected = await open(openOptions);
+        let selected;
+        isNativeDialogOpen = true; // ★ 弹窗前：开启休眠
+        try {
+            selected = await open(openOptions);
+        } finally {
+            isNativeDialogOpen = false; // ★ 弹窗关闭：立刻苏醒
+        }
 
         if (!selected) return;
         const paths = Array.isArray(selected) ? selected : [selected];
@@ -1442,7 +1471,14 @@
 
         // ★ 直接复用封装好的函数，逻辑 100% 等价
         const { defaultPath, filters } = getSaveOptions();
-        const path = await save({ defaultPath, filters });
+
+        let path;
+        isNativeDialogOpen = true; // ★ 弹窗前：开启休眠
+        try {
+            path = await save({ defaultPath, filters });
+        } finally {
+            isNativeDialogOpen = false; // ★ 弹窗关闭：立刻苏醒
+        }
 
         if (!path) {
             isSaving = false;
@@ -2303,6 +2339,7 @@
 
         handleGlobalShortcut(e, {
             isAnyModalOpen,
+            isNativeDialogOpen,
             isMac,
             modal,
             aboutVisible,
