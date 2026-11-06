@@ -972,11 +972,21 @@
         flex-shrink: 0;
         overflow: hidden;
 
-        position: relative; /* ★ 新增：给伪元素做定位参考 */
+        position: relative; /* ★ 关键：给伪元素做定位参考 */
+        /* ★ 核心修复：去掉 Windows 上的焦点黑框 */
+        outline: none !important;
+    }
+    /* 移除标签栏所有元素的默认焦点框，因为我们有自己设计的 UI 反馈 */
+    .tab-bar *:focus {
+        outline: none;
     }
 
-    /* ★ 新增：内部悬停胶囊背景 */
-    .tab.is-hovered::before {
+    /* ========================================== */
+    /* ★ 核心优化：悬停 与 多选 状态的药丸形背景共用 */
+    /* ========================================== */
+    /* 1. 鼠标悬停（非选中） 或 被选中但非激活状态的标签，显示药丸背景 */
+    .tab.is-hovered::before,
+    .tab.is-selected:not(.active)::before {
         content: "";
         position: absolute;
         top: 4px;
@@ -985,12 +995,12 @@
         right: 6px;
         background-color: var(--tab-background-active);
         border-radius: 6px;
-        opacity: 0.6; /* ★ 关键：不能是 1.0，要有一点点透，防止和激活标签混淆 */
+        opacity: 0.6; /* ★ 关键：半透明，防止和激活标签混淆 */
         z-index: 0;
-        pointer-events: none; /* 防止伪元素挡住鼠标点击标签或关闭按钮 */
+        pointer-events: none; /* 防止伪元素挡住鼠标点击 */
     }
 
-    /* ★ 新增：确保文字、脏标记、关闭按钮浮在伪元素上方 */
+    /* 2. 确保文字、脏标记、关闭按钮浮在药丸背景的上方 */
     .title,
     .close-btn,
     .dot {
@@ -998,20 +1008,23 @@
         z-index: 1;
     }
 
-    /* ★ 优化：多选标签的视觉反馈（更克制、更高级） */
+    /* ========================================== */
+    /* ★ 核心优化：多选标签的主题色底线逻辑 */
+    /* ========================================== */
+    /* 1. 所有被选中的标签，底部增加主题色横线 */
     .tab.is-selected {
-        /* 使用当前主题的悬停背景色，自动适配深色/浅色主题 */
-        background-color: var(--overlay-hover-background) !important;
-        /* 用底部的主题色线条作为选中标志 */
         box-shadow: inset 0 -2px 0 var(--accent);
     }
 
-    /* 如果选中的是激活标签，保持它原本的激活背景，只加底线 */
+    /* 2. 兼容激活标签的选中状态（激活标签保持原背景和圆角，只加底线） */
     .tab.active.is-selected {
         background: var(--tab-background-active) !important;
         box-shadow: inset 0 -2px 0 var(--accent);
     }
 
+    /* ========================================== */
+    /* 激活标签的基础样式（保持不变） */
+    /* ========================================== */
     .tab.active {
         background: var(--tab-background-active);
         color: var(--tab-foreground-active);
@@ -1041,9 +1054,11 @@
     .tab.prev-is-active::after {
         display: none;
     }
+
     .tab.dragging {
         opacity: 0.5;
     }
+
     .title {
         flex: 1;
         overflow: hidden;
@@ -1056,6 +1071,7 @@
         height: 100%;
         line-height: 1;
     }
+
     .rename-input {
         flex: 1;
         width: 100%;
@@ -1118,7 +1134,6 @@
         margin-left: 4px; /* ★ 必须和 close-btn 左间距一致 */
         user-select: none;
         flex-shrink: 0;
-        /* ★ 删除了 font-size: 6px; 因为不再用文字了 */
     }
 
     /* ★ 新增：用 CSS 画一个完美的正圆 */
