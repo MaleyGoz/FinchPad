@@ -260,28 +260,28 @@
                     await MenuItem.new({
                         text:
                             t("editor_menu.undo", undefined, locale) || "Undo",
-                        accelerator: "CmdOrCtrl+Z",
+                        // ★ 核心修改：删除了 accelerator，把快捷键控制权交还给前端
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("undo"),
                     }),
                     await MenuItem.new({
                         text:
                             t("editor_menu.redo", undefined, locale) || "Redo",
-                        accelerator: "CmdOrCtrl+Shift+Z",
+                        // ★ 核心修改：删除了 accelerator
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("redo"),
                     }),
                     await PredefinedMenuItem.new({ item: "Separator" }),
                     await MenuItem.new({
                         text: t("editor_menu.cut", undefined, locale) || "Cut",
-                        accelerator: "CmdOrCtrl+X",
+                        // ★ 核心修改：删除了 accelerator
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("cut"),
                     }),
                     await MenuItem.new({
                         text:
                             t("editor_menu.copy", undefined, locale) || "Copy",
-                        accelerator: "CmdOrCtrl+C",
+                        // ★ 核心修改：删除了 accelerator
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("copy"),
                     }),
@@ -289,7 +289,7 @@
                         text:
                             t("editor_menu.paste", undefined, locale) ||
                             "Paste",
-                        accelerator: "CmdOrCtrl+V",
+                        // ★ 核心修改：删除了 accelerator
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("paste"),
                     }),
@@ -297,7 +297,7 @@
                         text:
                             t("editor_menu.delete", undefined, locale) ||
                             "Delete",
-                        accelerator: "Delete",
+                        accelerator: "Delete", // (这个可以保留，不影响剪贴板)
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("delete"),
                     }),
@@ -306,7 +306,7 @@
                         text:
                             t("editor_menu.select_all", undefined, locale) ||
                             "Select All",
-                        accelerator: "CmdOrCtrl+A",
+                        // ★ 核心修改：删除了 accelerator
                         enabled: !isPending,
                         action: () => editorRef?.execEditorAction("selectAll"),
                     }),
@@ -318,14 +318,14 @@
                     t("settings.show_line_numbers", undefined, locale) ||
                     "Show Line Numbers",
                 checked: showLineNumbers,
-                enabled: !isPending,
+                enabled: !isPending && !snapshot.large_file, // ★ 保留这个包含 large_file 的判断
                 action: () => toggleShowLineNumbers(),
             });
+
             chkWordWrap = await CheckMenuItem.new({
                 text: t("settings.word_wrap", undefined, locale) || "Word Wrap",
                 checked: wordWrap,
-                enabled: !isPending && !snapshot.large_file,
-                enabled: !isPending && !snapshot.large_file,
+                enabled: !isPending && !snapshot.large_file, // ★ 保留这个包含 large_file 的判断
                 action: () => handleToggleWordWrap(),
             });
 
