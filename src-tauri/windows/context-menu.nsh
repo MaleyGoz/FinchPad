@@ -26,31 +26,39 @@ LangString CTX_MENU_NAME ${LANG_INDONESIAN} "Edit dengan FinchPad"
 ; 2. 安装时写入注册表
 ; =====================================================================
 !macro NSIS_HOOK_POSTINSTALL
-  ; 语言兜底判断
+  ; --- 右键菜单逻辑 ---
   StrCmp "$(CTX_MENU_NAME)" "" 0 +2
   StrCpy $0 "${DEFAULT_CTX_MENU_NAME}"
   StrCmp "$(CTX_MENU_NAME)" "" +2 0
   StrCpy $0 "$(CTX_MENU_NAME)"
 
-  ; 定义注册表根路径，方便后续维护
   !define REG_PATH "Software\Classes\*\shell\FinchPad"
 
-  ; 写入菜单名称
   WriteRegStr HKCU "${REG_PATH}" "" "$0"
-  ; 写入图标 (索引 0)
   WriteRegStr HKCU "${REG_PATH}" "Icon" "$INSTDIR\FinchPad.exe,0"
-  ; 尝试置顶 (兼容旧版菜单)
   WriteRegStr HKCU "${REG_PATH}" "Position" "Top" 
-  ; 写入执行命令
   WriteRegStr HKCU "${REG_PATH}\command" "" '"$INSTDIR\FinchPad.exe" "%1"'
   
-  ; 清理临时宏定义
   !undef REG_PATH
+
+  ; --- ★ 新增：专属 txt 文件图标逻辑 ---
+  ; 1. 将图标文件复制到安装目录
+  File "/oname=$INSTDIR\file_txt.ico" "file_txt.ico"
+  
+  ; 2. 覆盖 .txt 的默认图标（使用 SystemFileAssociations 优先级最高，不影响用户的其他自定义）
+  WriteRegStr HKCU "Software\Classes\SystemFileAssociations\.txt\DefaultIcon" "" "$INSTDIR\file_txt.ico,0"
+  
+  ; 3. 通知系统刷新图标缓存（重要：否则装完可能看不到变化）
+  System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 !macroend
 
 ; =====================================================================
 ; 3. 卸载时清理注册表
 ; =====================================================================
 !macro NSIS_HOOK_PREUNINSTALL
+  ; 清理右键菜单
   DeleteRegKey HKCU "Software\Classes\*\shell\FinchPad"
+  
+  ; ★ 清理专属 txt 图标注册表，恢复系统默认
+  DeleteRegKey HKCU "Software\Classes\SystemFileAssociations\.txt\DefaultIcon"
 !macroend
