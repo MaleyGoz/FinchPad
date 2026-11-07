@@ -115,6 +115,8 @@ export const enUS: Record<string, string> = {
     "dialog.save_as_conflict":
         "Save failed: The file is already open in another tab. Please close it and try again.\nPath: {path}",
     "dialog.ok": "OK",
+    "dialog.save_failed_title": "⚠️ Save failed: Cannot write to file.",
+
 
     // ===== Large File Close Dialog =====
     "dialog.large_close":

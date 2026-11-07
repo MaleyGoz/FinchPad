@@ -112,6 +112,8 @@ export const zhCN: Record<string, string> = {
     "dialog.save_as_conflict":
         "保存失败：文件已在另一个标签页中打开。请关闭该标签后再重试。\n路径：{path}",
     "dialog.ok": "确定",
+    "dialog.save_failed_title": "⚠️ 保存失败：无法写入文件。",
+
 
     // ===== 大文件关窗弹窗 =====
     "dialog.large_close": "文件「{title}」有未保存的修改。关闭后这些修改会丢失。",

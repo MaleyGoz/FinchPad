@@ -109,6 +109,7 @@ export const fa: Record<string, string> = {
     "dialog.conflict_save_as": "ذخیره به عنوان",
     "dialog.save_as_conflict": "ذخیره ناموفق بود: فایل از قبل در زبانه دیگری باز است. لطفاً آن را ببندید و دوباره امتحان کنید.\nمسیر: {path}",
     "dialog.ok": "تایید",
+    "dialog.save_failed_title": "⚠️ ذخیره ناموفق بود: نمی‌توان در فایل نوشت.",
 
     // ===== دیالوگ بستن فایل بزرگ =====
     "dialog.large_close": "فایل \"{title}\" تغییرات ذخیره نشده دارد. در صورت بستن از بین می‌روند.",

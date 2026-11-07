@@ -109,6 +109,7 @@ export const hi: Record<string, string> = {
     "dialog.conflict_save_as": "इस रूप में सहेजें",
     "dialog.save_as_conflict": "सहेजना विफल: फ़ाइल पहले से ही किसी अन्य टैब में खुली है। कृपया इसे बंद करें और पुनः प्रयास करें।\nपथ: {path}",
     "dialog.ok": "ठीक है",
+    "dialog.save_failed_title": "⚠️ सहेजना विफल रहा: फ़ाइल में नहीं लिख सकता।",
 
     // ===== बड़ी फ़ाइल बंद करने का संवाद =====
     "dialog.large_close": "फ़ाइल \"{title}\" में सहेजे न गए परिवर्तन हैं। बंद करने पर वे खो जाएंगे।",

@@ -109,6 +109,7 @@ export const nl: Record<string, string> = {
   "dialog.conflict_save_as": "Opslaan als",
   "dialog.save_as_conflict": "Opslaan mislukt: Het bestand is al geopend in een ander tabblad. Sluit het en probeer het opnieuw.\nPad: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Opslaan mislukt: Kan niet naar bestand schrijven.",
 
   // ===== Groot bestand sluiten dialoogvenster =====
   "dialog.large_close": "Bestand \"{title}\" heeft niet-opgeslagen wijzigingen. Deze gaan verloren als je sluit.",

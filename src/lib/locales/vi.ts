@@ -109,6 +109,7 @@ export const vi: Record<string, string> = {
     "dialog.conflict_save_as": "Lưu thành",
     "dialog.save_as_conflict": "Lưu thất bại: Tệp đã được mở trong một tab khác. Vui lòng đóng nó và thử lại.\nĐường dẫn: {path}",
     "dialog.ok": "Đồng ý",
+    "dialog.save_failed_title": "⚠️ Lưu thất bại: Không thể ghi vào tệp.",
 
     // ===== Hộp thoại đóng tệp lớn =====
     "dialog.large_close": "Tệp \"{title}\" có các thay đổi chưa lưu. Chúng sẽ bị mất nếu bạn đóng.",

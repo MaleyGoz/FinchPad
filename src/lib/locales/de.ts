@@ -109,6 +109,7 @@ export const de: Record<string, string> = {
   "dialog.conflict_save_as": "Speichern unter",
   "dialog.save_as_conflict": "Speichern fehlgeschlagen: Die Datei ist bereits in einem anderen Tab geöffnet. Bitte schließen Sie diese und versuchen Sie es erneut.\nPfad: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Speichern fehlgeschlagen: Datei kann nicht geschrieben werden.",
 
   // ===== Große Datei schließen Dialog =====
   "dialog.large_close": "Die Datei \"{title}\" enthält ungespeicherte Änderungen. Diese gehen beim Schließen verloren.",

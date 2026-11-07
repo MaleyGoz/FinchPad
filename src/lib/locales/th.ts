@@ -109,6 +109,7 @@ export const th: Record<string, string> = {
     "dialog.conflict_save_as": "บันทึกเป็น",
     "dialog.save_as_conflict": "บันทึกล้มเหลว: ไฟล์ถูกเปิดอยู่ในแท็บอื่น โปรดปิดและลองอีกครั้ง\nเส้นทาง: {path}",
     "dialog.ok": "ตกลง",
+    "dialog.save_failed_title": "⚠️ บันทึกไม่สำเร็จ: ไม่สามารถเขียนลงในไฟล์ได้",
 
     // ===== กล่องโต้ตอบปิดไฟล์ขนาดใหญ่ =====
     "dialog.large_close": "ไฟล์ \"{title}\" มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก จะสูญหายหากคุณปิด",

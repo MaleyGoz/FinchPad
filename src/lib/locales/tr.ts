@@ -109,6 +109,7 @@ export const tr: Record<string, string> = {
   "dialog.conflict_save_as": "Farklı kaydet",
   "dialog.save_as_conflict": "Kaydetme başarısız: Dosya başka bir sekmede zaten açık. Kapatıp tekrar deneyin.\nYol: {path}",
   "dialog.ok": "Tamam",
+  "dialog.save_failed_title": "⚠️ Kaydetme başarısız: Dosyaya yazılamıyor.",
 
   // ===== Büyük dosya kapatma iletişim kutusu =====
   "dialog.large_close": "\"{title}\" dosyasında kaydedilmemiş değişiklikler var. Kapatırsanız kaybolacaklar.",

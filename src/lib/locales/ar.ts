@@ -109,6 +109,7 @@ export const ar: Record<string, string> = {
     "dialog.conflict_save_as": "حفظ باسم",
     "dialog.save_as_conflict": "فشل الحفظ: الملف مفتوح بالفعل في تبويب آخر. يرجى إغلاقه والمحاولة مرة أخرى.\nالمسار: {path}",
     "dialog.ok": "موافق",
+    "dialog.save_failed_title": "⚠️ فشل الحفظ: تعذرت الكتابة إلى الملف.",
 
     // ===== مربع حوار إغلاق الملف الكبير =====
     "dialog.large_close": "الملف \"{title}\" يحتوي على تغييرات غير محفوظة. ستفقد إذا قمت بالإغلاق.",

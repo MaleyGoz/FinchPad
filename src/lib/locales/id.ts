@@ -109,6 +109,7 @@ export const id: Record<string, string> = {
     "dialog.conflict_save_as": "Simpan Sebagai",
     "dialog.save_as_conflict": "Gagal menyimpan: File sudah terbuka di tab lain. Harap tutup dan coba lagi.\nJalur: {path}",
     "dialog.ok": "OK",
+    "dialog.save_failed_title": "⚠️ Gagal menyimpan: Tidak dapat menulis ke file.",
 
     // ===== Dialog Tutup File Besar =====
     "dialog.large_close": "File \"{title}\" memiliki perubahan yang belum disimpan. Perubahan akan hilang jika Anda menutupnya.",

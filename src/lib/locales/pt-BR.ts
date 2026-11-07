@@ -109,6 +109,7 @@ export const ptBR: Record<string, string> = {
   "dialog.conflict_save_as": "Salvar como",
   "dialog.save_as_conflict": "Falha ao salvar: O arquivo já está aberto em outra aba. Feche-o e tente novamente.\nCaminho: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Falha ao salvar: Não foi possível gravar no arquivo.",
 
   // ===== Diálogo de fechar arquivo grande =====
   "dialog.large_close": "O arquivo \"{title}\" tem alterações não salvas. Elas serão perdidas se você fechar.",

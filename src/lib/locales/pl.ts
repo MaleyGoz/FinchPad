@@ -109,6 +109,7 @@ export const pl: Record<string, string> = {
   "dialog.conflict_save_as": "Zapisz jako",
   "dialog.save_as_conflict": "Zapis nie powiódł się: Plik jest już otwarty na innej karcie. Zamknij go i spróbuj ponownie.\nŚcieżka: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Zapis nie powiódł się: Nie można zapisać do pliku.",
 
   // ===== Okno zamykania dużego pliku =====
   "dialog.large_close": "Plik \"{title}\" ma niezapisane zmiany. Zostaną one utracone po zamknięciu.",

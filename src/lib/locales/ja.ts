@@ -109,6 +109,7 @@ export const ja: Record<string, string> = {
   "dialog.conflict_save_as": "名前を付けて保存",
   "dialog.save_as_conflict": "保存失敗: ファイルは既に別のタブで開かれています。閉じてから再試行してください。\nパス: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ 保存に失敗しました：ファイルに書き込めません。",
 
   // ===== 大容量ファイル閉じるダイアログ =====
   "dialog.large_close": "ファイル「{title}」には保存されていない変更があります。閉じると失われます。",

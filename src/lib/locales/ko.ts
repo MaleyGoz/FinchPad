@@ -109,6 +109,7 @@ export const ko: Record<string, string> = {
   "dialog.conflict_save_as": "다른 이름으로 저장",
   "dialog.save_as_conflict": "저장 실패: 파일이 이미 다른 탭에서 열려 있습니다. 닫고 다시 시도하세요.\n경로: {path}",
   "dialog.ok": "확인",
+  "dialog.save_failed_title": "⚠️ 저장 실패: 파일에 쓸 수 없습니다.",
 
   // ===== 대용량 파일 닫기 대화상자 =====
   "dialog.large_close": "파일 \"{title}\"에 저장되지 않은 변경 사항이 있습니다. 닫으면 유실됩니다.",

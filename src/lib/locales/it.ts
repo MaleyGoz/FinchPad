@@ -109,6 +109,7 @@ export const it: Record<string, string> = {
   "dialog.conflict_save_as": "Salva con nome",
   "dialog.save_as_conflict": "Salvataggio fallito: Il file è già aperto in un'altra scheda. Chiudilo e riprova.\nPercorso: {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Salvataggio non riuscito: Impossibile scrivere nel file.",
 
   // ===== Finestra chiudi file grande =====
   "dialog.large_close": "Il file \"{title}\" presenta modifiche non salvate. Andranno perse se chiudi.",

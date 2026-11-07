@@ -110,6 +110,7 @@ export const zhTW: Record<string, string> = {
   "dialog.conflict_save_as": "另存為",
   "dialog.save_as_conflict": "儲存失敗：檔案已在另一個標籤頁中開啟。請關閉該標籤後再重試。\n路徑：{path}",
   "dialog.ok": "確定",
+  "dialog.save_failed_title": "⚠️ 儲存失敗：無法寫入檔案。",
 
   // ===== 大檔案關窗彈窗 =====
   "dialog.large_close": "檔案「{title}」有未儲存的修改。關閉後這些修改會丟失。",

@@ -109,6 +109,7 @@ export const es: Record<string, string> = {
   "dialog.conflict_save_as": "Guardar como",
   "dialog.save_as_conflict": "Error al guardar: el archivo ya está abierto en otra pestaña. Ciérralo e inténtalo de nuevo.\nRuta: {path}",
   "dialog.ok": "Aceptar",
+  "dialog.save_failed_title": "⚠️ Error al guardar: No se puede escribir en el archivo.",
 
   // ===== Diálogo de cerrar archivo grande =====
   "dialog.large_close": "El archivo \"{title}\" tiene cambios sin guardar. Se perderán si lo cierras.",

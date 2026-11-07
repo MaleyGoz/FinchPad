@@ -109,6 +109,7 @@ export const fr: Record<string, string> = {
   "dialog.conflict_save_as": "Enregistrer sous",
   "dialog.save_as_conflict": "Échec de l'enregistrement : le fichier est déjà ouvert dans un autre onglet. Veuillez le fermer et réessayer.\nChemin : {path}",
   "dialog.ok": "OK",
+  "dialog.save_failed_title": "⚠️ Échec de l'enregistrement : Impossible d'écrire dans le fichier.",
 
   // ===== Grand fichier fermer dialogue =====
   "dialog.large_close": "Le fichier \"{title}\" contient des modifications non enregistrées. Elles seront perdues si vous fermez.",
