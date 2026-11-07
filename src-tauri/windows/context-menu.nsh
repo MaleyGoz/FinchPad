@@ -43,7 +43,9 @@ LangString CTX_MENU_NAME ${LANG_INDONESIAN} "Edit dengan FinchPad"
 
   ; --- ★ 新增：专属 txt 文件图标逻辑 ---
   ; 1. 将图标文件复制到安装目录
-  File "/oname=$INSTDIR\file_txt.ico" "file_txt.ico"
+  ; ★ 删除下面这一行！它导致了报错
+  ; File "/oname=$INSTDIR\file_txt.ico" "file_txt.ico"
+
   
   ; 2. 覆盖 .txt 的默认图标（使用 SystemFileAssociations 优先级最高，不影响用户的其他自定义）
   WriteRegStr HKCU "Software\Classes\SystemFileAssociations\.txt\DefaultIcon" "" "$INSTDIR\file_txt.ico,0"
