@@ -383,6 +383,8 @@
         // ★ 核心修复 1：如果是 Mac 的 Ctrl+左键，直接终止，绝对不进入拖拽逻辑！
         // 这样就不会有 mousemove 和 mouseup 的干扰，也就不会触发重排闪烁。
         if (isMac && e.ctrlKey) return;
+        // ★ 核心修复 2：在这里加上 preventDefault，阻止焦点从 Monaco 转移
+        e.preventDefault();
 
         dragFromIndex = absIdx;
         dragToIndex = absIdx;
@@ -731,6 +733,7 @@
     <!-- 新建标签按钮 -->
     <button
         class="new-tab"
+        on:mousedown|preventDefault
         on:click={onNew}
         use:tooltip={`${t("tab_bar.new_tab", undefined, $resolvedLocale)} (${mod}+T)`}
         on:contextmenu|preventDefault|stopPropagation
