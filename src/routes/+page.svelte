@@ -853,6 +853,8 @@
                         ],
                     };
                 } else {
+                    // ★ 新增：另存为失败（如选了无权限的目录）
+                    showSaveFailedModal(idx);
                     console.error("保存失败：", e);
                 }
             }
@@ -866,7 +868,13 @@
             return;
         }
 
-        snapshot = await api.saveActiveFile();
+        // ★ 核心修复：将直接保存用 try...catch 包裹
+        try {
+            snapshot = await api.saveActiveFile();
+        } catch (e) {
+            showSaveFailedModal(idx);
+            console.error("保存失败：", e);
+        }
     }
 
     async function menuSaveAs() {
@@ -1046,6 +1054,8 @@
                     return;
                 } else {
                     console.error("保存失败：", e);
+                    // ★ 新增：另存为遇到权限/写入问题，弹窗
+                    showSaveFailedModal(idx);
                     // 保存失败，中止当前关闭队列 (原有逻辑，一字未改)
                     closeQueue = [];
                     closeQueueActive = false;
@@ -1053,7 +1063,18 @@
                 }
             }
         } else {
-            await api.saveActiveFile();
+            // ★ 新增：为直接保存加上 try...catch，防止因权限报错导致后续标签卡死
+            try {
+                await api.saveActiveFile();
+            } catch (e) {
+                console.error("保存失败：", e);
+                // ★ 新增：遇到权限/写入问题，弹窗
+                showSaveFailedModal(idx);
+                // 保存失败，中止当前关闭队列
+                closeQueue = [];
+                closeQueueActive = false;
+                return;
+            }
         }
 
         // 处理完毕，继续关闭下一个 (原有逻辑，一字未改)
@@ -1091,6 +1112,7 @@
                     await api.saveAndPrepareExit();
                 } catch (e) {
                     console.error("关闭失败：", e);
+                    showSaveFailedModal(snapshot.active_index);
                 }
                 return;
             }
@@ -1104,8 +1126,15 @@
 
     async function processNextLargeTabClose() {
         if (closeQueueTabIds.length === 0) {
-            await api.saveAndPrepareExit();
-            // save_and_prepare_exit 内部会调用 app.exit(0)
+            // ★ 加上 try...catch，防止最后的退出保存报错崩溃
+            try {
+                await api.saveAndPrepareExit();
+                // save_and_prepare_exit 内部会调用 app.exit(0)
+            } catch (e) {
+                console.error("退出前保存失败：", e);
+                // ★ 直接复用统一弹窗，阻断退出
+                showSaveFailedModal(snapshot.active_index);
+            }
             return;
         }
 
@@ -1150,6 +1179,9 @@
                 await handleSaveAs(); // 注意：这会切换当前激活标签
             } else {
                 console.error("保存失败：", e);
+                // ★ 新增：遇到权限/写入问题，弹窗提示
+                showSaveFailedModal(idx);
+                // 中止大文件关闭队列
                 closeQueueTabIds = [];
                 return;
             }
@@ -1196,11 +1228,25 @@
 
             // ★ 彻底删除了原本复杂的 if (isMac) { ... } 修正逻辑
             // 直接传入干净的 path
-            await api.saveActiveFileAs(path);
+            try {
+                await api.saveActiveFileAs(path);
+            } catch (e) {
+                console.error("另存为失败：", e);
+                // ★ 新增：如果选了无权限的目录，弹窗提示并中止关闭
+                showSaveFailedModal(i);
+                return; // ★ 核心：保存失败，直接退出，不执行下面的 closeTab
+            }
         } else {
-            await api.saveActiveFile();
+            try {
+                await api.saveActiveFile();
+            } catch (e) {
+                console.error("保存失败：", e);
+                // ★ 新增：无权限等错误，弹窗提示并中止关闭
+                showSaveFailedModal(i);
+                return; // ★ 核心：保存失败，直接退出，不执行下面的 closeTab
+            }
         }
-
+        // ★ 只有保存成功，才会走到这里真正关闭标签
         await api.closeTab(i);
         await refresh();
         recentFilesVersion++;
@@ -1393,10 +1439,13 @@
                     try {
                         snapshot = await api.saveActiveFile();
                     } catch (e) {
+                        // 保持你原本的 catch (e)，不加 any
                         if (e === "NeedsSaveAs") {
                             isSaving = false;
                             await handleSaveAs();
                         } else {
+                            // ★ 核心新增：只要不是 NeedsSaveAs，统统弹窗
+                            showSaveFailedModal(idx);
                             console.error("保存失败：", e);
                         }
                     }
@@ -1419,6 +1468,46 @@
         } finally {
             isSaving = false;
         }
+    }
+
+    // ★ 新增：统一的保存失败弹窗（无权限/磁盘满/只读等）
+    function showSaveFailedModal(idx: number) {
+        const filePath = snapshot.tab_paths[idx] || "";
+
+        modal = {
+            visible: true,
+            title:
+                t("dialog.save_failed_title", undefined, get(resolvedLocale)) ||
+                '⚠️ Save failed: Cannot write to file. Please click "Save As"',
+            // 有路径就显示，无路径（如未命名标签）Svelte 会自动隐藏
+            subtitle: filePath || undefined,
+            rows: [
+                [
+                    {
+                        label:
+                            t(
+                                "dialog.cancel",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Cancel",
+                        action: closeModal,
+                    },
+                    {
+                        label:
+                            t(
+                                "dialog.conflict_save_as",
+                                undefined,
+                                get(resolvedLocale),
+                            ) || "Save As",
+                        style: "primary",
+                        action: async () => {
+                            closeModal();
+                            await handleSaveAs(); // 复用现有的另存为逻辑
+                        },
+                    },
+                ],
+            ],
+        };
     }
 
     // ★ 新增：动态生成安全的保存参数，完美兼容 Mac 后缀补全机制
@@ -1514,6 +1603,9 @@
                     ],
                 };
             } else {
+                // ★ 核心修改：直接调用现有的无权限弹窗
+                // 用户点击弹窗里的【另存为】按钮，会再次触发 handleSaveAs，逻辑完美闭环
+                showSaveFailedModal(snapshot.active_index);
                 console.error("另存为失败：", e);
             }
         } finally {
@@ -1614,6 +1706,9 @@
             snapshot = await api.saveActiveFile();
         } catch (e) {
             console.error("覆盖保存失败:", e);
+            // ★ 新增：如果覆盖写盘失败（无权限/只读等），立刻弹出统一错误框
+            // 此时 snapshot.active_index 就是当前正在操作的标签索引
+            showSaveFailedModal(snapshot.active_index);
         }
     }
 
@@ -1772,6 +1867,9 @@
                 snapshot = await api.saveActiveFile();
             } catch (e) {
                 console.error("保存新格式失败：", e);
+                // ★ 新增：如果因为无权限写盘失败，提示用户并引导另存为
+                // 此时 idx 是当前正在操作的标签索引
+                showSaveFailedModal(idx);
             }
         } catch (e) {
             console.error("应用格式失败:", e);

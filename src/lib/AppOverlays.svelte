@@ -1048,37 +1048,34 @@
         text-align: center;
         font-family: var(--font-sans);
     }
-    /* ===== 关于弹窗图标（macOS 风格圆角） ===== */
+    /* ===== 关于弹窗图标（纯正主题色圆角边框，无特效） ===== */
     .about-icon-wrapper {
-        width: 76px; /* 稍微放大一点，看起来更大气 */
-        height: 76px;
-        margin: 0 auto 16px auto; /* 居中并留出下边距 */
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 16px auto;
 
-        /* ★ macOS 风格圆角：76px 的边长，约 17px 的圆角 */
-        border-radius: 17px;
+        /* 完全透明，无底色 */
+        background: transparent;
 
-        /* ★ 核心：把方形图片的直角裁切掉 */
-        overflow: hidden;
+        /* 圆角 */
+        border-radius: 20px;
 
-        /* ★ 阴影：在深色模式下产生“实体卡片”的悬浮感 */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        /* ★ 核心：纯正的 2px 主题色边框，不加任何透明度 */
+        border: 2px solid #0db3db;
 
-        /* ★ 主题色描边：用主题色混合一点点透明，作为极细的高光边框 */
-        border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-
-        /* 强制打一层纯白底色，防止图片本身边缘泛黄或偏色 */
-        background-color: #ffffff;
+        /* 留白，防止内容贴边 */
+        padding: 12px;
+        box-sizing: border-box;
 
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    /* 内部图片填满容器 */
     .about-icon-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
     }
     .about-title {
@@ -1106,7 +1103,7 @@
         font-size: 12px;
         color: var(--overlay-foreground-muted);
         line-height: 1.8;
-        text-align: left;
+        text-align: center;
     }
     .link {
         color: var(--accent);
