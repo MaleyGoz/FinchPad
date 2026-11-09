@@ -89,6 +89,9 @@
     let isNativeDialogOpen = false;
 
     // ======== 响应式变量块 ========
+    // ★ 新增：动态维护的根目录白名单
+    let allowedRoots: string[] = [];
+    let lastTabPaths = "";
 
     let snapshot: Snapshot = {
         tab_titles: [],
@@ -163,8 +166,6 @@
         try {
             await flushPendingEdit();
             snapshot = await api.openFiles([path]);
-            // ★ 新增：通知侧边栏刷新
-            recentFilesVersion++;
         } catch (e) {
             console.error("打开文件失败:", e);
             alert(t("sidebar.file_not_found", { path }, get(resolvedLocale)));
@@ -1399,8 +1400,8 @@
         const paths = Array.isArray(selected) ? selected : [selected];
         await flushPendingEdit();
         snapshot = await api.openFiles(paths);
-        // ★ 新增：通知侧边栏刷新最近文件
-        recentFilesVersion;
+        // ★ 外部打开文件后，如果侧边栏开着，需要刷新
+        recentFilesVersion++;
     }
 
     //保存
@@ -2254,6 +2255,69 @@
         modal = { visible: false, title: "", rows: [] };
     }
 
+    // ★ 核心新增：智能白名单计算
+    $: {
+        const pathsStr = snapshot.tab_paths.join("|");
+        // 只有当标签路径确实发生变化时，才重新计算（防止死循环）
+        if (pathsStr !== lastTabPaths) {
+            lastTabPaths = pathsStr;
+            const dirs = new Set<string>();
+            // 1. 提取所有当前打开文件的父目录
+            for (const path of snapshot.tab_paths) {
+                if (!path) continue;
+                const sep = path.includes("\\") ? "\\" : "/";
+                const lastIndex = path.lastIndexOf(sep);
+                if (lastIndex > 0) {
+                    dirs.add(path.substring(0, lastIndex));
+                }
+            }
+
+            let newRoots = new Set(allowedRoots);
+
+            // 2. 添加新目录（如果是已经存在的子目录，则忽略）
+            for (const dir of dirs) {
+                let isSub = false;
+                for (const root of newRoots) {
+                    const sep = dir.includes("\\") ? "\\" : "/";
+                    if (dir === root || dir.startsWith(root + sep)) {
+                        isSub = true;
+                        break;
+                    }
+                }
+                if (!isSub) {
+                    // 如果是父目录，移除之前记录的子目录，只保留顶层
+                    const sep = dir.includes("\\") ? "\\" : "/";
+                    for (const root of Array.from(newRoots)) {
+                        if (root.startsWith(dir + sep)) {
+                            newRoots.delete(root);
+                        }
+                    }
+                    newRoots.add(dir);
+                }
+            }
+
+            // 3. 智能清理（你提出的核心逻辑）：如果某根目录下已经没有任何已打开的文件，删除该白名单项
+            for (const root of Array.from(newRoots)) {
+                const sep = root.includes("\\") ? "\\" : "/";
+                let hasFile = false;
+                for (const path of snapshot.tab_paths) {
+                    if (
+                        path &&
+                        (path === root || path.startsWith(root + sep))
+                    ) {
+                        hasFile = true;
+                        break;
+                    }
+                }
+                if (!hasFile) {
+                    newRoots.delete(root);
+                }
+            }
+
+            allowedRoots = Array.from(newRoots);
+        }
+    }
+
     onMount(() => {
         // ★ 核心防御：如果当前是大文件独立窗口，直接停止主界面的所有初始化逻辑！
         if ($page.url.searchParams.get("mode") === "large_viewer") {
@@ -2495,6 +2559,7 @@
                 {recentFilesVersion}
                 recordRecentFiles={snapshot.record_recent_files}
                 onToggleRecordRecentFiles={handleToggleRecordRecentFiles}
+                {allowedRoots}
             />
             <!-- 右侧主体：包含标签栏和编辑器 -->
             <div class="main-content">

@@ -587,8 +587,8 @@
 
                 <div class="context-divider"></div>
 
-                <!-- 区块 4：新建与打开 -->
-                <button class="context-item" onclick={onMenuNewFromTab}>
+                <!-- 区块 4：新建与打开 v0.9.2精简标签右键菜单时删除-->
+                <!-- <button class="context-item" onclick={onMenuNewFromTab}>
                     <span>{t("bar_menu.new", undefined, $resolvedLocale)}</span>
                     <span class="shortcut">{mod}+N</span>
                 </button>
@@ -596,7 +596,7 @@
                     <span>{t("bar_menu.open", undefined, $resolvedLocale)}</span
                     >
                     <span class="shortcut">{mod}+O</span>
-                </button>
+                </button> -->
             {/if}
         </div>
     </div>

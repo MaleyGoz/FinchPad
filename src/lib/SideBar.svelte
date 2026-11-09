@@ -20,9 +20,14 @@
     let baseDir = "";
     let dirLoading = false;
     let dirError = false;
+    // ★ 新增：区分是否是在侧边栏内部点击文件（打断目录重置的强绑定）
+    let internalBrowse = false;
 
     let recentFileError = ""; // 记录失效文件的提示
     let errorTimer: any;
+
+    // ★ 新增：用于记录文件根目录，优化当前目录的向上逻辑
+    export let allowedRoots: string[] = [];
 
     // ★ 新增：专门处理点击最近文件的逻辑
     async function handleRecentClick(path: string) {
@@ -45,6 +50,8 @@
 
                 return;
             }
+            // ★ 核心修复：告诉响应式逻辑，这是从最近文件面板打开的，必须重置目录
+            internalBrowse = false;
             onOpenFile(path);
         } catch (e) {
             console.error("校验文件失败:", e);
@@ -99,7 +106,11 @@
                 dirError = true;
                 currentDirFiles = [];
             } else {
-                goUp();
+                // ★ 新增：子目录不可达（被删/拔U盘），强制退回 baseDir，防止无限递归
+                console.warn("子目录不可达，自动退回根目录");
+                currentBrowsePath = baseDir;
+                loadDirectory(baseDir, isSilent);
+                // goUp();
             }
         } finally {
             if (!isSilent) {
@@ -114,14 +125,36 @@
         loadDirectory(`${currentBrowsePath}${sep}${folderName}`);
     }
 
-    // 返回上一级（沙盒限制）
-    function goUp() {
-        if (currentBrowsePath === baseDir || !currentBrowsePath) return;
+    // ★ 新增：判断当前目录是否可以继续向上（只负责计算，不产生副作用）
+    function canGoUp(): boolean {
+        if (!currentBrowsePath) return false;
         const sep = getSep(currentBrowsePath);
         const lastIndex = currentBrowsePath.lastIndexOf(sep);
-        if (lastIndex <= 0) return;
+
+        // 到达系统根目录/盘符（如 C:\ 或 /），不能再向上
+        if (lastIndex <= 0) return false;
+
         const parentPath = currentBrowsePath.substring(0, lastIndex);
-        if (parentPath.length < baseDir.length) return;
+
+        // 核心：判断 parentPath 是否越过了白名单上限
+        for (const root of allowedRoots) {
+            const rootSep = getSep(root);
+            // 如果 parentPath 是某个 root 的父级，则禁止向上
+            if (root.startsWith(parentPath + rootSep)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 执行向上操作
+    function goUp() {
+        if (!canGoUp()) return; // 复用判断逻辑
+
+        const sep = getSep(currentBrowsePath);
+        const lastIndex = currentBrowsePath.lastIndexOf(sep);
+        const parentPath = currentBrowsePath.substring(0, lastIndex);
+
         loadDirectory(parentPath);
     }
 
@@ -154,14 +187,22 @@
                 }
             } else if (activeFilePath && activeFilePath !== lastActivePath) {
                 // 时机 2：切到了有路径的文件
-                lastActivePath = activeFilePath;
-                const sep = getSep(activeFilePath);
-                baseDir = activeFilePath.substring(
-                    0,
-                    activeFilePath.lastIndexOf(sep),
-                );
-                currentBrowsePath = baseDir;
-                loadDirectory(baseDir);
+                if (internalBrowse) {
+                    // ★ 核心修复：如果是侧边栏内部点击，只更新记录，绝不重置浏览目录！
+                    internalBrowse = false;
+                    lastActivePath = activeFilePath;
+                    // 这里不能 return，所以用 else 隔离
+                } else {
+                    // ★ 外部切换标签（比如点击标签栏、快捷键切换），正常重置跟随
+                    lastActivePath = activeFilePath;
+                    const sep = getSep(activeFilePath);
+                    baseDir = activeFilePath.substring(
+                        0,
+                        activeFilePath.lastIndexOf(sep),
+                    );
+                    currentBrowsePath = baseDir;
+                    loadDirectory(baseDir);
+                }
             } else if (!activeFilePath) {
                 // 策略 A：切到了未命名标签，保留现有视图，但清空记录以便下次能触发
                 lastActivePath = "";
@@ -270,6 +311,7 @@
                         {#each recentFiles as file}
                             <div
                                 class="sidebar-item recent-item"
+                                class:active={file === activeFilePath}
                                 onclick={() => handleRecentClick(file)}
                                 onkeydown={(e) =>
                                     e.key === "Enter" &&
@@ -318,9 +360,7 @@
                     <button
                         class="dir-up-btn"
                         onclick={goUp}
-                        disabled={currentBrowsePath === baseDir ||
-                            dirLoading ||
-                            dirError}
+                        disabled={!canGoUp() || dirLoading || dirError}
                     >
                         ⬆️ {t("sidebar.up", undefined, $resolvedLocale)}
                     </button>
@@ -350,11 +390,17 @@
                         {#each currentDirFiles as file}
                             <button
                                 class="sidebar-item"
+                                class:active={!file.is_dir &&
+                                    file.path === activeFilePath}
                                 use:tooltip={file.path}
-                                onclick={() =>
-                                    file.is_dir
-                                        ? enterFolder(file.name)
-                                        : onOpenFile(file.path)}
+                                onclick={() => {
+                                    if (file.is_dir) {
+                                        enterFolder(file.name);
+                                    } else {
+                                        internalBrowse = true;
+                                        onOpenFile(file.path);
+                                    }
+                                }}
                             >
                                 <span class="item-name">
                                     <FileIcon
@@ -510,6 +556,26 @@
             transparent
         );
     }
+
+    /* ★ 新增：当前目录列表中的激活文件高亮 */
+    .sidebar-item.active {
+        background: color-mix(
+            in srgb,
+            var(--accent) 15%,
+            transparent
+        ) !important;
+        color: var(--accent) !important;
+        font-weight: 500;
+    }
+
+    .sidebar-item.active:hover {
+        background: color-mix(
+            in srgb,
+            var(--accent) 25%,
+            transparent
+        ) !important;
+    }
+
     /* 列表项文件名 */
     .item-name {
         font-size: 13px;

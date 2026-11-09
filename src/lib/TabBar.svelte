@@ -446,6 +446,9 @@
             dropdownOpen = false;
             return;
         }
+        // ★ 核心修复：打开下拉菜单前，强制隐藏悬浮的 Tooltip
+        hideTooltip();
+
         dropdownOpen = true;
         await tick(); // 等菜单渲染，拿到实际宽度
 
@@ -1264,6 +1267,8 @@
         border-radius: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         min-width: 140px;
+        /* ★ 核心修复：增加最大宽度限制，防止超长文件名把菜单撑爆 */
+        max-width: 300px;
         max-height: calc(100vh - 60px);
         max-height: 400px;
         overflow-y: auto;
@@ -1313,6 +1318,8 @@
         cursor: pointer;
         color: var(--overlay-foreground);
         border-radius: 4px;
+        /* ★ 核心修复：确保文字在最大宽度内完美省略号截断 */
+        white-space: nowrap;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
