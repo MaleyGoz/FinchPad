@@ -105,19 +105,27 @@ FinchPad abandons the bloat of modern software to deliver an ultimate underlying
   <img src="assets/9-En-大文件极速查看.png" width="90%" alt="大文件秒开">
 </p>
 
-## Shortcuts
+## Keyboard Shortcuts
 
-| Action | Windows / Linux | macOS |
-| :--- | :--- | :--- |
-| New / Open / Save | `Ctrl` + `N` or `T` / `O` / `S` | `Cmd` + `N` or `T` / `O` / `S` |
-| Save As | `Ctrl` + `Shift` + `S` | `Cmd` + `Shift` + `S` |
-| Close Current Tab | `Ctrl` + `W` | `Cmd` + `W` |
-| Reopen Closed Tab | `Ctrl` + `Shift` + `T` | `Cmd` + `Shift` + `T` |
-| Switch Tab / Sidebar | `Ctrl` + `Tab` / `Ctrl` + `B` / `Ctrl` + `1~9` | `Ctrl` + `Tab` / `Cmd` + `B` / `Cmd` + `1~9` |
-| Find / Replace | `Ctrl` + `F` / `H` | `Cmd` + `F` / `H` |
-| Zoom | `Ctrl` + `+` / `-` / `0` | `Cmd` + `+` / `-` / `0` |
+> Shortcuts follow the default schemes of mainstream editors, allowing you to get started with zero learning curve.
+>
+> Note that `Ctrl` series shortcuts also work on macOS, so you don't need to change your muscle memory.
 
-*Note: Windows shortcuts (using `Ctrl`) also remain fully functional on macOS.*
+| Action                  | Windows / Linux                     | macOS                              |
+| ----------------------- | ----------------------------------- | ---------------------------------- |
+| New / Open / Save       | `Ctrl` + `N` or `T` / `O` / `S`     | `Cmd` + `N` or `T` / `O` / `S`     |
+| Save As                 | `Ctrl` + `Shift` + `S`              | `Cmd` + `Shift` + `S`              |
+| Close Tab               | `Ctrl` + `W`                        | `Cmd` + `W`                        |
+| Copy File Path          | `Ctrl` + `Shift` + `C`              | `Cmd` + `Shift` + `C`              |
+| Rename                  | Click tab and press `F2`            | Click tab and press `F2`           |
+| Copy / Paste / Cut / All| `Ctrl` + `C` / `V` / `X` / `A`      | `Cmd` + `C` / `V` / `X` / `A`      |
+| Undo / Redo             | `Ctrl` + `Z` / `Y` or `Shift`+`Z`   | `Cmd` + `Z` / `Y` or `Shift`+`Z`   |
+| Find / Replace          | `Ctrl` + `F` / `H`                  | `Cmd` + `F` / `H`                  |
+| Toggle Sidebar          | `Ctrl` + `B`                        | `Cmd` + `B`                        |
+| Switch Tab              | `Ctrl` + `Tab` / `1~9`              | `Ctrl` + `Tab` / `1~9`             |
+| Zoom                    | `Ctrl` + `+` / `-` / `0` / Mouse wheel | `Cmd` + `+` / `-` / `0` / Mouse wheel |
+| Close Pop-up            | `Esc`                               | `Esc`                              |
+| Exit Application        | `Alt` + `F4`                        | `Cmd` + `Q`                        |
 
 ## Tech Stack
 
