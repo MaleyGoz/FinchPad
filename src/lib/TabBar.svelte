@@ -603,6 +603,7 @@
         {/if}
     {/if}
 
+    <!-- 菜单置灰逻辑 -->
     {#each titles.slice(visibleStart, visibleEnd) as title, k}
         {@const absIdx = visibleStart + k}
         {@const isActive = absIdx === activeIndex}
@@ -701,6 +702,7 @@
         </div>
     {/each}
 
+    <!-- 更多标签按钮 -->
     {#if hasOverflow}
         <div class="dropdown-wrapper">
             <button

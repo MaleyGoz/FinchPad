@@ -102,6 +102,34 @@
         onStats(lineCount, charCount, selectedCount, selectedLineCount);
     }
 
+    // ★ 新增：供父组件调用，恢复光标位置并聚焦
+    export function setEditorState(
+        pos: { line: number; column: number } | null,
+    ) {
+        if (!editor) return;
+
+        if (pos) {
+            // 恢复到指定位置
+            editor.setPosition({ lineNumber: pos.line, column: pos.column });
+            editor.revealPositionInCenter({
+                lineNumber: pos.line,
+                column: pos.column,
+            });
+        } else {
+            // 重置到第一行第一列
+            editor.setPosition({ lineNumber: 1, column: 1 });
+            editor.revealPositionInCenter({ lineNumber: 1, column: 1 });
+        }
+
+        editor.focus();
+    }
+    // 新增：供父组件调用，位置
+    export function getPosition() {
+        if (!editor) return null;
+        const pos = editor.getPosition();
+        return pos ? { line: pos.lineNumber, column: pos.column } : null;
+    }
+
     /** 供父组件调用：执行编辑区动作 */
     export function execEditorAction(action: string) {
         if (!editor) return;

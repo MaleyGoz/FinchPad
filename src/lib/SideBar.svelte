@@ -393,6 +393,7 @@
                                 class:active={!file.is_dir &&
                                     file.path === activeFilePath}
                                 use:tooltip={file.path}
+                                onmousedown={(e) => e.preventDefault()}
                                 onclick={() => {
                                     if (file.is_dir) {
                                         enterFolder(file.name);

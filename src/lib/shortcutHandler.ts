@@ -4,6 +4,7 @@ export type ShortcutContext = {
     isMac: boolean;
     modal: any;
     aboutVisible: boolean;
+    onCloseAbout?: () => void;
     settingsMenu: any;
     editorContextMenu: any;
     contextMenu: any;
@@ -43,13 +44,23 @@ export function handleGlobalShortcut(e: KeyboardEvent, ctx: ShortcutContext) {
     // ★ 弹窗打开时，屏蔽除 Escape 外的所有快捷键
     if (ctx.isAnyModalOpen) {
         if (e.key === "Escape") {
-            if (ctx.modal.visible) ctx.handleModalDismiss();
-            else if (ctx.aboutVisible) ctx.aboutVisible = false;
-            else if (ctx.settingsMenu.visible) ctx.closeSettingsMenu();
-            else if (ctx.editorContextMenu.visible) ctx.closeEditorContextMenu();
-            else if (ctx.contextMenu.visible) ctx.closeContextMenu();
-            else if (ctx.barContextMenu.visible) ctx.closeBarContextMenu();
-            e.preventDefault();
+            e.preventDefault(); // 阻止默认行为和事件冒泡，绝对安全
+            e.stopPropagation();
+
+            if (ctx.modal.visible) {
+                ctx.handleModalDismiss();
+            } else if (ctx.aboutVisible) {
+                if (ctx.onCloseAbout) ctx.onCloseAbout();
+                else ctx.aboutVisible = false;
+            } else if (ctx.settingsMenu.visible) {
+                ctx.closeSettingsMenu();
+            } else if (ctx.editorContextMenu.visible) {
+                ctx.closeEditorContextMenu();
+            } else if (ctx.contextMenu.visible) {
+                ctx.closeContextMenu();
+            } else if (ctx.barContextMenu.visible) {
+                ctx.closeBarContextMenu();
+            }
         }
         return;
     }
