@@ -9,6 +9,29 @@
     import { THEMES, THEME_ORDER } from "$lib/themes";
     import Toggle from "$lib/Toggle.svelte";
 
+    // ★ 新增：关于弹窗的选项卡状态
+    let activeAboutTab: "about" | "privacy" | "features" | "license" = "about";
+    // ★ 新增：功能说明的左侧导航状态
+    let activeFeatureNav:
+        | "shortcuts"
+        | "tabs"
+        | "session"
+        | "encoding"
+        | "large_file"
+        | "preview"
+        | "diff" = "shortcuts";
+
+    // 接收父组件传来的更新状态
+    export let updateStatus:
+        | "idle"
+        | "checking"
+        | "latest"
+        | "found"
+        | "error" = "idle";
+    export let updateLatestVersion = ""; // ★ 新增
+    export let checkForUpdates: () => void;
+    export let handleUpdateDownload: () => void; // ★ 新增
+
     // 接收从父组件传来的状态和数据
     export let modal: any;
     export let aboutVisible: boolean;
@@ -40,7 +63,7 @@
     export let onCancelCloseLangSubmenu: () => void;
     export let onCloseLangSubmenu: () => void;
     export let onSelectLanguage: (key: string) => void;
-    export let onCheckUpdate: () => void;
+    // export let onCheckUpdate: () => void;
     export let onShowAbout: () => void;
 
     // 标签页右键菜单及子菜单
@@ -93,6 +116,162 @@
     // 编辑器右键菜单事件回调
     export let onCloseEditorContextMenu: () => void;
     export let onRunEditorAction: (action: string) => void;
+    // 开源协议常量（全局通用，无需国际化翻译）
+    const MIT_LICENSE_TEXT = `MIT License
+
+Copyright (c) 2026 MaleyGoz
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.`;
+
+    // 快捷键数据列表 (改为响应式，语言切换时自动更新)
+    $: shortcutList = [
+        {
+            op: t(
+                "about.features.shortcuts.op_new",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + N / T",
+            mac: "Cmd + N / T",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_open_save",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + O / S",
+            mac: "Cmd + O / S",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_save_as",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + Shift + S",
+            mac: "Cmd + Shift + S",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_close_tab",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + W",
+            mac: "Cmd + W",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_copy_path",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + Shift + C",
+            mac: "Cmd + Shift + C",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_rename",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "F2",
+            mac: "F2",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_copy_paste",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + C / V / X / A",
+            mac: "Cmd + C / V / X / A",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_undo_redo",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: t(
+                "about.features.shortcuts.key_undo_win",
+                undefined,
+                $resolvedLocale,
+            ),
+            mac: t(
+                "about.features.shortcuts.key_undo_mac",
+                undefined,
+                $resolvedLocale,
+            ),
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_find_replace",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + F / H",
+            mac: "Cmd + F / H",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_show_sidebar",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + B",
+            mac: "Cmd + B",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_switch_tab",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Ctrl + Tab / 1~9",
+            mac: "Ctrl + Tab / 1~9",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_zoom",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: t(
+                "about.features.shortcuts.key_zoom_win",
+                undefined,
+                $resolvedLocale,
+            ),
+            mac: t(
+                "about.features.shortcuts.key_zoom_mac",
+                undefined,
+                $resolvedLocale,
+            ),
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_close_modal",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Esc",
+            mac: "Esc",
+        },
+        {
+            op: t(
+                "about.features.shortcuts.op_quit",
+                undefined,
+                $resolvedLocale,
+            ),
+            win: "Alt + F4",
+            mac: "Cmd + Q",
+        },
+    ];
 </script>
 
 <!-- 通用弹窗 (modal) -->
@@ -271,7 +450,7 @@
 
             <div class="context-divider"></div>
             <!-- 检查更新入口 -->
-            <button class="context-item" onclick={onCheckUpdate}>
+            <!-- <button class="context-item" onclick={onCheckUpdate}>
                 <span
                     >{t(
                         "settings.check_update",
@@ -279,7 +458,7 @@
                         $resolvedLocale,
                     )}</span
                 >
-            </button>
+            </button> -->
 
             <button class="context-item" onclick={onShowAbout}>
                 <span>{t("settings.about", undefined, $resolvedLocale)}</span>
@@ -585,7 +764,7 @@
                     >
                 </button>
 
-                <div class="context-divider"></div>
+                <!-- <div class="context-divider"></div> -->
 
                 <!-- 区块 4：新建与打开 v0.9.2精简标签右键菜单时删除-->
                 <!-- <button class="context-item" onclick={onMenuNewFromTab}>
@@ -772,52 +951,500 @@
 
 <!-- 关于弹窗 (about) -->
 {#if aboutVisible}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="modal-overlay" onclick={onCloseAbout} role="presentation">
+    <!-- ★ 核心：移除了 onclick，点击遮罩层不再关闭弹窗 -->
+    <div class="modal-overlay" role="presentation">
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions (内部已有真实 button 承担键盘操作) -->
         <div
             class="about-card"
             onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => {
+                // 如果按下了 Ctrl+A 或 Cmd+A
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+                    // 检查当前焦点是否在开源协议文本区
+                    const isLicenseTarget = (
+                        e.target as HTMLElement
+                    )?.classList?.contains("about-page-license");
+                    if (isLicenseTarget) {
+                        // 允许协议区正常全选，但坚决阻止冒泡，不让外层 Monaco 响应！
+                        e.stopPropagation();
+                    } else {
+                        // 其他页面禁止全选穿透
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            }}
             role="dialog"
             tabindex="-1"
         >
-            <div class="about-icon-wrapper">
-                <img
-                    src="/about_logo.png"
-                    alt="FinchPad"
-                    class="about-icon-img"
-                />
-            </div>
-            <div class="about-title">
-                {t("about.title", undefined, $resolvedLocale)}
-            </div>
-            <div class="about-version">
-                {t("about.version", { version: APP_VERSION }, $resolvedLocale)}
-            </div>
-            <div class="about-desc">
-                {t("about.line1", undefined, $resolvedLocale)}
-            </div>
-            <div class="about-desc">
-                {t("about.line2", undefined, $resolvedLocale)}
-            </div>
-            <div class="about-divider"></div>
-            <div class="about-info">
-                <div>{t("about.tech", undefined, $resolvedLocale)}</div>
-                <div>{t("about.author", undefined, $resolvedLocale)}</div>
-                <div>{t("about.license", undefined, $resolvedLocale)}</div>
-                <div>
-                    <span
-                        class="link"
-                        role="link"
-                        tabindex="0"
-                        onclick={onOpenGitHub}
-                        onkeydown={(e) => e.key === "Enter" && onOpenGitHub()}
-                        >{t("about.website", undefined, $resolvedLocale)}</span
-                    >
-                </div>
-            </div>
-            <button class="modal-btn primary about-btn" onclick={onCloseAbout}>
-                {t("about.ok", undefined, $resolvedLocale)}
+            <!-- 右上角悬浮关闭按钮 -->
+            <button
+                class="about-close-btn-float"
+                onclick={onCloseAbout}
+                aria-label="Close"
+            >
+                <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
             </button>
+
+            <!-- 选项卡导航（居中） -->
+            <div class="about-tabs">
+                <button
+                    class:active={activeAboutTab === "about"}
+                    onclick={() => (activeAboutTab = "about")}
+                >
+                    {t("about.tab.about", undefined, $resolvedLocale)}
+                </button>
+                <button
+                    class:active={activeAboutTab === "privacy"}
+                    onclick={() => (activeAboutTab = "privacy")}
+                >
+                    {t("about.tab.privacy", undefined, $resolvedLocale)}
+                </button>
+                <button
+                    class:active={activeAboutTab === "features"}
+                    onclick={() => (activeAboutTab = "features")}
+                >
+                    {t("about.tab.features", undefined, $resolvedLocale)}
+                </button>
+                <button
+                    class:active={activeAboutTab === "license"}
+                    onclick={() => (activeAboutTab = "license")}
+                >
+                    {t("about.tab.license", undefined, $resolvedLocale)}
+                </button>
+            </div>
+
+            <!-- 内容区域（独立滚动） -->
+            <div class="about-content">
+                {#if activeAboutTab === "about"}
+                    <div class="about-page-about">
+                        <img
+                            src="/about_logo.png"
+                            alt="FinchPad"
+                            class="about-logo-img"
+                        />
+                        <h2 class="about-app-name">FinchPad</h2>
+                        <p class="about-app-desc">
+                            {t("about.line1", undefined, $resolvedLocale)}
+                        </p>
+                        <p class="about-app-desc">
+                            {t("about.line2", undefined, $resolvedLocale)}
+                        </p>
+                        <div class="about-divider"></div>
+                        <div class="about-info-list">
+                            <div>
+                                {t("about.tech", undefined, $resolvedLocale)}
+                            </div>
+                            <div>
+                                {t("about.author", undefined, $resolvedLocale)}
+                            </div>
+                            <div>
+                                {t("about.license", undefined, $resolvedLocale)}
+                            </div>
+                            <div>
+                                <span
+                                    class="link"
+                                    role="link"
+                                    tabindex="0"
+                                    onclick={onOpenGitHub}
+                                    onkeydown={(e) =>
+                                        e.key === "Enter" && onOpenGitHub()}
+                                >
+                                    {t(
+                                        "about.website",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {:else if activeAboutTab === "privacy"}
+                    <div class="about-page-privacy text-content">
+                        <p>
+                            {t(
+                                "about.privacy.intro",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </p>
+                        <h4>
+                            {t(
+                                "about.privacy.local_title",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </h4>
+                        <p>
+                            {t(
+                                "about.privacy.local_desc",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </p>
+                        <h4>
+                            {t(
+                                "about.privacy.telemetry_title",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </h4>
+                        <p>
+                            {t(
+                                "about.privacy.telemetry_desc",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </p>
+                        <h4>
+                            {t(
+                                "about.privacy.network_title",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </h4>
+                        <p>
+                            {t(
+                                "about.privacy.network_desc",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </p>
+                        <h4>
+                            {t(
+                                "about.privacy.session_title",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </h4>
+                        <p>
+                            {t(
+                                "about.privacy.session_desc",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        </p>
+                    </div>
+                {:else if activeAboutTab === "features"}
+                    <div class="about-page-features">
+                        <!-- 左侧导航 -->
+                        <div class="feature-nav">
+                            <button
+                                class:active={activeFeatureNav === "shortcuts"}
+                                onclick={() => (activeFeatureNav = "shortcuts")}
+                                >{t(
+                                    "about.features.nav.shortcuts",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "tabs"}
+                                onclick={() => (activeFeatureNav = "tabs")}
+                                >{t(
+                                    "about.features.nav.tabs",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "session"}
+                                onclick={() => (activeFeatureNav = "session")}
+                                >{t(
+                                    "about.features.nav.session",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "encoding"}
+                                onclick={() => (activeFeatureNav = "encoding")}
+                                >{t(
+                                    "about.features.nav.encoding",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "large_file"}
+                                onclick={() =>
+                                    (activeFeatureNav = "large_file")}
+                                >{t(
+                                    "about.features.nav.large_file",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "preview"}
+                                onclick={() => (activeFeatureNav = "preview")}
+                                >{t(
+                                    "about.features.nav.preview",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                            <button
+                                class:active={activeFeatureNav === "diff"}
+                                onclick={() => (activeFeatureNav = "diff")}
+                                >{t(
+                                    "about.features.nav.diff",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</button
+                            >
+                        </div>
+                        <!-- 右侧内容 -->
+                        <div class="feature-content text-content">
+                            {#if activeFeatureNav === "shortcuts"}
+                                <h3>
+                                    {t(
+                                        "about.features.shortcuts.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.shortcuts.intro",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+
+                                <!-- 精美的快捷键表格 -->
+                                <table class="feature-table">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                >{t(
+                                                    "about.features.shortcuts.th_op",
+                                                    undefined,
+                                                    $resolvedLocale,
+                                                )}</th
+                                            >
+                                            <th
+                                                >{t(
+                                                    "about.features.shortcuts.th_win",
+                                                    undefined,
+                                                    $resolvedLocale,
+                                                )}</th
+                                            >
+                                            <th
+                                                >{t(
+                                                    "about.features.shortcuts.th_mac",
+                                                    undefined,
+                                                    $resolvedLocale,
+                                                )}</th
+                                            >
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {#each shortcutList as row}
+                                            <tr>
+                                                <td>{row.op}</td>
+                                                <td>{row.win}</td>
+                                                <td>{row.mac}</td>
+                                            </tr>
+                                        {/each}
+                                    </tbody>
+                                </table>
+                            {:else if activeFeatureNav === "tabs"}
+                                <h3>
+                                    {t(
+                                        "about.features.tabs.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.tabs.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {:else if activeFeatureNav === "session"}
+                                <h3>
+                                    {t(
+                                        "about.features.session.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.session.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {:else if activeFeatureNav === "encoding"}
+                                <h3>
+                                    {t(
+                                        "about.features.encoding.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.encoding.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {:else if activeFeatureNav === "large_file"}
+                                <h3>
+                                    {t(
+                                        "about.features.large_file.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.large_file.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {:else if activeFeatureNav === "preview"}
+                                <h3>
+                                    {t(
+                                        "about.features.preview.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.preview.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {:else if activeFeatureNav === "diff"}
+                                <h3>
+                                    {t(
+                                        "about.features.diff.title",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </h3>
+                                <p>
+                                    {@html t(
+                                        "about.features.diff.desc",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </p>
+                            {/if}
+                        </div>
+                    </div>
+                {:else if activeAboutTab === "license"}
+                    <div
+                        class="about-page-license text-content"
+                        style="white-space: pre-wrap; font-family: var(--font-mono); font-size: 12px; line-height: 1.5;"
+                    >
+                        {MIT_LICENSE_TEXT}
+                    </div>
+                {/if}
+            </div>
+
+            <!-- 底部版本与检查更新（仅在关于选项卡显示） -->
+            {#if activeAboutTab === "about"}
+                <div class="about-footer">
+                    <span class="version-text"
+                        >{t(
+                            "about.version",
+                            { version: APP_VERSION },
+                            $resolvedLocale,
+                        )}</span
+                    >
+
+                    <!-- 中间：更新状态反馈区 -->
+                    <div class="update-status-center">
+                        {#if updateStatus === "error"}
+                            <!-- ★ 情况1：检查失败，显示提示及前往下载按钮 -->
+                            <span class="update-error-text">
+                                {t(
+                                    "about.check_failed",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}
+                                <button
+                                    class="link-btn update-action-btn"
+                                    onclick={handleUpdateDownload}
+                                >
+                                    {t(
+                                        "dialog.update_confirm",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </button>
+                            </span>
+                        {:else if updateStatus === "found"}
+                            <!-- ★ 情况3：发现新版本，显示提示及前往下载按钮 -->
+                            <span class="update-found-text">
+                                {t(
+                                    "about.found_update",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}
+                                <button
+                                    class="link-btn update-action-btn"
+                                    onclick={handleUpdateDownload}
+                                >
+                                    {t(
+                                        "dialog.update_confirm",
+                                        undefined,
+                                        $resolvedLocale,
+                                    )}
+                                </button>
+                            </span>
+                        {:else if updateStatus === "latest"}
+                            <!-- 情况2：已是最新版本，保持现状 -->
+                            <span class="update-latest-text"
+                                >{t(
+                                    "about.is_latest",
+                                    undefined,
+                                    $resolvedLocale,
+                                )}</span
+                            >
+                        {/if}
+                    </div>
+
+                    <!-- 右侧：检查更新按钮 -->
+                    <button
+                        class="update-btn"
+                        onclick={checkForUpdates}
+                        disabled={updateStatus === "checking" ||
+                            updateStatus === "found"}
+                    >
+                        {#if updateStatus === "checking"}
+                            {t("about.checking", undefined, $resolvedLocale)}...
+                        {:else}
+                            {t(
+                                "about.check_update",
+                                undefined,
+                                $resolvedLocale,
+                            )}
+                        {/if}
+                    </button>
+                </div>
+            {/if}
         </div>
     </div>
 {/if}
@@ -1035,86 +1662,404 @@
     }
 
     /* ==========================================
-     关于弹窗样式 
-     ========================================== */
+       全新关于弹窗优化样式 (统一字体与颜色)
+       ========================================== */
     .about-card {
+        position: relative;
+        width: 700px;
+        height: 520px;
+        max-width: 95vw;
+        max-height: 95vh;
         background: var(--overlay-background);
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         border: 1px solid var(--overlay-border);
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-        padding: 28px 32px;
-        min-width: 380px;
-        max-width: 480px;
-        text-align: center;
+        /* ★ 核心：全局强制统一为无衬线字体 */
         font-family: var(--font-sans);
     }
-    /* ===== 关于弹窗图标（纯正主题色圆角边框，无特效） ===== */
-    .about-icon-wrapper {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 16px auto;
 
-        /* 完全透明，无底色 */
+    /* 悬浮关闭按钮 */
+    .about-close-btn-float {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%; /* ★ 变身为完美的圆形悬停背景 */
         background: transparent;
-
-        /* 圆角 */
-        border-radius: 20px;
-
-        /* ★ 核心：纯正的 2px 主题色边框，不加任何透明度 */
-        border: 2px solid #0db3db;
-
-        /* 留白，防止内容贴边 */
-        padding: 12px;
-        box-sizing: border-box;
-
+        border: none;
+        color: var(--overlay-foreground-muted);
+        cursor: pointer;
+        padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 10;
+        transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
     }
 
-    .about-icon-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-    }
-    .about-title {
-        font-size: 18px;
-        font-weight: 600;
+    .about-close-btn-float:hover {
+        background: var(
+            --overlay-hover-background
+        ); /* ★ 复用全局统一的 hover 背景色 */
         color: var(--overlay-foreground);
-        margin-bottom: 4px;
     }
-    .about-version {
-        font-size: 12px;
+
+    /* 选项卡导航 */
+    .about-tabs {
+        display: flex;
+        justify-content: center;
+        padding: 20px 20px 0;
+        border-bottom: 1px solid var(--overlay-divider);
+        gap: 32px;
+        flex-shrink: 0;
+    }
+    .about-tabs button {
+        background: none;
+        border: none;
+        padding: 12px 0;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: var(--font-sans);
+        /* ★ 颜色统一：未选中为正文色 */
         color: var(--overlay-foreground-muted);
-        margin-bottom: 16px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
     }
-    .about-desc {
+    .about-tabs button:hover {
+        color: var(--overlay-foreground); /* 悬停时变为标题色 */
+    }
+    .about-tabs button.active {
+        color: var(--accent); /* 激活时保留主题色，最醒目 */
+        border-bottom-color: var(--accent);
+    }
+
+    /* 内容区域 */
+    .about-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    .text-content {
         font-size: 13px;
-        color: var(--overlay-foreground);
         line-height: 1.6;
+        font-family: var(--font-sans);
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+    }
+    .text-content h3 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 16px;
+        color: var(--overlay-foreground); /* 标题色 */
+        font-weight: 600;
+    }
+    .text-content h4 {
+        margin-top: 20px;
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: var(--overlay-foreground); /* 标题色 */
+        font-weight: 600;
+    }
+    .text-content p {
+        margin-top: 0;
+        margin-bottom: 12px;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+    }
+
+    /* 关于页样式 */
+    .about-page-about {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        justify-content: flex-start;
+        min-height: 100%;
+        padding: 10px 0;
+        box-sizing: border-box;
+    }
+    .about-logo-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 18px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .about-app-name {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+        color: var(--overlay-foreground); /* 标题色 */
+    }
+    .about-app-desc {
+        font-size: 13px;
+        margin: 0 0 4px 0;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
     }
     .about-divider {
+        width: 60%;
         height: 1px;
         background: var(--overlay-divider);
-        margin: 16px 0;
+        margin: 24px 0;
     }
-    .about-info {
-        font-size: 12px;
-        color: var(--overlay-foreground-muted);
-        line-height: 1.8;
+
+    .about-info-list {
         text-align: center;
+        font-size: 13px;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+        line-height: 2.2;
+        align-self: center;
+        width: 100%;
+        font-family: var(--font-sans);
     }
-    .link {
-        color: var(--accent);
+
+    /* 功能说明页左右布局 */
+    .about-page-features {
+        display: flex;
+        height: 100%;
+        gap: 24px;
+    }
+    .feature-nav {
+        display: flex;
+        flex-direction: column;
+        width: 140px;
+        flex-shrink: 0;
+        gap: 4px;
+    }
+    .feature-nav button {
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        font-family: var(--font-sans);
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
         cursor: pointer;
+        transition:
+            background 0.2s,
+            color 0.2s;
     }
+    .feature-nav button:hover {
+        background: var(--overlay-hover-background);
+    }
+    .feature-nav button.active {
+        background: var(--overlay-hover-background);
+        color: var(--overlay-foreground); /* 激活时变为标题色 */
+        font-weight: 600;
+    }
+    .feature-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* ★ 开源协议专属：唯一使用等宽字体的地方 */
+    .about-page-license {
+        font-family: var(--font-mono) !important;
+        font-size: 13px;
+        line-height: 1.6;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+        white-space: pre-wrap;
+        background: color-mix(
+            in srgb,
+            var(--overlay-foreground) 3%,
+            transparent
+        );
+        padding: 12px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--overlay-divider);
+    }
+
+    /* 底部栏 */
+    .about-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        height: 48px;
+        border-top: 1px solid var(--overlay-divider);
+        background: color-mix(
+            in srgb,
+            var(--overlay-background) 95%,
+            var(--overlay-foreground) 5%
+        );
+        flex-shrink: 0;
+        font-family: var(--font-sans);
+    }
+    .version-text {
+        font-size: 12px;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+        min-width: 80px;
+    }
+
+    /* 中间状态区 */
+    .update-status-center {
+        flex: 1;
+        text-align: center;
+        padding: 0 16px;
+        font-size: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .update-error-text {
+        color: var(--warning-strong);
+        font-weight: 500;
+    }
+    .update-found-text {
+        color: var(--overlay-foreground);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .update-latest-text {
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+    }
+    /* 嵌入在状态提示中的下载动作按钮 */
+    .update-action-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: var(--accent); /* 使用主题色突出可点击感 */
+        cursor: pointer;
+        padding: 2px 6px;
+        margin-left: 6px;
+        border-radius: 4px;
+        transition: all 0.15s;
+        font-family: var(--font-sans);
+        display: inline-flex;
+        align-items: center;
+    }
+    .update-action-btn:hover {
+        background: var(--overlay-hover-background);
+        text-decoration: underline;
+    }
+
+    /* 官网链接专属样式 */
+    .link {
+        /* ★ 使用主题色，让人一看就知道可以点击 */
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+        cursor: pointer;
+        text-decoration: none;
+        transition: text-decoration 0.2s;
+    }
+
+    /* 悬停时增加下划线 */
     .link:hover {
         text-decoration: underline;
     }
-    .about-btn {
-        margin-top: 24px;
-        min-width: 90px;
+
+    /* 右侧按钮区 */
+    .update-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.15s;
+        min-width: 80px;
+        text-align: right;
+        font-family: var(--font-sans);
+    }
+    .update-btn:hover:not(:disabled) {
+        color: var(--overlay-foreground);
+        background: var(--overlay-hover-background);
+    }
+    .update-btn:disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
+
+    /* ==========================================
+       功能说明页表格样式（完全复用弹窗已有变量）
+       ========================================== */
+    .feature-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 13px;
+        font-family: var(--font-sans);
+        text-align: left;
+    }
+
+    .feature-table th,
+    .feature-table td {
+        padding: 10px 12px; /* 增加上下内边距，告别拥挤感 */
+        border-bottom: 1px solid var(--overlay-divider);
+    }
+
+    .feature-table th {
+        font-weight: 600;
+        color: var(--overlay-foreground);
+        background: transparent;
+        border-bottom: 2px solid var(--overlay-divider); /* 表头下加粗线条，更有层次 */
+    }
+
+    .feature-table td {
+        color: color-mix(in srgb, var(--overlay-foreground) 90%, transparent);
+    }
+
+    /* 针对 macOS / Windows 快捷键列采用稍弱的颜色或者等宽对齐，增加精致感 */
+    .feature-table td:nth-child(2),
+    .feature-table td:nth-child(3) {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: color-mix(in srgb, var(--overlay-foreground) 80%, transparent);
+    }
+    /* ==========================================
+       ★ 新增：关于弹窗的细长胶囊滚动条
+       ========================================== */
+    .about-content::-webkit-scrollbar,
+    .feature-content::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .about-content::-webkit-scrollbar-track,
+    .feature-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .about-content::-webkit-scrollbar-thumb,
+    .feature-content::-webkit-scrollbar-thumb {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 30%,
+            transparent
+        );
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .about-content::-webkit-scrollbar-thumb:hover,
+    .feature-content::-webkit-scrollbar-thumb:hover {
+        background-color: color-mix(
+            in srgb,
+            var(--overlay-foreground-muted) 60%,
+            transparent
+        );
+    }
+
+    .about-content,
+    .feature-content {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(
+                in srgb,
+                var(--overlay-foreground-muted) 30%,
+                transparent
+            )
+            transparent;
     }
 
     /* ==========================================

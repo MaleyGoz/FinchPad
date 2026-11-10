@@ -161,11 +161,17 @@
             sidebarMode = lastSidebarMode;
         }
     }
+
     // ★ 侧边栏打开文件的统一入口
     async function handleSidebarOpenFile(path: string) {
         try {
             await flushPendingEdit();
             snapshot = await api.openFiles([path]);
+
+            // ★ 新增：侧边栏打开文件后，光标强制到第一行，并聚焦
+            setTimeout(() => {
+                editorRef?.setEditorState(null);
+            }, 50);
         } catch (e) {
             console.error("打开文件失败:", e);
             alert(t("sidebar.file_not_found", { path }, get(resolvedLocale)));
@@ -235,6 +241,10 @@
     };
     let aboutVisible = false;
     let APP_VERSION = "0.0.0"; // 动态获取版本号
+    // ★ 新增：关于界面的检查更新状态
+    let updateStatus: "idle" | "checking" | "latest" | "found" | "error" =
+        "idle";
+    let updateLatestVersion = ""; // ★ 新增：存储发现的新版本号
 
     function handleSettingsClick(anchorRight: number, anchorBottom: number) {
         clearTabSelection(); // ★ 新增
@@ -248,111 +258,39 @@
         settingsMenu = { visible: false, anchorRight: 0, anchorBottom: 0 };
     }
 
-    // 版本检查更新
+    // 1. 真正执行检查更新（只改状态，不弹窗）
     async function checkForUpdates() {
-        closeSettingsMenu();
-        modal = {
-            visible: true,
-            title: t("dialog.update_checking", undefined, get(resolvedLocale)),
-            rows: [],
-        };
+        if (updateStatus === "checking") return;
+        updateStatus = "checking";
 
-        // 调用工具函数去发请求
         const result = await checkForUpdatesApi(APP_VERSION);
 
         if (result.status === "found") {
-            modal = {
-                visible: true,
-                title: t(
-                    "dialog.update_found",
-                    {
-                        current: APP_VERSION,
-                        latest: result.latestVersion,
-                    },
-                    get(resolvedLocale),
-                ),
-                rows: [
-                    [
-                        {
-                            label: t(
-                                "dialog.update_cancel",
-                                undefined,
-                                get(resolvedLocale),
-                            ),
-                            action: closeModal,
-                        },
-                        {
-                            label: t(
-                                "dialog.update_confirm",
-                                undefined,
-                                get(resolvedLocale),
-                            ),
-                            style: "primary",
-                            action: async () => {
-                                closeModal();
-                                await openReleasePage();
-                            },
-                        },
-                    ],
-                ],
-            };
+            updateStatus = "found";
+            updateLatestVersion = result.latestVersion;
         } else if (result.status === "latest") {
-            modal = {
-                visible: true,
-                title: t(
-                    "dialog.update_latest",
-                    { version: APP_VERSION },
-                    get(resolvedLocale),
-                ),
-                rows: [
-                    [
-                        {
-                            label: t(
-                                "dialog.ok",
-                                undefined,
-                                get(resolvedLocale),
-                            ),
-                            style: "primary",
-                            action: closeModal,
-                        },
-                    ],
-                ],
-            };
+            updateStatus = "latest";
+            setTimeout(() => (updateStatus = "idle"), 20000);
         } else {
-            // ★ 网络失败分支：提供“前往下载”按钮
-            modal = {
-                visible: true,
-                title: t(
-                    "dialog.update_failed",
-                    undefined,
-                    get(resolvedLocale),
-                ),
-                rows: [
-                    [
-                        {
-                            label: t(
-                                "dialog.update_cancel",
-                                undefined,
-                                get(resolvedLocale),
-                            ),
-                            action: closeModal,
-                        },
-                        {
-                            label: t(
-                                "dialog.update_confirm",
-                                undefined,
-                                get(resolvedLocale),
-                            ),
-                            style: "primary",
-                            action: async () => {
-                                closeModal();
-                                await openReleasePage();
-                            },
-                        },
-                    ],
-                ],
-            };
+            updateStatus = "error";
+            setTimeout(() => (updateStatus = "idle"), 20000);
         }
+    }
+
+    // 2. 给 Mac 顶部菜单用的触发函数（打开关于弹窗并自动检查）
+    function triggerCheckUpdateFromMenu() {
+        aboutVisible = true;
+        updateStatus = "idle"; // 重置状态
+        // 延迟 100ms 等待弹窗渲染，再触发检查逻辑
+        setTimeout(() => {
+            checkForUpdates();
+        }, 100);
+    }
+
+    // 3. 前往 GitHub 下载的包装函数
+    async function handleUpdateDownload() {
+        await openReleasePage();
+        updateStatus = "idle"; // 下载页打开后，恢复状态
     }
 
     async function openGitHub() {
@@ -405,6 +343,10 @@
         await flushPendingEdit();
         await api.newTab();
         await refresh();
+        // ★ 新增：新建后，强制光标到第一行
+        setTimeout(() => {
+            editorRef?.setEditorState(null);
+        }, 50);
     }
 
     // 标签点击多选
@@ -450,12 +392,30 @@
         anchorIndex = i;
 
         if (i === snapshot.active_index) return;
+
+        // ★ 保存当前标签的光标
+        if (editorRef && snapshot.tab_ids[snapshot.active_index]) {
+            const pos = editorRef.getPosition();
+            if (pos)
+                tabCursorMemory.set(
+                    snapshot.tab_ids[snapshot.active_index],
+                    pos,
+                );
+        }
+
         loadPendingError = "";
         isOpeningLargeFile = false;
 
         await flushPendingEdit();
         await api.switchTab(i);
         await refresh();
+
+        // ★ 恢复目标标签的光标
+        setTimeout(() => {
+            const newTabId = snapshot.tab_ids[i];
+            const savedPos = tabCursorMemory.get(newTabId);
+            editorRef?.setEditorState(savedPos || null);
+        }, 50);
 
         lastDetectTime = 0;
         await detectExternalChanges();
@@ -1400,6 +1360,10 @@
         const paths = Array.isArray(selected) ? selected : [selected];
         await flushPendingEdit();
         snapshot = await api.openFiles(paths);
+        // ★ 外部打开文件后，光标强制到第一行
+        setTimeout(() => {
+            editorRef?.setEditorState(null);
+        }, 50);
         // ★ 外部打开文件后，如果侧边栏开着，需要刷新
         recentFilesVersion++;
     }
@@ -1939,6 +1903,8 @@
     }
 
     let modal: ModalState = { visible: false, title: "", rows: [] };
+    // ★ 新增：标签级的光标位置内存缓存
+    let tabCursorMemory = new Map<string, { line: number; column: number }>();
 
     // ============ 对比视图 ============
     type DiffState = {
@@ -2505,6 +2471,7 @@
             isMac,
             modal,
             aboutVisible,
+            onCloseAbout: () => (aboutVisible = false),
             settingsMenu,
             editorContextMenu,
             contextMenu,
@@ -2543,6 +2510,7 @@
     }}
 />
 
+<!-- 主界面 -->
 {#if $page.url.searchParams.get("mode") === "large_viewer"}
     <LargeFileViewer />
 {:else}
@@ -2667,6 +2635,10 @@
             {modal}
             {aboutVisible}
             {APP_VERSION}
+            {updateStatus}
+            {checkForUpdates}
+            {updateLatestVersion}
+            {handleUpdateDownload}
             {settingsMenu}
             {langSubmenu}
             {showLineNumbers}
@@ -2691,7 +2663,7 @@
             onToggleLangSubmenu={toggleLangSubmenu}
             onCloseLangSubmenu={() => (langSubmenu.visible = false)}
             onSelectLanguage={selectLanguage}
-            onCheckUpdate={checkForUpdates}
+            // onCheckUpdate={checkForUpdates}
             onShowAbout={() => {
                 closeSettingsMenu();
                 aboutVisible = true;
@@ -2744,7 +2716,7 @@
     {editorBg}
     bind:aboutVisible
     bind:renamingIndex
-    {checkForUpdates}
+    checkForUpdates={triggerCheckUpdateFromMenu}
     {handleNew}
     {handleOpen}
     {handleSave}
