@@ -13,7 +13,7 @@ export const zhCN: Record<string, string> = {
     "settings.about": "关于FinchPad",
     "settings.check_update": "检查更新",
     "dialog.update_checking": "正在检查更新...",
-    "dialog.update_latest": "当前已是最新版本（v{version}）。",
+    "dialog.update_latest": "当前已是最新版本（v{version}）",
     "dialog.update_found":
         "发现新版本！\n当前版本：v{current}\n最新版本：v{latest}\n\n是否前往 GitHub 下载？",
     "dialog.update_failed": "检查更新失败，请检查网络连接。",
@@ -146,6 +146,79 @@ export const zhCN: Record<string, string> = {
     "about.license": "开源协议：MIT License",
     "about.website": "官网：https://github.com/MaleyGoz/FinchPad",
     "about.ok": "确定",
+    "about.tab.about": "关于",
+    "about.tab.privacy": "隐私与安全",
+    "about.tab.features": "功能说明",
+    "about.tab.license": "开源协议",
+
+    "about.check_update": "检查更新",
+    "about.checking": "正在检查...",
+    "about.is_latest": "已是最新版本",
+    "about.found_update": "发现新版本，即将前往下载页",
+    "about.check_failed": "检查失败，请检查网络",
+
+    "about.privacy.intro": "FinchPad 坚持本地存储、隐私优先的设计理念，你的数据始终由自己掌控。",
+    "about.privacy.local_title": "本地存储与加密",
+    "about.privacy.local_desc": "所有缓存数据、标签内容、会话状态及软件设置均存储于本地，并采用 AES-256-GCM 加密保护。",
+    "about.privacy.telemetry_title": "无遥测与追踪",
+    "about.privacy.telemetry_desc": "不收集、不上传用户文件内容、使用习惯或设备信息，不包含后台遥测及行为追踪。",
+    "about.privacy.network_title": "网络连接",
+    "about.privacy.network_desc": "仅在检查更新时请求 GitHub API；Markdown / HTML 预览可能加载文档引用的外部网络资源。除此之外，不主动发起网络请求。",
+    "about.privacy.session_title": "会话恢复",
+    "about.privacy.session_desc": "自动加密缓存所有打开的普通小文件标签，异常退出或系统意外中断后，可恢复此前的工作会话。",
+
+    "about.features.nav.shortcuts": "快捷键",
+    "about.features.nav.tabs": "标签管理",
+    "about.features.nav.session": "会话恢复",
+    "about.features.nav.encoding": "文本与编码",
+    "about.features.nav.large_file": "大文件引擎",
+    "about.features.nav.preview": "Markdown / HTML",
+    "about.features.nav.diff": "文本对比",
+
+    "about.features.shortcuts.title": "快捷键",
+    "about.features.shortcuts.intro": "快捷键沿用主流编辑器的默认方案，上手零学习成本。<br>其中 <strong>Ctrl</strong> 系列快捷键在 macOS 上同样生效，无需切换肌肉记忆。",
+
+    "about.features.tabs.title": "标签管理",
+    "about.features.tabs.desc": "<strong>灵活的多标签管理</strong><br>采用类似 Chrome 的标签交互方式，支持多标签、拖拽排序、Ctrl 多选与 Shift 连选。<br><br><strong>便捷的标签操作</strong><br>支持关闭单个、其他、右侧及全部标签，并可恢复已关闭的标签。",
+
+    "about.features.session.title": "会话恢复",
+    "about.features.session.desc": "<strong>智能加密缓存</strong><br>自动缓存所有打开的普通小文件标签，包括文本内容、标签状态及相关信息，所有缓存均采用 AES-256-GCM 加密。<br><br><strong>异常恢复</strong><br>软件重启后自动恢复此前的工作会话，包括标签、文本内容及编辑状态，支持异常退出、崩溃及系统意外中断后的恢复。<br><br><strong>智能状态校验</strong><br>恢复时自动比对缓存与磁盘文件，识别外部修改、文件删除或无法访问等情况，避免误覆盖原始文件。",
+
+    "about.features.encoding.title": "文本与编码",
+    "about.features.encoding.desc": "<strong>新建文件</strong><br>默认使用 UTF-8 无 BOM 编码，换行符随操作系统自动设置。<br><br><strong>智能编码识别</strong><br>使用 chardetng 自动识别文件编码与换行符，支持 30 余种常见编码。<br><br><strong>保留原始格式</strong><br>保存时保留原有编码、BOM、换行符及末尾空行状态。<br><br><strong>修改编码</strong><br>支持手动修改文件编码与换行符，操作前弹窗确认，避免误操作。",
+
+    "about.features.large_file.title": "大文件引擎",
+    "about.features.large_file.desc": "<strong>极速打开</strong><br>超过 50MB 自动启用大文件模式，采用流式读取，支持 GB、TB 乃至更大规模文件的快速打开。<br><br><strong>高效浏览</strong><br>支持快速搜索、指定行跳转及智能编码识别。<br><br><strong>独立只读模式</strong><br>通过 Pending 标签按需加载，在独立大文件窗口中进行只读浏览，暂不支持编辑。",
+
+    "about.features.preview.title": "Markdown / HTML 预览",
+    "about.features.preview.desc": "<strong>实时分屏预览</strong><br>打开 Markdown 或 HTML 文件时，右上角会出现预览按钮（眼睛图标），点击即可开启分屏预览，编辑内容与预览效果实时同步。",
+
+    "about.features.diff.title": "文本对比",
+    "about.features.diff.desc": "<strong>差异高亮</strong><br>支持小文件对比，自动识别并高亮显示两份文本之间的差异（不支持大文件）。<br><br><strong>两种对比入口</strong><br>• 按住 Ctrl 或 Shift 选中两个标签，右键点击「对比」。<br>• 右键单个标签，在「对比」菜单中选择另一个标签。",
+
+    // ===== 快捷键表格 =====
+    "about.features.shortcuts.th_op": "操作",
+    "about.features.shortcuts.th_win": "Windows / Linux",
+    "about.features.shortcuts.th_mac": "macOS",
+
+    "about.features.shortcuts.op_new": "新建文件 / 标签",
+    "about.features.shortcuts.op_open_save": "打开 / 保存",
+    "about.features.shortcuts.op_save_as": "另存为",
+    "about.features.shortcuts.op_close_tab": "关闭标签",
+    "about.features.shortcuts.op_copy_path": "复制文件路径",
+    "about.features.shortcuts.op_rename": "重命名",
+    "about.features.shortcuts.op_copy_paste": "复制 / 粘贴 / 剪切 / 全选",
+    "about.features.shortcuts.op_undo_redo": "撤销 / 重做",
+    "about.features.shortcuts.key_undo_win": "Ctrl + Z / Y 或 Shift + Z",
+    "about.features.shortcuts.key_undo_mac": "Cmd + Z / Y / Shift + Z",
+    "about.features.shortcuts.op_find_replace": "查找 / 替换",
+    "about.features.shortcuts.op_show_sidebar": "显示侧边栏",
+    "about.features.shortcuts.op_switch_tab": "切换标签",
+    "about.features.shortcuts.op_zoom": "缩放",
+    "about.features.shortcuts.key_zoom_win": "Ctrl + + / - / 0 / 鼠标滚轮",
+    "about.features.shortcuts.key_zoom_mac": "Cmd + + / - / 0 / 鼠标滚轮",
+    "about.features.shortcuts.op_close_modal": "关闭弹窗",
+    "about.features.shortcuts.op_quit": "退出程序",
 
     // ===== 未命名标签 =====
     "tab.unnamed": "未命名 {index}",

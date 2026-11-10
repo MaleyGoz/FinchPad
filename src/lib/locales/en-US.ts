@@ -149,6 +149,81 @@ export const enUS: Record<string, string> = {
     "about.license": "License: MIT",
     "about.website": "Website: https://github.com/MaleyGoz/FinchPad",
     "about.ok": "OK",
+    // ===== New Tab & Content Added to the "About" Modal =====
+    "about.tab.about": "About",
+    "about.tab.privacy": "Privacy & Security",
+    "about.tab.features": "Features",
+    "about.tab.license": "License",
+
+    "about.check_update": "Check for Updates",
+    "about.checking": "Checking...",
+    "about.is_latest": "Up to date",
+    "about.found_update": "New version found, redirecting to download",
+    "about.check_failed": "Check failed, please check network",
+
+    "about.privacy.intro": "FinchPad adheres to a local-first and privacy-first design philosophy. Your data remains entirely under your control.",
+    "about.privacy.local_title": "Local Storage & Encryption",
+    "about.privacy.local_desc": "All cached data, tab contents, session states, and settings are stored locally and secured with AES-256-GCM encryption.",
+    "about.privacy.telemetry_title": "No Telemetry & Tracking",
+    "about.privacy.telemetry_desc": "We do not collect or upload your file contents, usage habits, or device information. There is no background telemetry or behavioral tracking.",
+    "about.privacy.network_title": "Network Connections",
+    "about.privacy.network_desc": "Network requests are only made to the GitHub API when checking for updates. Markdown/HTML previews may load external network resources referenced in the document. Otherwise, no proactive network requests are initiated.",
+    "about.privacy.session_title": "Session Recovery",
+    "about.privacy.session_desc": "Automatically encrypts and caches all open regular small file tabs, allowing you to restore your previous work session after unexpected exits or system interruptions.",
+
+    "about.features.nav.shortcuts": "Shortcuts",
+    "about.features.nav.tabs": "Tab Management",
+    "about.features.nav.session": "Session Recovery",
+    "about.features.nav.encoding": "Text & Encoding",
+    "about.features.nav.large_file": "Large File Engine",
+    "about.features.nav.preview": "Markdown / HTML",
+    "about.features.nav.diff": "Text Diff",
+
+    "about.features.shortcuts.title": "Shortcuts",
+    "about.features.shortcuts.intro": "Shortcuts follow mainstream editor defaults for zero learning curve.<br><strong>Ctrl</strong> series shortcuts also work on macOS without needing to switch muscle memory.",
+
+    "about.features.tabs.title": "Tab Management",
+    "about.features.tabs.desc": "<strong>Flexible Multi-Tab Management</strong><br>Chrome-like tab interaction supporting multi-tabs, drag-and-drop reordering, Ctrl multi-select, and Shift range-select.<br><br><strong>Convenient Tab Actions</strong><br>Support for closing single, other, right, and all tabs, as well as reopening closed tabs.",
+
+    "about.features.session.title": "Session Recovery",
+    "about.features.session.desc": "<strong>Smart Encrypted Caching</strong><br>Automatically caches all open regular small file tabs including text content, tab states, and metadata, protected by AES-256-GCM encryption.<br><br><strong>Exception Recovery</strong><br>Automatically restores previous work sessions upon restart, supporting recovery after abnormal exits, crashes, or system interruptions.<br><br><strong>Smart State Validation</strong><br>Compares cache with disk files upon recovery to identify external modifications, deletions, or inaccessible paths, preventing accidental overwrites.",
+
+    "about.features.encoding.title": "Text & Encoding",
+    "about.features.encoding.desc": "<strong>New Files</strong><br>Defaults to UTF-8 without BOM, with line endings automatically set based on the operating system.<br><br><strong>Smart Encoding Detection</strong><br>Uses chardetng to automatically detect file encoding and line endings, supporting over 30 common encodings.<br><br><strong>Preserve Original Format</strong><br>Retains original encoding, BOM, line endings, and trailing empty line status upon saving.<br><br><strong>Modify Encoding</strong><br>Supports manual modification of file encoding and line endings with a confirmation prompt to prevent misoperations.",
+
+    "about.features.large_file.title": "Large File Engine",
+    "about.features.large_file.desc": "<strong>Ultra-Fast Opening</strong><br>Automatically enables large file mode for files over 50MB using streaming reads, supporting fast opening of GB, TB, or even larger files.<br><br><strong>Efficient Browsing</strong><br>Supports quick search, specified line jumping, and smart encoding detection.<br><br><strong>Independent Read-Only Mode</strong><br>Loaded on-demand via Pending tabs for read-only browsing in a separate large file window. Editing is not supported.",
+
+    "about.features.preview.title": "Markdown / HTML Preview",
+    "about.features.preview.desc": "<strong>Real-Time Split Preview</strong><br>When opening Markdown or HTML files, a preview button (eye icon) appears in the top right. Click it to enable split-pane preview with real-time synchronization between editing and preview effects.",
+
+    "about.features.diff.title": "Text Diff",
+    "about.features.diff.desc": "<strong>Difference Highlighting</strong><br>Supports small file comparison, automatically detecting and highlighting differences between two texts (large files not supported).<br><br><strong>Two Comparison Entry Points</strong><br>• Hold Ctrl or Shift to select two tabs, right-click and choose \"Compare\".<br>• Right-click a single tab and select another target tab in the \"Compare\" menu.",
+
+    // ===== Keyboard Shortcuts Table =====
+    "about.features.shortcuts.th_op": "Operation",
+    "about.features.shortcuts.th_win": "Windows / Linux",
+    "about.features.shortcuts.th_mac": "macOS",
+
+    "about.features.shortcuts.op_new": "New File / Tab",
+    "about.features.shortcuts.op_open_save": "Open / Save",
+    "about.features.shortcuts.op_save_as": "Save As",
+    "about.features.shortcuts.op_close_tab": "Close Tab",
+    "about.features.shortcuts.op_copy_path": "Copy File Path",
+    "about.features.shortcuts.op_rename": "Rename",
+    "about.features.shortcuts.op_copy_paste": "Copy / Paste / Cut / Select All",
+    "about.features.shortcuts.op_undo_redo": "Undo / Redo",
+    "about.features.shortcuts.key_undo_win": "Ctrl + Z / Y or Shift + Z",
+    "about.features.shortcuts.key_undo_mac": "Cmd + Z / Y / Shift + Z",
+    "about.features.shortcuts.op_find_replace": "Find / Replace",
+    "about.features.shortcuts.op_show_sidebar": "Toggle Sidebar",
+    "about.features.shortcuts.op_switch_tab": "Switch Tab",
+    "about.features.shortcuts.op_zoom": "Zoom",
+    "about.features.shortcuts.key_zoom_win": "Ctrl + + / - / 0 / Mouse Wheel",
+    "about.features.shortcuts.key_zoom_mac": "Cmd + + / - / 0 / Mouse Wheel",
+    "about.features.shortcuts.op_close_modal": "Close Modal",
+    "about.features.shortcuts.op_quit": "Quit Application",
+
 
     // ===== Untitled Tabs =====
     "tab.unnamed": "Untitled {index}",
