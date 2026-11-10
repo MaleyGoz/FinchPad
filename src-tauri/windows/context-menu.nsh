@@ -41,16 +41,18 @@ LangString CTX_MENU_NAME ${LANG_INDONESIAN} "Edit dengan FinchPad"
   
   !undef REG_PATH
 
-  ; --- ★ 新增：专属 txt 文件图标逻辑 ---
-  ; 1. 将图标文件复制到安装目录
-  ; ★ 删除下面这一行！它导致了报错
-  ; File "/oname=$INSTDIR\file_txt.ico" "file_txt.ico"
-
+  ; ===== ★ 新增：覆盖 .txt 的 ProgID 默认图标 =====
+  ; 2.1 读取 .txt 当前的 ProgID（例如 txtfile）
+  ReadRegStr $1 HKCU "Software\Classes\.txt" ""
+  StrCmp $1 "" +3 ; 如果读取为空，跳过 ProgID 覆盖
   
-  ; 2. 覆盖 .txt 的默认图标（使用 SystemFileAssociations 优先级最高，不影响用户的其他自定义）
+  ; 2.2 将 ProgID 的 DefaultIcon 指向你的专属图标
+  WriteRegStr HKCU "Software\Classes\$1\DefaultIcon" "" "$INSTDIR\file_txt.ico,0"
+  
+  ; ===== 原有 SystemFileAssociations 逻辑（作为后备，保持不变） =====
   WriteRegStr HKCU "Software\Classes\SystemFileAssociations\.txt\DefaultIcon" "" "$INSTDIR\file_txt.ico,0"
   
-  ; 3. 通知系统刷新图标缓存（重要：否则装完可能看不到变化）
+  ; 2.3 通知系统刷新图标缓存（重要：否则装完可能看不到变化）
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)'
 !macroend
 
