@@ -21,13 +21,13 @@ const modules = import.meta.glob("./locales/*.ts", { eager: true });
 const LOCALES: Record<string, Record<string, string>> = {};
 
 for (const path in modules) {
-  const langCode = path.replace("./locales/", "").replace(".ts", "");
-  const module = modules[path] as Record<string, any>;
-  const dictionary = module.default || Object.values(module)[0];
-  
-  if (dictionary && typeof dictionary === "object") {
-    LOCALES[langCode] = dictionary as Record<string, string>;
-  }
+    const langCode = path.replace("./locales/", "").replace(".ts", "");
+    const module = modules[path] as Record<string, any>;
+    const dictionary = module.default || Object.values(module)[0];
+
+    if (dictionary && typeof dictionary === "object") {
+        LOCALES[langCode] = dictionary as Record<string, string>;
+    }
 }
 
 // ==========================================
@@ -37,31 +37,31 @@ export type LocaleChoice = "auto" | string;
 export type Locale = string;
 
 export const LANGUAGE_NAMES: Record<string, string> = {
-"en-US": "English",
-"zh-CN": "简体中文",
-"zh-TW": "繁體中文",
-"hi": "हिन्दी",
-"es": "Español",
-"fr": "Français",
-"ar": "العربية",
-"ru": "Русский",
-"pt-BR": "Português",
-"de": "Deutsch",
-"ja": "日本語",
-"tr": "Türkçe",
-"vi": "Tiếng Việt",
-"ko": "한국어",
-"it": "Italiano",
-"th": "ไทย",
-"id": "Bahasa Indonesia",
-"pl": "Polski",
-"nl": "Nederlands",
-"fa": "فارسی",
+    "en-US": "English",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "hi": "हिन्दी",
+    "es": "Español",
+    "fr": "Français",
+    "ar": "العربية",
+    "ru": "Русский",
+    "pt-BR": "Português",
+    "de": "Deutsch",
+    "ja": "日本語",
+    "tr": "Türkçe",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "it": "Italiano",
+    "th": "ไทย",
+    "id": "Bahasa Indonesia",
+    "pl": "Polski",
+    "nl": "Nederlands",
+    "fa": "فارسی",
 };
 
 /** 语言下拉菜单的显示项 */
 export const LOCALE_OPTIONS: { key: LocaleChoice; label: string }[] = [
-  ...Object.entries(LANGUAGE_NAMES).map(([key, label]) => ({ key, label })),
+    ...Object.entries(LANGUAGE_NAMES).map(([key, label]) => ({ key, label })),
 ];
 
 // ==========================================
@@ -70,26 +70,26 @@ export const LOCALE_OPTIONS: { key: LocaleChoice; label: string }[] = [
 
 /** 智能检测系统语言 */
 function detectSystemLocale(): Locale {
-  if (typeof navigator === "undefined") return "en-US";
-  const systemLang = (navigator.language || "en-US").replace("_", "-");
+    if (typeof navigator === "undefined") return "en-US";
+    const systemLang = (navigator.language || "en-US").replace("_", "-");
 
-  // 1. 精确匹配
-  if (LOCALES[systemLang]) return systemLang;
+    // 1. 精确匹配
+    if (LOCALES[systemLang]) return systemLang;
 
-  // 2. 前缀匹配 (兼容系统的 en-GB 等)
-  const prefix = systemLang.split("-")[0];
-  if (prefix === "en") return "en-US"; 
-  if (prefix === "pt") return "pt-BR"; 
-  if (LOCALES[prefix]) return prefix;  
+    // 2. 前缀匹配 (兼容系统的 en-GB 等)
+    const prefix = systemLang.split("-")[0];
+    if (prefix === "en") return "en-US";
+    if (prefix === "pt") return "pt-BR";
+    if (LOCALES[prefix]) return prefix;
 
-  // 3. 中文特殊处理
-  if (prefix === "zh") {
-    if (LOCALES["zh-TW"] && (systemLang.includes("TW") || systemLang.includes("HK"))) return "zh-TW";
-    return "zh-CN";
-  }
+    // 3. 中文特殊处理
+    if (prefix === "zh") {
+        if (LOCALES["zh-TW"] && (systemLang.includes("TW") || systemLang.includes("HK"))) return "zh-TW";
+        return "zh-CN";
+    }
 
-  // 4. 兜底
-  return "en-US";
+    // 4. 兜底
+    return "en-US";
 }
 
 /** 用户的语言选择 */
@@ -97,35 +97,35 @@ export const localeChoice = writable<LocaleChoice>("auto");
 
 /** 实际生效的语言（响应式） */
 export const resolvedLocale = derived(localeChoice, ($choice): Locale => {
-  if ($choice === "auto") return detectSystemLocale();
-  return $choice;
+    if ($choice === "auto") return detectSystemLocale();
+    return $choice;
 });
 
 /** 翻译函数 */
 export function t(
-  key: string,
-  params?: Record<string, string | number>,
-  localeOverride?: Locale,
+    key: string,
+    params?: Record<string, string | number>,
+    localeOverride?: Locale,
 ): string {
-  const lang = localeOverride ?? get(resolvedLocale);
+    const lang = localeOverride ?? get(resolvedLocale);
 
-  let text =
-    LOCALES[lang]?.[key] ??
-    LOCALES["en-US"]?.[key] ??
-    LOCALES["zh-CN"]?.[key] ??
-    key;
+    let text =
+        LOCALES[lang]?.[key] ??
+        LOCALES["en-US"]?.[key] ??
+        LOCALES["zh-CN"]?.[key] ??
+        key;
 
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      text = text.split(`{${k}}`).join(String(v));
+    if (params) {
+        for (const [k, v] of Object.entries(params)) {
+            text = text.split(`{${k}}`).join(String(v));
+        }
     }
-  }
-  return text;
+    return text;
 }
 
 /** 设置用户选择 */
 export function setLocaleChoice(choice: LocaleChoice) {
-  localeChoice.set(choice);
-  const actual = choice === "auto" ? detectSystemLocale() : choice;
-  document.documentElement.lang = actual;
+    localeChoice.set(choice);
+    const actual = choice === "auto" ? detectSystemLocale() : choice;
+    document.documentElement.lang = actual;
 }

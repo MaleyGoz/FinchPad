@@ -1,189 +1,192 @@
 <div align="center">
 
-<img src="src-tauri\iconslogo.png" width="100" alt="FinchPad">
+<img src="src-tauri\icons\logo.png" width="100" alt="FinchPad">
 
 # FinchPad
 
-**A modern, lightweight, multi-tab plain text editor**
+**一款现代、轻量化、多标签的纯文本编辑器**
 
-Supports Windows / Linux / macOS
+支持 Windows / Linux / macOS
 
 <p>
-<a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/MaleyGoz/FinchPad/releases">Download</a>
+<a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/MaleyGoz/FinchPad/releases">下载</a>
 </p>
 </div>
 
 ---
 
-## Introduction
 
-FinchPad aims to be a better default text editor on Windows, macOS, and Linux.
+## 简介
 
-It is more powerful than the built-in Notepad, yet lighter than professional editors like VSCode.
+FinchPad 旨在成为 Windows、macOS 和 Linux 上更好的默认文本编辑器。
 
-> **Maximum common ground, minimum unnecessary features.**
-> Every feature answers one question: **Do most users really need it?**
+它比系统自带的记事本更强大，又比 VSCode 等专业编辑器更轻量。
 
-## Why Choose FinchPad?
+> **最大公约数，最少不必要的功能。**
+> 每一个功能都回答一个问题：**大多数用户真的需要它吗？**
 
-#### Use Cases
 
-FinchPad is not meant to replace heavy IDEs, but to provide the perfect experience when you need something **lightweight, blazing-fast, and ephemeral**:
+## 为什么选择 FinchPad？
 
-* 🔐 **Secure Scratchpad & Memo**: Thanks to instant startup and local encrypted caching, whether jotting down inspiration, temporary passwords, or meeting notes, your data is perfectly recovered even after an unexpected crash. Never lose your work.
-* 📝 **Everyday Plain Text Editing**: A perfect replacement for the default system notepad. Distraction-free, multi-tab supported, focused purely on text.
-* 💻 **Quick Code & Script Editing**: Supports syntax highlighting and code folding for 80+ languages. When you need to quickly tweak a Python script, JSON, or config file without waiting for a heavy IDE to load, FinchPad opens instantly. (For deep development, VS Code is still recommended).
-* 📖 **Markdown / HTML Live Preview**: Built-in split-screen live preview. Draft a quick webpage or preview a document effortlessly without opening a browser.
-* 📜 **Large Log File Viewer**: For massive logs ranging from tens of MBs to GBs, skip the loading screen. Our upcoming standalone ultra-fast viewer will provide instant opening and rapid global search.
+#### 适用场景
 
-#### Core Features
+FinchPad 并非为了取代重度 IDE，而是为了在你需要**轻量、极速、即用即走**时，提供最完美的体验：
 
-FinchPad abandons the bloat of modern software to deliver an ultimate underlying experience:
+* 🔐 **安全备忘录 / 临时记事本**：得益于极速启动和本地加密缓存，无论是记录灵感、临时密码还是会议纪要，哪怕意外死机，重新打开也能完美恢复，数据绝不丢失。
+* 📝 **日常纯文本编辑**：作为系统默认记事本的完美替代品，无格式干扰，支持多标签，专注文字记录。
+* 💻 **临时代码 / 脚本编辑**：支持 80+ 种语言的语法高亮与折叠。偶尔需要改几行 Python、JSON 或配置文件，不用等笨重的专业 IDE 加载，打开 FinchPad 即改即存（重度开发仍建议使用 VS Code）。
+* 📖 **Markdown / HTML 实时预览**：内置分屏实时预览功能，无需打开浏览器，临时编写个网页或预览文档轻松搞定。
+* 📜 **超大日志查看**：面对几十 MB 甚至 GB 级的运行日志，无需漫长等待，独立极速查看器将为你提供秒开与快速全局检索的体验。
 
-* 🚀 **Extreme Lightweight & Cross-Platform**: Rejects the bloat of Electron, built on Tauri 2 and native Rust architecture. Small footprint, instantly ready to use, delivering a consistent premium feel across Windows / macOS / Linux.
-* 🎨 **Modern & Minimalist UI**: Modern frameless design, multiple eye-friendly themes, and smooth multi-tab management. No unnecessary pop-ups, allowing you to focus purely on your text.
-* 🌍 **Full Format Compatibility, Zero Mojibake**: Automatically detects and reads almost all common encodings (UTF-8 / GBK / Big5, etc.) and line endings (LF / CRLF). More importantly, it **absolutely never alters the original file attributes** when saving—reads as-is, saves as-is.
-* 🔒 **Absolute Security & Privacy**: 100% local operation, zero telemetry. Unsaved edits are locally cached with AES-256-GCM encryption. Even after an unexpected power outage, your work is perfectly recovered.
-* 🧩 **Powerful yet Restrained**: Supports professional features like session restore, external file conflict detection, and text comparison, but firmly refuses to cram in any complex features you don't need.
+#### 核心特性
 
-#### Comparison of Major Editors
+FinchPad 摒弃了现代软件常见的臃肿与复杂，致力于为你提供极致的底层体验：
+
+* 🚀 **极致轻量，跨平台**：拒绝 Electron 的臃肿，基于 Tauri 2 与 Rust 原生架构打造。体积小巧、秒开即用，在 Windows / macOS / Linux 上保持一致的高级感。
+* 🎨 **现代极简 UI**：现代化的无边框设计，多款护眼主题与丝滑的多标签管理。没有多余的弹窗干扰，让你专注于文字本身。
+* 🌍 **全格式兼容，绝不乱码**：自动识别读取几乎所有常见编码（UTF-8 / GBK / Big5 等）与换行符（LF / CRLF）。更关键的是，保存时**绝对不篡改原文件属性**，原样读入，原样保存。
+* 🔒 **绝对安全与隐私**：100% 纯本地运行，零遥测。未保存的编辑内容采用 AES-256-GCM 本地加密缓存，即使意外断电，也能完美恢复。
+* 🧩 **强大但克制**：支持会话恢复、外部文件冲突检测、文本对比等专业级功能，但坚决不塞入任何你不需要的复杂功能。
+
+#### 各大编辑器对比
 <p align="center">
-  <img src="assets/0-En-各大编辑器对比.png" width="100%" alt="0-En-各大编辑器对比">
+  <img src="assets/0-中文-各大编辑器对比.png" width="100%" alt="0-中文-各大编辑器对比">
 </p>
 
-## Screenshots
+## 截图
 
 <p align="center">
-  <b>1. Modern & Minimalist UI</b><br>
-  <span style="color: gray; font-size: 14px;">Frameless, immersive design that lets you focus purely on text.</span><br><br>
-  <img src="assets/1-En-精美的主界面.png" width="90%" alt="Modern and Minimalist Main UI">
-</p>
-
-<p align="center">
-  <b>2. 5 Eye-Friendly Themes & Multi-Language</b><br>
-  <span style="color: gray; font-size: 14px;">Switch seamlessly between Dark, Sepia, Light Green, and more.</span><br><br>
-  <img src="assets/2-En-5套护眼主题、支持各种语言.png" width="90%" alt="5 Eye-Friendly Themes and Multi-Language Support">
+  <b>1. 现代极简的主界面</b><br>
+  <span style="color: gray; font-size: 14px;">无边框沉浸设计，让你专注于文字本身。</span><br><br>
+  <img src="assets/1-中文-精美的主界面.png" width="90%" alt="现代极简的主界面">
 </p>
 
 <p align="center">
-  <b>3. HTML Live Preview</b><br>
-  <span style="color: gray; font-size: 14px;">Split-screen view to see your code changes instantly as you type.</span><br><br>
-  <img src="assets/3-HTML实时预览.png" width="90%" alt="HTML Live Preview">
+  <b>2. 5套护眼主题与多语言支持</b><br>
+  <span style="color: gray; font-size: 14px;">深色、米黄、浅绿等主题随心切换，界面支持多国语言。</span><br><br>
+  <img src="assets/2-中文-5套护眼主题、支持各种语言.png" width="90%" alt="5套护眼主题与多语言支持">
 </p>
 
 <p align="center">
-  <b>4. Markdown Live Preview</b><br>
-  <span style="color: gray; font-size: 14px;">An immersive, WYSIWYG writing experience for your documents.</span><br><br>
-  <img src="assets/4-Markdown实时预览.png" width="90%" alt="Markdown Live Preview">
-</p>
-<p align="center">
-  <b>5. Sidebar: Recent Files & Large File Lazy Loading</b><br>
-  <span style="color: gray; font-size: 14px;">Quickly access history and open massive files instantly without lag.</span><br><br>
-  <img src="assets/5-En-侧边栏--最近文件--大文件懒加载--米黄主题.png" width="90%" alt="Sidebar Recent Files and Large File Lazy Loading">
-</p>
-
-
-<p align="center">
-  <b>6. Sidebar: Current Directory & Tab Management</b><br>
-  <span style="color: gray; font-size: 14px;">Clear folder trees and a smart hidden-tab dropdown to avoid clutter.</span><br><br>
-  <img src="assets/6-En-侧边栏--当前目录--隐藏表情下拉框--绿色主题.png" width="90%" alt="Sidebar Current Directory and Tab Dropdown">
+  <b>3. HTML 实时预览</b><br>
+  <span style="color: gray; font-size: 14px;">左右分屏，边写边看，前端调试的轻量利器。</span><br><br>
+  <img src="assets/3-HTML实时预览.png" width="90%" alt="HTML实时预览">
 </p>
 
 <p align="center">
-  <b>7. Text Comparison</b><br>
-  <span style="color: gray; font-size: 14px;">Side-by-side diffing to spot changes at a glance.</span><br><br>
-  <img src="assets/7-文件对比.png" width="90%" alt="Text Comparison">
+  <b>4. Markdown 实时预览</b><br>
+  <span style="color: gray; font-size: 14px;">沉浸式书写，所见即所得的文档编辑体验。</span><br><br>
+  <img src="assets/4-Markdown实时预览.png" width="90%" alt="Markdown实时预览">
 </p>
+
 <p align="center">
-  <b>8. Extreme Lightweight: FinchPad VS Notepad++</b><br>
-  <span style="color: gray; font-size: 14px;">More modern UI, smaller footprint, and lower memory usage.</span><br><br>
-  <img src="assets/8-FinchPad VS Notepad++.png" width="90%" alt="FinchPad vs Notepad++">
+  <b>5. 侧边栏：最近文件与大文件懒加载</b><br>
+  <span style="color: gray; font-size: 14px;">快速找回历史记录，超大文本也能以占位标签秒开。</span><br><br>
+  <img src="assets/5-中文-侧边栏--最近文件--大文件懒加载--米黄主题.png" width="90%" alt="侧边栏最近文件与大文件懒加载">
 </p>
+
 <p align="center">
-  <b>9. Instant Large File Opening: Open Hundreds of GB of Log Files in Seconds</b><br>
-  <span style="color: gray; font-size: 14px;">Fast search, jump to specific lines, and change encoding. Editing not supported yet.</span><br><br>
-  <img src="assets/9-En-大文件极速查看.png" width="90%" alt="大文件秒开">
+  <b>6. 侧边栏：当前目录与标签管理</b><br>
+  <span style="color: gray; font-size: 14px;">清晰的文件夹树与隐藏标签下拉框，告别多标签混乱。</span><br><br>
+  <img src="assets/6-中文-侧边栏--当前目录--隐藏标签下拉框--绿色主题.png" width="90%" alt="侧边栏当前目录与标签下拉框">
 </p>
 
-## Keyboard Shortcuts
+<p align="center">
+  <b>7. 双向文本对比</b><br>
+  <span style="color: gray; font-size: 14px;">并排查看，差异高亮，两版文案一目了然。</span><br><br>
+  <img src="assets/7-文件对比.png" width="90%" alt="文本对比">
+</p>
 
-> Shortcuts follow the default schemes of mainstream editors, allowing you to get started with zero learning curve.
->
-> Note that `Ctrl` series shortcuts also work on macOS, so you don't need to change your muscle memory.
+<p align="center">
+  <b>8. 极致轻量：FinchPad VS Notepad++</b><br>
+  <span style="color: gray; font-size: 14px;">更现代的 UI，更小巧的体积，更少的内存占用。</span><br><br>
+  <img src="assets/8-FinchPad VS Notepad++.png" width="90%" alt="FinchPad与Notepad++对比">
+</p>
 
-| Action                  | Windows / Linux                     | macOS                              |
+<p align="center">
+  <b>9. 大文件秒开：数百 GB 超大日志文件，瞬间打开</b><br>
+  <span style="color: gray; font-size: 14px;">支持快速搜索、指定行跳转与编码切换，暂不支持编辑</span><br><br>
+  <img src="assets/9-中文-大文件极速查看.png" width="90%" alt="大文件秒开">
+</p>
+
+## 快捷键
+
+> 快捷键沿用主流编辑器的默认方案，上手零学习成本。
+
+> 其中 `Ctrl` 系列快捷键在 macOS 上同样生效，无需切换肌肉记忆。
+
+| 操作                    | Windows / Linux                     | macOS                              |
 | ----------------------- | ----------------------------------- | ---------------------------------- |
-| New / Open / Save       | `Ctrl` + `N` or `T` / `O` / `S`     | `Cmd` + `N` or `T` / `O` / `S`     |
-| Save As                 | `Ctrl` + `Shift` + `S`              | `Cmd` + `Shift` + `S`              |
-| Close Tab               | `Ctrl` + `W`                        | `Cmd` + `W`                        |
-| Copy File Path          | `Ctrl` + `Shift` + `C`              | `Cmd` + `Shift` + `C`              |
-| Rename                  | Click tab and press `F2`            | Click tab and press `F2`           |
-| Copy / Paste / Cut / All| `Ctrl` + `C` / `V` / `X` / `A`      | `Cmd` + `C` / `V` / `X` / `A`      |
-| Undo / Redo             | `Ctrl` + `Z` / `Y` or `Shift`+`Z`   | `Cmd` + `Z` / `Y` or `Shift`+`Z`   |
-| Find / Replace          | `Ctrl` + `F` / `H`                  | `Cmd` + `F` / `H`                  |
-| Toggle Sidebar          | `Ctrl` + `B`                        | `Cmd` + `B`                        |
-| Switch Tab              | `Ctrl` + `Tab` / `1~9`              | `Ctrl` + `Tab` / `1~9`             |
-| Zoom                    | `Ctrl` + `+` / `-` / `0` / Mouse wheel | `Cmd` + `+` / `-` / `0` / Mouse wheel |
-| Close Pop-up            | `Esc`                               | `Esc`                              |
-| Exit Application        | `Alt` + `F4`                        | `Cmd` + `Q`                        |
+| 新建 / 打开 / 保存      | `Ctrl` + `N` 或 `T` / `O` / `S`     | `Cmd` + `N` 或 `T` / `O` / `S`     |
+| 另存为                  | `Ctrl` + `Shift` + `S`              | `Cmd` + `Shift` + `S`              |
+| 关闭标签                | `Ctrl` + `W`                        | `Cmd` + `W`                        |
+| 复制文件路径            | `Ctrl` + `Shift` + `C`              | `Cmd` + `Shift` + `C`              |
+| 重命名                  | 点击标签按`F2`                      | 点击标签按`F2`                     |
+| 复制 / 粘贴 / 剪切/全选 | `Ctrl` + `C` / `V` / `X` / `A`      | `Cmd` + `C` / `V` / `X` / `A`      |
+| 撤销 / 重做             | `Ctrl` + `Z` / `Y`或`Shift`+`Z`     | `Cmd` + `Z` / `Y`或`Shift`+`Z`     |
+| 查找 / 替换             | `Ctrl` + `F` / `H`                  | `Cmd` + `F` / `H`                  |
+| 显示侧边栏              | `Ctrl` + `B`                        | `Cmd` + `B`                        |
+| 切换标签                | `Ctrl` + `Tab` / `1~9`              | `Ctrl` + `Tab`  / `1~9`            |
+| 缩放                    | `Ctrl` + `+` / `-` / `0` / 鼠标滚轮 | `Cmd` + `+` / `-` / `0` / 鼠标滚轮 |
+| 关闭弹窗                | `Esc`                               | `Esc`                              |
+| 退出程序                | `Alt` + `F4`                        | `Cmd` + `Q`                        |
+## 技术架构
 
-## Tech Stack
+| 模块       | 技术                                                        |
+| ---------- | ----------------------------------------------------------- |
+| 编程语言   | Rust                                                        |
+| 桌面框架   | Tauri 2                                                     |
+| 前端       | SvelteKit 5                                                 |
+| 编辑器内核 | Monaco Editor                                               |
+| 编码       | encoding_rs + chardetng                                     |
+| 加密       | AES-256-GCM (Win/Linux 基于 OS keyring，macOS 基于本地文件) |
+| 平台       | Windows / Linux / macOS                                     |
 
-| Module | Technology |
-| --- | --- |
-| Language | Rust |
-| Desktop Framework | Tauri 2 |
-| Frontend | SvelteKit 5 |
-| Editor Core | Monaco Editor |
-| Encoding | encoding_rs + chardetng |
-| Encryption | AES-256-GCM (OS keyring on Win/Linux, local file on macOS) |
-| Platform | Windows / Linux / macOS |
+FinchPad **不使用 Electron**，采用轻量化原生架构。基于 Tauri 2、Svelte 5、Rust 和 Monaco Editor 构建。
 
-FinchPad **does not use Electron**, adopting a lightweight native architecture. Built with Tauri 2, Svelte 5, Rust, and Monaco Editor.
+## 构建
 
-## Build
-
-Requirements: [Rust](https://rustup.rs/), [Node.js](https://nodejs.org/) (v18+), and native system build tools (e.g., C++ Build Tools for Windows, Xcode CLT for macOS, WebKitGTK for Linux. See [Tauri Prerequisites](https://tauri.app/start/prerequisites/) for details).
+环境要求：[Rust](https://rustup.rs/)、[Node.js](https://nodejs.org/) (v18+)，以及系统原生构建工具（如 Windows C++ 工具链、macOS Xcode CLT、Linux WebKitGTK，详见 [Tauri 前置要求](https://tauri.app/start/prerequisites/)）。
 
 ```bash
 git clone https://github.com/MaleyGoz/FinchPad.git
 cd FinchPad
 npm install
 
-# Run in development mode (with hot reload)
+# 本地开发调试 (带热更新)
 npm run tauri dev
 
-# Build production installer
+# 构建生产安装包
 npm run tauri build
 ```
 
-The installer can be found in `src-tauri/target/release/bundle/`.
+编译产物位于：src-tauri/target/release/bundle/。
 
-## Privacy Policy
+## 隐私声明
 
-FinchPad is designed with a **privacy-first, purely local** philosophy:
+FinchPad 秉持**绝对隐私、纯本地化**的设计理念：
 
-1. **100% Local Data**: All your text, edits, and cached files are stored locally on your device (encrypted with AES-256-GCM). We **never collect or upload** your file contents, usage habits, or device information.
-2. **No Telemetry or Tracking**: The application contains no background telemetry, analytics, or user behavior tracking code.
-3. **Network Activities**:
-   - An anonymous request is sent to the GitHub API *only* when checking for software updates.
-   - When using Markdown/HTML preview, the WebView may load external network resources (e.g., images or links) if your document references them.
-   - Aside from the above, FinchPad never initiates network connections.
+1. **数据纯本地运行**：你输入的所有文本、编辑记录及缓存文件，均 100% 存储在你的本地设备中（且采用 AES-256-GCM 加密）。我们**绝不收集、不上传**你的任何文件内容、使用习惯或设备信息。
+2. **无遥测与追踪**：软件不包含任何后台遥测、数据统计或用户行为追踪代码。
+3. **网络请求说明**：
+   - 仅在触发“版本更新检查”时，会向 GitHub API 发起匿名请求。
+   - 在使用 Markdown / HTML 预览功能时，如果你的文档中包含了外部网络资源（如图片、链接），WebView 可能会自动加载这些外部内容。
+   - 除上述情况外，FinchPad 绝不主动发起网络连接。
 
-## Contributing
+## 参与贡献
 
-All forms of participation are welcome: code, UI/UX, testing, documentation, translation, bug reports, and product suggestions.
+欢迎各种形式的参与：代码、UI/UX、测试、文档、翻译、Bug 报告、产品建议。
 
-Even if you are not a developer, you are welcome to discuss product direction in [Issues](https://github.com/MaleyGoz/FinchPad/issues).
+即使不是开发者，也欢迎在 [Issues](https://github.com/MaleyGoz/FinchPad/issues) 里讨论产品方向。
 
-## License
+## 开源协议
 
-This project is licensed under the **MIT License**.
+本项目采用 **MIT License** 开源协议。
 
 Copyright (c) 2026 MaleyGoz
 
-This means you are free to use, modify, and distribute this project, including for commercial purposes, as long as you retain the original copyright and license notices. For more details, please refer to the [LICENSE](LICENSE)file in the project root.
+这意味着你可以自由地使用、修改、分发本项目，包括用于商业用途，只需保留原始的版权声明和许可声明即可。详细信息请参阅项目根目录下的[LICENSE](LICENSE) 文件。
 
 ------
 
-<div align="center"> <sub>Built with Rust · Tauri · Svelte · and a focus on simplicity.</sub> </div>
+<div align="center"> <sub>Built with Rust · Tauri · Svelte · and a focus on simplicity.</sub> </div> 
