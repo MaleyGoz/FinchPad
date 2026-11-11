@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="static/icon.png" width="100" alt="FinchPad">
+<img src="src-tauri\iconslogo.png" width="100" alt="FinchPad">
 
 # FinchPad
 
