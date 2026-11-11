@@ -604,7 +604,13 @@
             theme: `txt-${editorBg}`,
             fontSize: calcFontSize(),
             lineHeight: Math.round(calcFontSize() * 1.5),
-            fontFamily: "var(--font-mono)",
+            // fontFamily: "var(--font-mono)",
+            // 【优化 1】显式写入完整的字体栈字符串，避免 Monaco 对 CSS 变量解析的兼容性问题
+            fontFamily:
+                '"Consolas", "Cascadia Code", "SF Mono", "Menlo", "Monaco", "Ubuntu Mono", "DejaVu Sans Mono", "Source Code Pro", "Noto Sans Mono", "Noto Sans Mono CJK SC", "PingFang SC", "Microsoft YaHei", monospace',
+            // 【优化 2】适当提升字重（从默认的 400 调整到 450），让非纯白主题下的文字边缘瞬间“扎实”起来
+            fontWeight: "450",
+
             fontLigatures: false,
             minimap: { enabled: false },
             automaticLayout: true,

@@ -106,19 +106,27 @@
        ========================================== */
     :global(:root) {
         /* 
-         * 全球多语言 UI 无衬线字体栈 (用于菜单、侧边栏、状态栏等)
-         * 策略：优先使用各系统的原生 UI 字体，然后依次降级到跨平台开源字体
+         * 全球多语言 UI 无衬线字体栈 (已具备极佳的全球多语言覆盖)
          */
         --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
             "Helvetica Neue", "Noto Sans", "PingFang SC", "Microsoft YaHei",
             "WenQuanYi Micro Hei", sans-serif;
 
         /* 
-         * 全球多语言代码/路径等宽字体栈 (用于 Monaco、路径文本、代码预览)
-         * 策略：优先使用各系统顶级的代码字体，并强制加入 CJK 等宽字体防止中英混排错位
+         * 全球多语言代码/路径等宽字体栈（全球化无乱码终极版）
+         * 策略：平台精品西文 -> 跨平台顶级开源西文 -> 全球全语系开源兜底 (Noto Sans Mono) -> CJK/地区专用兜底
          */
-        --font-mono: "Cascadia Code", "SF Mono", "Menlo", "Monaco", "Consolas",
-            "Ubuntu Mono", "DejaVu Sans Mono", "Noto Sans Mono CJK SC",
+        --font-mono: 
+            /* 1. Windows 顶级西文等宽（兼顾非纯白背景清晰度） */ "Consolas",
+            /* 2. 现代跨平台高性能西文等宽（带连字与优秀抗锯齿） */
+                "Cascadia Code",
+            /* 3. macOS 顶级专有等宽 */ "SF Mono", "Menlo", "Monaco",
+            /* 4. Linux 与通用开源优秀西文等宽 */ "Ubuntu Mono",
+            "DejaVu Sans Mono", "Source Code Pro",
+            /* 5. 【核心】Google Noto 全球多语言等宽兜底（消灭全世界绝大部分非拉丁语系乱码） */
+                "Noto Sans Mono",
+            /* 6. CJK（中日韩）等宽与各平台本地化字体兜底（防止中日韩混排错位） */
+                "Noto Sans Mono CJK SC",
             "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
             "WenQuanYi Micro Hei", monospace;
     }
