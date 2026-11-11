@@ -272,6 +272,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             mac: "Cmd + Q",
         },
     ];
+
+    // ★ 核心修复：当 aboutVisible 变为 true（即弹窗打开时）时，强制重置为第一个选项卡
+    $: if (aboutVisible) {
+        activeAboutTab = "about";
+    }
 </script>
 
 <!-- 通用弹窗 (modal) -->
