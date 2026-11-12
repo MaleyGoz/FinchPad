@@ -24,6 +24,10 @@ It is more powerful than the built-in Notepad, yet lighter than professional edi
 > Every feature answers one question: **Do most users really need it?**
 
 ## Why Choose FinchPad?
+#### Comparison of Major Editors
+<p align="center">
+  <img src="assets/0-En-各大编辑器对比.png" width="100%" alt="0-En-各大编辑器对比">
+</p>
 
 #### Use Cases
 
@@ -45,10 +49,6 @@ FinchPad abandons the bloat of modern software to deliver an ultimate underlying
 * 🔒 **Absolute Security & Privacy**: 100% local operation, zero telemetry. Unsaved edits are locally cached with AES-256-GCM encryption. Even after an unexpected power outage, your work is perfectly recovered.
 * 🧩 **Powerful yet Restrained**: Supports professional features like session restore, external file conflict detection, and text comparison, but firmly refuses to cram in any complex features you don't need.
 
-#### Comparison of Major Editors
-<p align="center">
-  <img src="assets/0-En-各大编辑器对比.png" width="100%" alt="0-En-各大编辑器对比">
-</p>
 
 ## Screenshots
 
